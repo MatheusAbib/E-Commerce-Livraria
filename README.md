@@ -8,7 +8,7 @@
 
 Sistema completo de livraria online desenvolvido com **Spring Boot** (backend) e **Angular** (frontend). Permite gerenciar catálogo de livros, carrinho de compras, pedidos, devoluções, cupons de desconto e muito mais.
 
-> **Acesse online:** (https://livraria-online-gold.vercel.app/)
+> 🔗 **Acesse online:** (https://livrariaonline-gold.vercel.app)
 
 ---
 
