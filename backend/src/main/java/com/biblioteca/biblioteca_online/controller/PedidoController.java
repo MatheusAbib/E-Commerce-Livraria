@@ -1,5 +1,10 @@
 package com.biblioteca.biblioteca_online.controller;
 
+import com.biblioteca.biblioteca_online.command.AtualizarStatusCommand;
+import com.biblioteca.biblioteca_online.command.CancelarPedidoCommand;
+import com.biblioteca.biblioteca_online.command.Command;
+import com.biblioteca.biblioteca_online.command.CommandInvoker;
+import com.biblioteca.biblioteca_online.command.ConfirmarReembolsoCommand;
 import com.biblioteca.biblioteca_online.dto.AtualizarStatusDTO;
 import com.biblioteca.biblioteca_online.dto.CriarPedidoDTO;
 import com.biblioteca.biblioteca_online.dto.DevolucaoParcialDTO;
@@ -12,7 +17,6 @@ import com.biblioteca.biblioteca_online.model.ItemDevolucao;
 import com.biblioteca.biblioteca_online.model.Pedido;
 import com.biblioteca.biblioteca_online.model.StatusPedido;
 import com.biblioteca.biblioteca_online.repository.PedidoRepository;
-import com.biblioteca.biblioteca_online.model.Log;
 import com.biblioteca.biblioteca_online.service.PedidoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.biblioteca.biblioteca_online.service.LogService;
@@ -29,14 +33,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.biblioteca.biblioteca_online.repository.DevolucaoFotoRepository;
 import java.io.File;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -49,6 +51,15 @@ public class PedidoController {
 
     @Autowired
     private CupomService cupomService;
+
+    @Autowired
+    private CommandInvoker commandInvoker;
+
+    @Autowired
+    private PedidoRepository pedidoRepository;
+
+    @Autowired
+    private DevolucaoFotoRepository devolucaoFotoRepository;
 
     public PedidoController(PedidoService pedidoService,
                            LogService logService,
@@ -68,92 +79,56 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.listarPedidosPorCliente(clienteId));
     }
 
-    @Autowired
-    private PedidoRepository pedidoRepository;
-    @Autowired
-    private DevolucaoFotoRepository devolucaoFotoRepository;
+    @PostMapping
+    public ResponseEntity<?> criarPedido(@RequestBody CriarPedidoDTO pedidoDTO) {
+        try {
+            Long cartaoId = null;
+            List<Long> cartoesAdicionais = null;
 
-  @PostMapping
-public ResponseEntity<?> criarPedido(@RequestBody CriarPedidoDTO pedidoDTO) {
-    try {
-        Long cartaoId = null;
-        List<Long> cartoesAdicionais = null;
+            if (pedidoDTO.getPagamentos() != null && !pedidoDTO.getPagamentos().isEmpty()) {
+                cartaoId = pedidoDTO.getPagamentos().get(0).getCartaoId();
+                cartoesAdicionais = pedidoDTO.getPagamentos().stream()
+                    .skip(1)
+                    .map(PagamentoDTO::getCartaoId)
+                    .toList();
+            }
 
-        if (pedidoDTO.getPagamentos() != null && !pedidoDTO.getPagamentos().isEmpty()) {
-            cartaoId = pedidoDTO.getPagamentos().get(0).getCartaoId();
-            cartoesAdicionais = pedidoDTO.getPagamentos().stream()
-                .skip(1)
-                .map(PagamentoDTO::getCartaoId)
-                .toList();
+            String primeiroCupom = null;
+
+            Pedido pedido = pedidoService.criarPedido(
+                pedidoDTO.getClienteId(),
+                pedidoDTO.getItens(),
+                pedidoDTO.getEnderecoId(),
+                cartaoId,
+                cartoesAdicionais,
+                pedidoDTO.getValorDesconto(),
+                primeiroCupom,
+                pedidoDTO.getValorSubtotal()
+            );
+
+            return ResponseEntity.ok(pedido);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(
+                Map.of("mensagem", e.getMessage(), "status", "erro")
+            );
         }
-
-          String primeiroCupom = null;
-
-        Pedido pedido = pedidoService.criarPedido(
-            pedidoDTO.getClienteId(),
-            pedidoDTO.getItens(),
-            pedidoDTO.getEnderecoId(),
-            cartaoId,
-            cartoesAdicionais,
-            pedidoDTO.getValorDesconto(),
-            primeiroCupom,
-            pedidoDTO.getValorSubtotal()
-        );
-
-        return ResponseEntity.ok(pedido);
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.badRequest().body(
-            Map.of("mensagem", e.getMessage(), "status", "erro")
-        );
     }
-}
 
     @PutMapping("/{id}/status")
     public ResponseEntity<Pedido> atualizarStatus(
         @PathVariable Long id,
         @RequestBody AtualizarStatusDTO statusDTO) {
 
-        Pedido pedido = pedidoService.atualizarStatus(
+        Command command = new AtualizarStatusCommand(
+            pedidoService,
+            cupomService,
+            logService,
+            messagingTemplate,
             id,
-            statusDTO.getNovoStatus(),
-            statusDTO.getMotivoDevolucao(),
-            statusDTO.getCodigoRastreamentoEnvio(),
-            statusDTO.getCodigoRastreamentoDevolucao()
+            statusDTO
         );
 
-        if (statusDTO.getNovoStatus() == StatusPedido.ENTREGUE) {
-            pedido.setDataEntrega(LocalDate.now());
-            pedido = pedidoService.salvar(pedido);
-        }
-
-        if (statusDTO.getNovoStatus() == StatusPedido.DEVOLVIDO && statusDTO.getCupom() != null) {
-            if (statusDTO.getCupom().getGerarCupom() != null && statusDTO.getCupom().getGerarCupom()) {
-                String codigoCupom = "DEV-" + System.currentTimeMillis() + "-" + id;
-                BigDecimal porcentagem = statusDTO.getCupom().getPorcentagem();
-
-                cupomService.gerarCupomDevolucao(
-                    pedido.getId(),
-                    pedido.getCliente().getId(),
-                    codigoCupom,
-                    porcentagem
-                );
-            }
-        }
-
-        messagingTemplate.convertAndSend("/topic/pedidos", pedido);
-
-        try {
-            Log log = new Log();
-            log.setUserId(pedido.getCliente().getId());
-            log.setUserName(pedido.getCliente().getNome());
-            log.setAction("status_pedido");
-            log.setDetails("Status do pedido #" + id + " alterado para " + statusDTO.getNovoStatus().name());
-            log.setLevel("info");
-            logService.salvarLog(log);
-        } catch (Exception e) {
-            System.err.println("Erro ao registrar log de status: " + e.getMessage());
-        }
+        Pedido pedido = (Pedido) commandInvoker.executar(command);
 
         return ResponseEntity.ok(pedido);
     }
@@ -166,8 +141,9 @@ public ResponseEntity<?> criarPedido(@RequestBody CriarPedidoDTO pedidoDTO) {
     @PutMapping("/{id}/cancelar")
     public ResponseEntity<?> cancelarPedido(@PathVariable Long id) {
         try {
-            pedidoService.cancelarPedido(id);
-            return ResponseEntity.ok(Map.of("mensagem", "Pedido cancelado com sucesso"));
+            Command command = new CancelarPedidoCommand(pedidoService, id);
+            String mensagem = (String) commandInvoker.executar(command);
+            return ResponseEntity.ok(Map.of("mensagem", mensagem));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("mensagem", e.getMessage()));
@@ -180,11 +156,8 @@ public ResponseEntity<?> criarPedido(@RequestBody CriarPedidoDTO pedidoDTO) {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> excluirPedido(@PathVariable Long id) {
         try {
-            System.out.println("Recebendo DELETE para pedido ID: " + id);
-
             Optional<Pedido> pedidoOpt = pedidoService.buscarPorIdOptional(id);
             if (pedidoOpt.isEmpty()) {
-                System.out.println("Pedido não encontrado com ID: " + id);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("mensagem", "Pedido não encontrado com ID: " + id));
             }
@@ -192,19 +165,15 @@ public ResponseEntity<?> criarPedido(@RequestBody CriarPedidoDTO pedidoDTO) {
             Pedido pedido = pedidoOpt.get();
 
             if (pedido.getStatus() != StatusPedido.CANCELADO) {
-                System.out.println("Pedido não está cancelado! Status: " + pedido.getStatus());
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("mensagem", "Apenas pedidos cancelados podem ser excluídos"));
             }
 
             pedidoRepository.deleteById(id);
 
-            System.out.println("Pedido excluído com sucesso: " + id);
             return ResponseEntity.ok(Map.of("mensagem", "Pedido excluído com sucesso"));
 
         } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Erro ao excluir pedido: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("mensagem", "Erro ao excluir pedido: " + e.getMessage()));
         }
@@ -213,7 +182,8 @@ public ResponseEntity<?> criarPedido(@RequestBody CriarPedidoDTO pedidoDTO) {
     @PutMapping("/{id}/confirmar-reembolso")
     public ResponseEntity<?> confirmarReembolso(@PathVariable Long id) {
         try {
-            Pedido pedido = pedidoService.confirmarReembolso(id);
+            Command command = new ConfirmarReembolsoCommand(pedidoService, id);
+            Pedido pedido = (Pedido) commandInvoker.executar(command);
             return ResponseEntity.ok(pedido);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("mensagem", e.getMessage()));
@@ -222,10 +192,8 @@ public ResponseEntity<?> criarPedido(@RequestBody CriarPedidoDTO pedidoDTO) {
 
     @GetMapping("/historico/{clienteId}")
     public ResponseEntity<List<Map<String, Object>>> getHistoricoLivros(@PathVariable Long clienteId) {
-        System.out.println("🔍 Buscando histórico para cliente: " + clienteId);
 
         List<Pedido> pedidos = pedidoService.listarPedidosPorCliente(clienteId);
-        System.out.println("📦 Total de pedidos encontrados: " + pedidos.size());
 
         List<StatusPedido> statusValidos = Arrays.asList(
             StatusPedido.ENTREGUE,
@@ -234,9 +202,6 @@ public ResponseEntity<?> criarPedido(@RequestBody CriarPedidoDTO pedidoDTO) {
 
         List<Map<String, Object>> historico = pedidos.stream()
             .filter(p -> statusValidos.contains(p.getStatus()))
-            .peek(p -> System.out.println("   - Pedido ID: " + p.getId() +
-                                         ", Status: " + p.getStatus() +
-                                         ", Itens: " + p.getItens().size()))
             .flatMap(p -> p.getItens().stream())
             .map(item -> {
                 Map<String, Object> dados = new HashMap<>();
@@ -250,7 +215,6 @@ public ResponseEntity<?> criarPedido(@RequestBody CriarPedidoDTO pedidoDTO) {
             })
             .collect(Collectors.toList());
 
-        System.out.println("✅ Itens no histórico: " + historico.size());
         return ResponseEntity.ok(historico);
     }
 
@@ -293,7 +257,7 @@ public ResponseEntity<?> criarPedido(@RequestBody CriarPedidoDTO pedidoDTO) {
             if (fotos != null && !fotos.isEmpty()) {
                 for (MultipartFile foto : fotos) {
                     if (foto != null && !foto.isEmpty()) {
-                        String nomeArquivo = System.currentTimeMillis() + "_" + foto.getOriginalFilename();
+                        String nomeArquivo = UUID.randomUUID().toString() + obterExtensaoSegura(foto.getOriginalFilename());
 
                         String uploadDir = System.getProperty("user.dir") + "/uploads/devolucoes/";
                         File directory = new File(uploadDir);
@@ -323,10 +287,20 @@ public ResponseEntity<?> criarPedido(@RequestBody CriarPedidoDTO pedidoDTO) {
                 "pedidoDevolucao", pedidoDevolucao
             ));
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.badRequest().body(
                 Map.of("mensagem", e.getMessage())
             );
         }
+    }
+
+    private String obterExtensaoSegura(String nomeOriginal) {
+        if (nomeOriginal == null || !nomeOriginal.contains(".")) {
+            return ".bin";
+        }
+        String ext = nomeOriginal.substring(nomeOriginal.lastIndexOf("."));
+        if (ext.matches("\\.[a-zA-Z0-9]{1,5}")) {
+            return ext.toLowerCase();
+        }
+        return ".bin";
     }
 }

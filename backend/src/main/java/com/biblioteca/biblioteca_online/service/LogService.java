@@ -40,7 +40,6 @@ public class LogService {
             log.setTimestamp(LocalDateTime.now());
             logRepository.save(log);
         } catch (Exception e) {
-            System.err.println("Erro ao adicionar notificação: " + e.getMessage());
         }
     }
 }

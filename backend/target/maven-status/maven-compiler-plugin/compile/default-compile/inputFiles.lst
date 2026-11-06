@@ -1,5 +1,10 @@
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\AdminInitializer.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\BibliotecaOnlineApplication.java
+C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\command\AtualizarStatusCommand.java
+C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\command\CancelarPedidoCommand.java
+C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\command\Command.java
+C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\command\CommandInvoker.java
+C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\command\ConfirmarReembolsoCommand.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\config\CorsConfig.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\config\JwtAuthenticationFilter.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\config\SecurityConfig.java
@@ -7,6 +12,7 @@ C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblio
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\config\WebSocketConfig.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\controller\AvaliacaoController.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\controller\CartaoController.java
+C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\controller\CarteiraController.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\controller\ChatController.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\controller\ClienteController.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\controller\CupomController.java
@@ -28,8 +34,13 @@ C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblio
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\dto\LoginRequest.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\dto\PagamentoDTO.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\dto\SenhaDTO.java
+C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\factory\CupomDevolucaoFactory.java
+C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\factory\CupomFactory.java
+C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\factory\CupomFactorySelector.java
+C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\factory\CupomPromocionalFactory.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\model\Avaliacao.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\model\Cartao.java
+C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\model\Carteira.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\model\Cliente.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\model\Cupom.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\model\DevolucaoFoto.java
@@ -43,8 +54,11 @@ C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblio
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\model\MensagemChat.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\model\Pedido.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\model\StatusPedido.java
+C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\model\TipoCupom.java
+C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\model\TipoTransacao.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\repository\AvaliacaoRepository.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\repository\CartaoRepository.java
+C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\repository\CarteiraRepository.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\repository\ClienteRepository.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\repository\CupomRepository.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\repository\DevolucaoFotoRepository.java
@@ -56,6 +70,7 @@ C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblio
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\repository\PedidoRepository.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\service\AvaliacaoService.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\service\CartaoService.java
+C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\service\CarteiraService.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\service\ChatExpirationService.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\service\ChatService.java
 C:\Users\97857\Desktop\projects\Livraria-Online\backend\src\main\java\com\biblioteca\biblioteca_online\service\ClienteService.java

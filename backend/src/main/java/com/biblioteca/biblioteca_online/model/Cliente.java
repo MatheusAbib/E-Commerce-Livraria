@@ -40,24 +40,28 @@ public class Cliente {
     @JsonManagedReference
     private List<Cartao> cartoes;
 
-@OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
-@JsonIgnoreProperties("cliente")
-@JsonIgnore 
-private List<Pedido> pedidos;
-
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("cliente")
+    @JsonIgnore 
+    private List<Pedido> pedidos;
 
     @ElementCollection
-@CollectionTable(name = "cliente_favoritos", joinColumns = @JoinColumn(name = "cliente_id"))
-@Column(name = "livro_id")
-private List<Long> favoritos = new ArrayList<>();
+    @CollectionTable(name = "cliente_favoritos", joinColumns = @JoinColumn(name = "cliente_id"))
+    @Column(name = "livro_id")
+    private List<Long> favoritos = new ArrayList<>();
 
-public List<Long> getFavoritos() {
-    return favoritos;
-}
 
-public void setFavoritos(List<Long> favoritos) {
-    this.favoritos = favoritos;
-}
+    @JsonIgnore
+    @OneToOne(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Carteira carteira;
+
+    public List<Long> getFavoritos() {
+        return favoritos;
+    }
+
+    public void setFavoritos(List<Long> favoritos) {
+        this.favoritos = favoritos;
+    }
 
     public Long getId() {
         return id;
@@ -65,11 +69,11 @@ public void setFavoritos(List<Long> favoritos) {
 
     public String getPerfil() {
     return perfil;
-}
+    }
 
-public void setPerfil(String perfil) {
-    this.perfil = perfil;
-}
+    public void setPerfil(String perfil) {
+        this.perfil = perfil;
+    }
 
 
     public void setId(Long id) {
@@ -194,5 +198,13 @@ public void setPerfil(String perfil) {
 
     public void setPedidos(List<Pedido> pedidos) {
         this.pedidos = pedidos;
+    }
+
+    public Carteira getCarteira() {
+    return carteira;
+    }
+
+    public void setCarteira(Carteira carteira) {
+        this.carteira = carteira;
     }
 }

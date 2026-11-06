@@ -9,7 +9,7 @@
       "dest": "http://64.227.6.51:8081/uploads/$1"
     },
     {
-      "src": "/(.*)\\.(js|css|woff2|woff|ttf|svg|png|jpg|jpeg|gif|ico|json|map)",
+      "src": "/(.*)\\.(js|css|woff2|woff|ttf|svg|png|jpg|jpeg|gif|ico|json|map|webp)",
       "dest": "/$1.$2"
     },
     {

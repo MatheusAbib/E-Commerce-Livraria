@@ -1,50 +1,61 @@
-<footer>
+
+<footer class="footer">
   <div class="footer-container">
-<div class="footer-col">
-  <h3>Sobre Nós</h3>
-  <p>Livraria online com mais de 500 titulos em diversas categorias. Aqui voce encontra livros de romance, terror, ficcao cientifica, fantasia e muito mais.</p>
-  <p style="margin-top: 0.5rem; font-size: 0.8rem;">
-    <i class="pi pi-check-circle" style="color: #22c55e; margin-right: 0.3rem;"></i> Entrega rapida e segura<br>
-    <i class="pi pi-check-circle" style="color: #22c55e; margin-right: 0.3rem;"></i> Pagamento parcelado em ate 3x sem juros<br>
-    <i class="pi pi-check-circle" style="color: #22c55e; margin-right: 0.3rem;"></i> Devolucao facil em ate 7 dias<br>
-    <i class="pi pi-check-circle" style="color: #22c55e; margin-right: 0.3rem;"></i> Atendimento ao cliente 24h por chat
-  </p>
-  <div class="social-links" style="margin-top: 0.75rem;">
-    <a href="#"><i class="pi pi-twitter"></i></a>
-    <a href="#"><i class="pi pi-instagram"></i></a>
-    <a href="#"><i class="pi pi-linkedin"></i></a>
-  </div>
-</div>
-    <div class="footer-col">
-      <h3>Categorias</h3>
-      <ul>
-        <li>Ficção</li>
-        <li>Não-Ficção</li>
-        <li>Técnicos</li>
-        <li>Infantil</li>
-        <li>Didáticos</li>
-      </ul>
+    <div class="footer-topo">
+      <div class="footer-identidade">
+        <span class="footer-indice">LIVRARIA ONLINE</span>
+        <h2>LIVROS<br>& OUTRAS<br>HISTÓRIAS<span>.</span></h2>
+      </div>
+
+      <div class="footer-informacoes">
+        <div class="footer-col">
+          <h3>Explore</h3>
+          <nav aria-label="Navegação do rodapé">
+            <a routerLink="/principal">Início</a>
+            <a routerLink="/principal" fragment="produtos">Nosso acervo</a>
+            <ng-container *ngIf="isLoggedIn">
+              <a routerLink="/pedidos">Meus pedidos</a>
+              <a routerLink="/transacoes">Minhas transações</a>
+            </ng-container>
+          </nav>
+        </div>
+
+        <div class="footer-col">
+          <h3>Contato</h3>
+          <div class="footer-contato">
+            <a href="mailto:contato@livrosonline.com">
+              contato@livrosonline.com
+            </a>
+            <a href="tel:+551112345678">
+              (11) 1234-5678
+            </a>
+            <span>São Paulo, Brasil</span>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h3>Redes</h3>
+          <div class="footer-redes">
+            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">
+              Instagram <i class="pi pi-arrow-up-right"></i>
+            </a>
+            <a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer">
+              LinkedIn <i class="pi pi-arrow-up-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="footer-col">
-      <h3>Contato</h3>
-      <ul class="contact-list">
-        <li><i class="pi pi-map-marker"></i> Rua das Rosas, 123 - São Paulo, SP</li>
-        <li><i class="pi pi-phone"></i> (11) 1234-5678</li>
-        <li><i class="pi pi-envelope"></i> contato@livrosonline.com</li>
-      </ul>
+
+    <div class="footer-faixa">
+      <span>LIVROS & OUTRAS HISTÓRIAS.</span>
+      <span class="footer-faixa-simbolo" aria-hidden="true">✳︎</span>
+      <span>LEIA MAIS. DESCUBRA MAIS.</span>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© {{ anoAtual }} Livros Online. Todos os direitos reservados.</p>
+      <span>FEITO PARA QUEM AMA LIVROS.</span>
     </div>
   </div>
-<div class="footer-bottom">
-  <p>&copy; {{anoAtual}} Livros Online. Todos os direitos reservados.</p>
-  <div class="footer-bottom-links">
-    <a routerLink="/principal">Início</a>
-    <ng-container *ngIf="isLoggedIn; else guestFooter">
-      <a routerLink="/pedidos">Meus Pedidos</a>
-      <a routerLink="/transacoes">Minhas Transações</a>
-    </ng-container>
-    <ng-template #guestFooter>
-      <span class="guest-footer-msg">Faça login ou cadastre-se e tenha acesso a todas as funcionalidades</span>
-    </ng-template>
-  </div>
-</div>
 </footer>

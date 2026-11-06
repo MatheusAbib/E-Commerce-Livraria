@@ -70,7 +70,6 @@ public ResponseEntity<?> salvarCliente(@RequestBody Cliente cliente) {
     } catch (IllegalArgumentException e) {
         return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
     } catch (Exception e) {
-        e.printStackTrace();
         return ResponseEntity.status(500).body(Map.of("message", "Erro interno do servidor"));
     }
 }
@@ -183,29 +182,20 @@ public ResponseEntity<?> login(@RequestBody LoginRequest request) {
 @PostMapping("/{id}/favoritos")
 public ResponseEntity<?> adicionarFavorito(@PathVariable Long id, @RequestBody Map<String, Long> payload) {
     try {
-        System.out.println("=== ADICIONANDO FAVORITO ===");
-        System.out.println("Cliente ID: " + id);
         
         Long livroId = payload.get("livroId");
-        System.out.println("Livro ID: " + livroId);
         
         Cliente cliente = clienteService.buscarPorId(id)
             .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
         
-        System.out.println("Cliente encontrado: " + cliente.getNome());
-        System.out.println("Senha do cliente: " + cliente.getSenha());
-        System.out.println("Senha é null? " + (cliente.getSenha() == null));
-        System.out.println("Favoritos atuais: " + cliente.getFavoritos());
 
         if (!cliente.getFavoritos().contains(livroId)) {
             cliente.getFavoritos().add(livroId);
             clienteService.salvarFavoritos(cliente);
         }
         
-        System.out.println("=== FIM ADICIONANDO FAVORITO ===");
         return ResponseEntity.ok(Map.of("mensagem", "Adicionado aos favoritos"));
     } catch (Exception e) {
-        e.printStackTrace();
         return ResponseEntity.badRequest().body(Map.of("mensagem", e.getMessage()));
     }
 }
@@ -250,7 +240,6 @@ public ResponseEntity<?> buscarRankingClientes() {
         List<ClienteRankingDTO> ranking = clienteService.obterRankingClientes();
         return ResponseEntity.ok(ranking);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Erro ao buscar ranking: " + e.getMessage());
         }

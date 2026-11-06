@@ -128,7 +128,6 @@ public class AvaliacaoService {
             log.setLevel("info");
             logService.salvarLog(log);
         } catch (Exception e) {
-            System.err.println("Erro ao registrar log: " + e.getMessage());
         }
 
         return avaliacaoAtualizada;

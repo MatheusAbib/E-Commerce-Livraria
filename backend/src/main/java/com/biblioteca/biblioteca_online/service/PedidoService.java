@@ -36,6 +36,9 @@ public class PedidoService {
     private LogService logService;
 
     @Autowired
+    private CarteiraService carteiraService;
+
+    @Autowired
     public PedidoService(PedidoRepository pedidoRepository,
                          LivroService livroService,
                          ClienteService clienteService,
@@ -53,38 +56,45 @@ public Pedido criarPedido(Long clienteId, List<ItemPedidoDTO> itensDTO,
                           BigDecimal valorDesconto, String codigoCupom,
                           BigDecimal valorSubtotalRecebido) throws Exception {
 
-    Cliente cliente = clienteService.buscarPorId(clienteId)
-        .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+        Cliente cliente = clienteService.buscarPorId(clienteId)
+            .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
 
-    Pedido pedido = new Pedido();
-    pedido.setCliente(cliente);
+        Pedido pedido = Pedido.builder()
+            .cliente(cliente)
+            .status(StatusPedido.EM_PROCESSAMENTO)
+            .dataPedido(LocalDateTime.now())
+            .valorSubtotal(BigDecimal.ZERO)
+            .valorFrete(BigDecimal.ZERO)
+            .valorDesconto(BigDecimal.ZERO)
+            .reembolsoConfirmado(false)
+            .build();
 
-    for (ItemPedidoDTO itemDTO : itensDTO) {
-        Livro livro = livroService.buscarPorId(itemDTO.getLivroId())
-            .orElseThrow(() -> new RuntimeException("Livro não encontrado: " + itemDTO.getLivroId()));
-        
-        if (livro.getEstoque() < itemDTO.getQuantidade()) {
-            throw new RuntimeException(
-                "Estoque insuficiente para o livro: " + livro.getTitulo() + 
-                " (Disponível: " + livro.getEstoque() + ", Solicitado: " + itemDTO.getQuantidade() + ")"
-            );
+        for (ItemPedidoDTO itemDTO : itensDTO) {
+            Livro livro = livroService.buscarPorId(itemDTO.getLivroId())
+                .orElseThrow(() -> new RuntimeException("Livro não encontrado: " + itemDTO.getLivroId()));
+            
+            if (livro.getEstoque() < itemDTO.getQuantidade()) {
+                throw new RuntimeException(
+                    "Estoque insuficiente para o livro: " + livro.getTitulo() + 
+                    " (Disponível: " + livro.getEstoque() + ", Solicitado: " + itemDTO.getQuantidade() + ")"
+                );
+            }
+            
+            pedido.adicionarItem(livro, itemDTO.getQuantidade());
         }
-        
-        pedido.adicionarItem(livro, itemDTO.getQuantidade());
-    }
 
-    Endereco endereco = cliente.getEnderecos().stream()
-        .filter(e -> e.getId().equals(enderecoId))
-        .findFirst()
-        .orElseThrow(() -> new RuntimeException("Endereço não encontrado"));
+Endereco endereco = cliente.getEnderecos().stream()
+    .filter(e -> e.getId().equals(enderecoId))
+    .findFirst()
+    .orElseThrow(() -> new RuntimeException("Endereço não encontrado"));
 
-    Cartao cartaoPrincipal = cliente.getCartoes().stream()
-        .filter(c -> c.getId().equals(cartaoId))
-        .findFirst()
-        .orElseThrow(() -> new RuntimeException("Cartão principal não encontrado"));
+Cartao cartaoPrincipal = cliente.getCartoes().stream()
+    .filter(c -> c.getId().equals(cartaoId))
+    .findFirst()
+    .orElseThrow(() -> new RuntimeException("Cartão principal não encontrado"));
 
-    pedido.setEnderecoEntrega(endereco);
-    pedido.setCartao(cartaoPrincipal);
+pedido.setEnderecoEntrega(endereco);
+pedido.setCartao(cartaoPrincipal);
 
     if (cartoesAdicionaisIds != null && !cartoesAdicionaisIds.isEmpty()) {
         List<Cartao> cartoesExtras = cliente.getCartoes().stream()
@@ -143,11 +153,15 @@ public Pedido criarPedido(Long clienteId, List<ItemPedidoDTO> itensDTO,
         log.setLevel("success");
         logService.salvarLog(log);
     } catch (Exception e) {
-        System.err.println("Erro ao registrar log de compra: " + e.getMessage());
+    }
+
+    try {
+        carteiraService.registrarCashback(cliente.getId(), pedidoSalvo.getValorTotal());
+    } catch (Exception e) {
     }
 
     return pedidoSalvo;
-}
+    }
 
 @Transactional
 public Pedido atualizarStatus(Long pedidoId, StatusPedido novoStatus, String motivoDevolucao,
@@ -205,7 +219,6 @@ if (novoStatus == StatusPedido.ENTREGUE) {
         log.setLevel("info");
         logService.salvarLog(log);
     } catch (Exception e) {
-        System.err.println("Erro ao registrar log de status: " + e.getMessage());
     }
 
     return pedidoAtualizado;
@@ -248,7 +261,6 @@ return switch (status) {
             log.setLevel("success");
             logService.salvarLog(log);
         } catch (Exception e) {
-            System.err.println("Erro ao registrar log: " + e.getMessage());
         }
 
         return pedidoRepository.save(pedido);
@@ -341,19 +353,15 @@ return switch (status) {
             log.setLevel("warning");
             logService.salvarLog(log);
         } catch (Exception e) {
-            System.err.println("Erro ao registrar log de cancelamento: " + e.getMessage());
         }
     }
 
 @Transactional
 public void excluirPedido(Long id) {
-    System.out.println("=== EXCLUINDO PEDIDO ===");
-    System.out.println("ID: " + id);
 
     Pedido pedido = pedidoRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 
-    System.out.println("Status do pedido: " + pedido.getStatus());
 
     if (pedido.getStatus() != StatusPedido.CANCELADO) {
         throw new RuntimeException("Apenas pedidos cancelados podem ser excluídos");
@@ -362,11 +370,9 @@ public void excluirPedido(Long id) {
     pedido.getItens().clear();
     pedidoRepository.save(pedido);
 
-    System.out.println("Itens removidos, agora excluindo pedido...");
 
     pedidoRepository.deleteById(id);
 
-    System.out.println("Pedido excluído com sucesso!");
 }
 
     public Optional<Pedido> buscarPorIdOptional(Long id) {
@@ -446,7 +452,6 @@ public Pedido solicitarDevolucao(Long pedidoId, String motivo, List<ItemDevoluca
         log.setLevel("info");
         logService.salvarLog(log);
     } catch (Exception e) {
-        System.err.println("Erro ao registrar log de devolução: " + e.getMessage());
     }
 
     return pedidoOriginal;
@@ -506,7 +511,6 @@ public Pedido criarPedidoDevolucao(Long pedidoOriginalId, String motivo, List<It
         log.setLevel("info");
         logService.salvarLog(log);
     } catch (Exception e) {
-        System.err.println("Erro ao registrar log de devolução: " + e.getMessage());
     }
 
     return pedidoRepository.save(pedidoDevolucao);

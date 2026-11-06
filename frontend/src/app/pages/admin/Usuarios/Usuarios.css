@@ -1,53 +1,169 @@
-.cliente-table {
+﻿.cliente-table {
   width: 100%;
   border-collapse: collapse;
+  border-spacing: 0;
+  background: #ffffff;
 }
 
 .cliente-table thead {
-  background: #f8fafc;
+  background: #f6f7f8;
 }
 
 .cliente-table th {
-  padding: 0.75rem 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #dfe2e6;
+  color: #6f7680;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
   text-align: left;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #4a5a6a;
-  border-bottom: 1px solid #e8ecf0;
+  white-space: nowrap;
 }
 
 .cliente-table td {
-  padding: 0.75rem 1rem;
-  font-size: 0.9rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e9ebee;
   color: #1a2332;
-  border-bottom: 1px solid #e8ecf0;
+  font-size: 0.85rem;
+  font-weight: 400;
+  line-height: 1.5;
+  vertical-align: middle;
 }
 
-.cliente-table tr:last-child td {
+.cliente-table td strong {
+  color: #1a2332;
+  font-weight: 600;
+}
+
+.cliente-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.cliente-table tr:hover td {
-  background: #f8fafc;
+.cliente-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.cliente-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.cliente-table tbody tr:hover td {
+  background: transparent;
+}
+
+.cliente-table th.text-center,
+.cliente-table td.text-center {
+  text-align: center;
+}
+
+.cliente-table .status-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 0;
+  white-space: nowrap;
+}
+
+.cliente-table .acoes-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.cliente-table .btn-icon {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border: 1px solid #dfe2e6;
+  border-radius: 0;
+  background: #ffffff;
+  color: #6f7680;
+  font-size: 0.85rem;
+  box-shadow: none;
+}
+
+.cliente-table .btn-icon:hover:not(:disabled) {
+  background: #f6f7f8;
+  border-color: #b8c0ca;
+  color: #1a2332;
+}
+
+.cliente-table .btn-danger-icon {
+  color: #b93d43;
+  border-color: #e9c7ca;
+}
+
+.cliente-table .btn-danger-icon:hover:not(:disabled) {
+  background: #fcebec;
+  border-color: #b93d43;
+  color: #b93d43;
 }
 
 .cliente-paginator {
-  border-top: 1px solid #e8ecf0;
-  padding: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #dfe2e6;
+  border-radius: 0;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+@media (max-width: 992px) {
+  .cliente-table {
+    min-width: 850px;
+  }
+
+  .cliente-table th,
+  .cliente-table td {
+    padding: 0.85rem 1rem;
+  }
 }
 
 @media (max-width: 768px) {
-  .cliente-table th,
+  .cliente-table {
+    min-width: 780px;
+  }
+
+  .cliente-table th {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.7rem;
+  }
+
   .cliente-table td {
-    padding: 0.5rem 0.6rem;
-    font-size: 0.75rem;
+    padding: 0.75rem 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  .cliente-table .btn-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  .cliente-paginator {
+    padding: 0.5rem;
   }
 }
 
 @media (max-width: 480px) {
   .cliente-table th,
   .cliente-table td {
-    padding: 0.35rem 0.4rem;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .cliente-table .acoes-cell {
+    gap: 4px;
+  }
+
+  .cliente-table .btn-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .cliente-table .status-badge {
+    padding: 4px 8px;
     font-size: 0.7rem;
   }
 }

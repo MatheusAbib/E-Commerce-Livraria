@@ -41,6 +41,9 @@ public class ClienteService {
     @Autowired
     private MensagemChatRepository mensagemChatRepository;
 
+    @Autowired
+    private CarteiraService carteiraService;
+
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public boolean emailJaExiste(String email) {
@@ -54,25 +57,15 @@ public class ClienteService {
 
     @Transactional
     public void salvarFavoritos(Cliente cliente) {
-        System.out.println("=== SALVANDO FAVORITOS ===");
-        System.out.println("Cliente ID: " + cliente.getId());
-        System.out.println("Favoritos recebidos: " + cliente.getFavoritos());
-        System.out.println("Senha recebida: " + cliente.getSenha());
-        System.out.println("Senha é null? " + (cliente.getSenha() == null));
         
         Cliente clienteExistente = clienteRepository.findById(cliente.getId())
             .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado"));
         
-        System.out.println("Senha existente no banco: " + clienteExistente.getSenha());
-        System.out.println("Senha existente é null? " + (clienteExistente.getSenha() == null));
         
         clienteExistente.setFavoritos(cliente.getFavoritos());
         
-        System.out.println("Senha que será salva: " + clienteExistente.getSenha());
         
         Cliente salvo = clienteRepository.save(clienteExistente);
-        System.out.println("Senha salva no banco: " + salvo.getSenha());
-        System.out.println("=== FIM SALVANDO FAVORITOS ===");
     }
 
     public Cliente salvarClienteComEnderecos(Cliente cliente) {
@@ -101,6 +94,8 @@ public class ClienteService {
 
         Log log = new Log(clienteSalvo.getId(), clienteSalvo.getNome(), "cadastro", "Cliente cadastrado", "success");
         logService.salvarLog(log);
+
+        carteiraService.criarParaCliente(clienteSalvo);
 
         return clienteSalvo;
     }
@@ -484,8 +479,6 @@ public void reativarAtendimento(Long pedidoId) {
     }
 
     public List<ClienteRankingDTO> obterRankingClientes() {
-        List<ClienteRankingDTO> ranking = clienteRepository.buscarRankingClientes();
-        ranking.forEach(r -> System.out.println(r.getNome() + " - " + r.getValorTotalGasto()));
-        return ranking;
+        return clienteRepository.buscarRankingClientes();
     }
 }

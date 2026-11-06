@@ -38,7 +38,6 @@ public class AvaliacaoController {
                 log.setLevel("info");
                 logService.salvarLog(log);
             } catch (Exception e) {
-                System.err.println("Erro ao registrar log: " + e.getMessage());
             }
 
             return ResponseEntity.ok(avaliacao);
@@ -115,7 +114,6 @@ public ResponseEntity<?> removerComentario(@PathVariable Long id) {
                 "warning"
             );
         } catch (Exception e) {
-            System.err.println("Erro ao enviar notificação: " + e.getMessage());
         }
 
         return ResponseEntity.ok(avaliacao);

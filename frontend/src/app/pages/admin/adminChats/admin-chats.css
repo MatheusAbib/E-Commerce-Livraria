@@ -1,291 +1,386 @@
-.chats-container {
+﻿.chats-container {
   display: flex;
-  gap: 1.5rem;
+  gap: 0;
   height: calc(100vh - 220px);
   min-height: 500px;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #e8ecf0;
+  background: #ffffff;
+  border: 1px solid #dfe2e6;
+  border-radius: 0;
   overflow: hidden;
+  box-shadow: none;
 }
 
 .chats-list {
-  width: 380px;
-  min-width: 320px;
-  border-right: 1px solid #e8ecf0;
   display: flex;
   flex-direction: column;
-  background: #f8fafc;
+  flex-shrink: 0;
+  width: 360px;
+  min-width: 300px;
+  min-height: 0;
+  background: #ffffff;
+  border-right: 1px solid #dfe2e6;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .chats-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 58px;
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #e8ecf0;
-  background: white;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-bottom: 1px solid #dfe2e6;
   flex-shrink: 0;
 }
 
 .chats-tabs {
   display: flex;
-  gap: 0.25rem;
+  align-items: stretch;
+  gap: 0;
+  min-width: 0;
 }
 
 .chats-tab {
-  padding: 0.4rem 1rem;
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 0.5rem 0.85rem;
   background: transparent;
-  cursor: pointer;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: #6f7680;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.8rem;
   font-weight: 600;
-  font-size: 0.85rem;
-  color: #6b7a8f;
-  border-radius: 6px;
-  transition: all 0.2s;
-  position: relative;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
-.chats-tab:hover {
-  background: #f0f2f5;
+.chats-tab:hover:not(.active) {
+  background: #f6f7f8;
+  color: #1a2332;
 }
 
 .chats-tab.active {
-  background: #2a5298;
-  color: white;
+  background: #edf1f8;
+  border-bottom-color: #2a5298;
+  color: #1a2332;
+  font-weight: 700;
 }
 
 .chats-tab .tab-badge {
-  background: #dc2626;
-  color: white;
-  font-size: 0.6rem;
-  padding: 0.05rem 0.4rem;
-  border-radius: 10px;
-  margin-left: 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  min-height: 18px;
+  padding: 1px 5px;
+  box-sizing: border-box;
+  background: #b93d43;
+  border-radius: 0;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .conversa-item {
-  padding: 0.75rem 1rem;
-  cursor: pointer;
-  border-bottom: 1px solid #e8ecf0;
-  transition: all 0.2s;
   position: relative;
-  background: white;
+  padding: 1rem;
+  background: #ffffff;
+  border-bottom: 1px solid #e9ebee;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
 }
 
 .conversa-item:hover {
-  background: #f1f4f8;
+  background: #f6f7f8;
 }
 
 .conversa-item.ativa {
-  background: #e8f0fe;
-  border-left: 3px solid #2a5298;
+  background: #edf1f8;
+  border-left-color: #2a5298;
 }
 
 .conversa-info {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.2rem;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 
 .conversa-cliente {
-  font-weight: 600;
+  min-width: 0;
   color: #1a2332;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .conversa-pedido {
-  font-size: 0.75rem;
-  color: #94a3b8;
+  flex-shrink: 0;
+  color: #87919e;
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .conversa-preview {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .conversa-ultima {
-  font-size: 0.8rem;
-  color: #6b7a8f;
   flex: 1;
-  white-space: nowrap;
+  min-width: 0;
+  color: #6f7680;
+  font-size: 0.75rem;
+  line-height: 1.5;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .conversa-status {
-  font-size: 0.6rem;
-  font-weight: 600;
-  padding: 0.1rem 0.5rem;
-  border-radius: 10px;
-  background: #e8ecf0;
-  color: #6b7a8f;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  padding: 4px 7px;
+  background: #edf0f2;
+  border-radius: 0;
+  color: #596574;
+  font-size: 0.65rem;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
 }
 
 .conversa-status.status-ativo {
-  background: #d1fae5;
-  color: #059669;
+  background: #e8f5ed;
+  color: #247447;
 }
 
 .badge-nao-lida {
   position: absolute;
-  top: 0.5rem;
-  right: 0.75rem;
-  background: #dc2626;
-  color: white;
-  font-size: 0.6rem;
-  font-weight: 700;
-  padding: 0.1rem 0.4rem;
-  border-radius: 50%;
-  min-width: 18px;
-  height: 18px;
+  top: 3px;
+  right: 3px;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  background: #b93d43;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .chat-area-admin {
-  flex: 1;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  background: white;
   min-width: 0;
+  min-height: 0;
+  background: #ffffff;
 }
 
 .chat-placeholder {
-  flex: 1;
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #94a3b8;
+  gap: 8px;
+  padding: 2rem;
+  color: #87919e;
+  text-align: center;
 }
 
 .chat-placeholder i {
-  font-size: 3rem;
-  color: #cbd5e1;
   margin-bottom: 0.5rem;
+  color: #aeb8c5;
+  font-size: 2.5rem;
 }
 
 .chat-placeholder h3 {
-  font-size: 1.2rem;
+  margin: 0;
   color: #1a2332;
-  margin: 0.5rem 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .chat-placeholder p {
   margin: 0;
-  color: #6b7a8f;
+  color: #6f7680;
+  font-size: 0.85rem;
+  line-height: 1.6;
 }
 
 .chat-container-admin {
-  flex: 1;
   display: flex;
+  flex: 1;
   flex-direction: column;
+  min-width: 0;
   min-height: 0;
 }
 
 .chat-header-admin-page {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1.25rem;
-  border-bottom: 1px solid #e8ecf0;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 68px;
+  padding: 0.85rem 1.25rem;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-bottom: 1px solid #dfe2e6;
   flex-shrink: 0;
-  flex-wrap: wrap;
-  gap: 0.5rem;
 }
 
 .chat-header-info-admin {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+
+.chat-header-info-admin > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .chat-cliente-nome {
-  font-weight: 600;
   color: #1a2332;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .chat-pedido-ref {
+  color: #87919e;
   font-size: 0.75rem;
-  color: #94a3b8;
+  font-weight: 500;
 }
 
 .chat-status {
-  font-size: 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 5px 9px;
+  background: #fcebec;
+  border-radius: 0;
+  color: #b93d43;
+  font-size: 0.7rem;
   font-weight: 600;
-  padding: 0.15rem 0.6rem;
-  border-radius: 10px;
-  background: #fee2e2;
-  color: #dc2626;
 }
 
 .chat-status.status-ativo {
-  background: #d1fae5;
-  color: #059669;
+  background: #e8f5ed;
+  color: #247447;
 }
 
 .chat-header-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.chat-header-actions .btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .btn-fechar-chat {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  font-size: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: #ffffff;
+  border: 1px solid #dfe2e6;
+  border-radius: 0;
+  color: #6f7680;
+  font-size: 1rem;
   cursor: pointer;
-  padding: 0.25rem;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .btn-fechar-chat:hover {
+  background: #f6f7f8;
+  border-color: #b8c0ca;
   color: #1a2332;
 }
 
 .pedido-info-admin {
-  background: #f8fafc;
-  border-bottom: 1px solid #e8ecf0;
-  padding: 0.5rem 1.25rem;
   flex-shrink: 0;
+  padding: 0.85rem 1.25rem;
+  background: #f6f7f8;
+  border-bottom: 1px solid #dfe2e6;
 }
 
 .pedido-card-admin {
-  background: white;
-  border-radius: 10px;
-  border: 1px solid #e8ecf0;
+  background: #ffffff;
+  border: 1px solid #dfe2e6;
+  border-radius: 0;
   overflow: hidden;
+  box-shadow: none;
 }
 
 .pedido-card-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0.75rem;
-  background: #f1f5f9;
-  border-bottom: 1px solid #e8ecf0;
+  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0.3rem;
+  gap: 8px;
+  padding: 0.75rem 1rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dfe2e6;
 }
 
 .pedido-card-id {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-weight: 700;
-  font-size: 0.85rem;
+  gap: 8px;
   color: #1a2332;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .pedido-card-id i {
@@ -296,33 +391,37 @@
 .pedido-status-admin {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.65rem;
+  gap: 5px;
+  padding: 5px 9px;
+  background: #edf1f5;
+  border-radius: 0;
+  color: #4a5565;
+  font-size: 0.7rem;
   font-weight: 600;
+  line-height: 1.4;
 }
 
 .pedido-status-admin i {
-  font-size: 0.6rem;
+  font-size: 0.75rem;
 }
 
 .pedido-card-body {
-  padding: 0.5rem 0.75rem;
+  padding: 0.85rem 1rem;
 }
 
 .pedido-itens-admin {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0;
 }
 
 .pedido-item-admin {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0.2rem 0;
-  border-bottom: 1px solid #f1f5f9;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e9ebee;
 }
 
 .pedido-item-admin:last-child {
@@ -332,112 +431,133 @@
 .item-info {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
   flex: 1;
   min-width: 0;
 }
 
 .item-nome {
-  font-size: 0.8rem;
+  min-width: 0;
   color: #1a2332;
+  font-size: 0.8rem;
   font-weight: 500;
-  white-space: nowrap;
+  line-height: 1.5;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .item-qtd {
-  font-size: 0.65rem;
-  color: #94a3b8;
-  background: #f1f5f9;
-  padding: 0.05rem 0.4rem;
-  border-radius: 4px;
   flex-shrink: 0;
+  padding: 3px 7px;
+  background: #edf1f5;
+  border: 1px solid #dfe2e6;
+  border-radius: 0;
+  color: #596574;
+  font-size: 0.7rem;
+  font-weight: 600;
 }
 
 .item-preco {
+  flex-shrink: 0;
+  color: #1a2332;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #2a5298;
-  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .pedido-card-footer {
-  margin-top: 0.4rem;
-  padding-top: 0.4rem;
-  border-top: 1px solid #e8ecf0;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #dfe2e6;
 }
 
 .pedido-subtotal,
 .pedido-frete,
 .pedido-desconto {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  padding: 0.25rem 0;
+  color: #6f7680;
   font-size: 0.75rem;
-  color: #6b7a8f;
-  padding: 0.1rem 0;
+  line-height: 1.5;
 }
 
 .pedido-desconto span:last-child {
-  color: #22c55e;
+  color: #247447;
+  font-weight: 600;
 }
 
 .pedido-total-admin {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  font-size: 0.9rem;
+  gap: 12px;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #dfe2e6;
   color: #1a2332;
-  padding-top: 0.3rem;
-  margin-top: 0.2rem;
-  border-top: 2px solid #e8ecf0;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .pedido-total-admin strong:last-child {
-  color: #2a5298;
+  color: #1a2332;
   font-size: 1rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .chat-messages-admin-page {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  min-height: 0;
   overflow-y: auto;
-  padding: 1rem 1.25rem;
-  background: #f8fafc;
+  padding: 1.25rem;
+  background: #f6f7f8;
+  scrollbar-width: thin;
 }
 
 .chat-messages-admin-page::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 
 .chat-messages-admin-page::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: transparent;
 }
 
 .chat-messages-admin-page::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: #c3cad3;
+  border-radius: 0;
 }
 
 .chat-empty-admin-page {
+  margin: auto;
+  padding: 2rem 1rem;
+  color: #87919e;
   text-align: center;
-  padding: 2rem 0;
-  color: #94a3b8;
 }
 
 .chat-empty-admin-page i {
-  font-size: 2.5rem;
-  color: #cbd5e1;
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: #aeb8c5;
+  font-size: 2rem;
 }
 
 .chat-empty-admin-page p {
   margin: 0;
+  font-size: 0.85rem;
 }
 
 .chat-message-admin-page {
-  margin-bottom: 0.75rem;
   display: flex;
   flex-direction: column;
+  gap: 4px;
+  margin-bottom: 1rem;
 }
 
 .chat-message-admin-page.message-cliente-page {
@@ -450,83 +570,109 @@
 
 .message-bubble-admin-page {
   max-width: 75%;
-  padding: 0.5rem 0.8rem;
-  border-radius: 12px;
-  word-wrap: break-word;
+  padding: 0.75rem 1rem;
+  border: 1px solid #dfe2e6;
+  border-radius: 0;
+  overflow-wrap: anywhere;
+  box-shadow: none;
 }
 
 .message-cliente-page .message-bubble-admin-page {
-  background: white;
+  background: #ffffff;
+  border-color: #dfe2e6;
   color: #1a2332;
-  border: 1px solid #e8ecf0;
-  border-bottom-left-radius: 4px;
 }
 
 .message-admin-page .message-bubble-admin-page {
-  background: #2a5298;
-  color: white;
-  border-bottom-right-radius: 4px;
+  background: #1a2332;
+  border-color: #1a2332;
+  color: #ffffff;
 }
 
 .message-text-admin-page {
-  font-size: 0.9rem;
-  line-height: 1.4;
+  font-size: 0.85rem;
+  font-weight: 400;
+  line-height: 1.6;
+  white-space: pre-wrap;
 }
 
 .message-time-admin-page {
-  font-size: 0.6rem;
+  margin-left: 8px;
+  font-size: 0.65rem;
   opacity: 0.7;
-  margin-left: 0.4rem;
+  white-space: nowrap;
 }
 
 .message-author-admin-page {
-  font-size: 0.65rem;
-  color: #94a3b8;
-  margin-top: 0.1rem;
-  padding: 0 0.25rem;
+  padding: 0 3px;
+  color: #87919e;
+  font-size: 0.7rem;
+  font-weight: 500;
 }
 
 .chat-footer-admin-page {
-  padding: 0.75rem 1.25rem;
-  border-top: 1px solid #e8ecf0;
-  background: white;
   flex-shrink: 0;
+  padding: 1rem 1.25rem;
+  background: #ffffff;
+  border-top: 1px solid #dfe2e6;
 }
 
 .chat-input-wrapper-admin-page {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
 }
 
 .chat-input-admin-page {
   flex: 1;
-  padding: 0.5rem 0.8rem;
-  border: 1.5px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  min-width: 0;
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+  padding: 0.65rem 0.85rem;
+  box-sizing: border-box;
+  background: #ffffff;
+  border: 1px solid #dfe2e6;
+  border-radius: 0;
+  color: #1a2332;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
   outline: none;
-  font-family: 'Montserrat', sans-serif;
+  box-shadow: none;
+  transition: border-color 0.2s;
+}
+
+.chat-input-admin-page::placeholder {
+  color: #929ba7;
 }
 
 .chat-input-admin-page:focus {
   border-color: #2a5298;
+  box-shadow: none;
 }
 
 .chat-send-btn-admin-page {
-  padding: 0.5rem 1rem;
-  background: #2a5298;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 6px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: #1a2332;
+  border: 1px solid #1a2332;
+  border-radius: 0;
+  color: #ffffff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
 }
 
 .chat-send-btn-admin-page:hover:not(:disabled) {
-  background: #1a3a6e;
+  background: #344258;
+  border-color: #344258;
 }
 
 .chat-send-btn-admin-page:disabled {
@@ -535,66 +681,88 @@
 }
 
 .chat-encerrado-admin-page {
-  text-align: center;
-  padding: 0.3rem;
-  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0.5rem;
+  color: #6f7680;
   font-size: 0.85rem;
+  text-align: center;
 }
 
 .chat-encerrado-admin-page i {
-  margin-right: 0.4rem;
+  color: #87919e;
 }
 
 .chat-reativar-btn-admin {
-  margin-top: 0.5rem;
-  padding: 0.4rem 1rem;
-  background: #22c55e;
-  border: none;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: all 0.2s;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  width: 100%;
   justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 0.5rem;
+  padding: 0.7rem 1rem;
+  background: #1a2332;
+  border: 1px solid #1a2332;
+  border-radius: 0;
+  color: #ffffff;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
 }
 
-.chat-reativar-btn-admin:hover {
-  background: #16a34a;
+.chat-reativar-btn-admin:hover:not(:disabled) {
+  background: #344258;
+  border-color: #344258;
 }
 
 @media (max-width: 1200px) {
   .chats-list {
     width: 320px;
-    min-width: 260px;
+    min-width: 280px;
+  }
+
+  .chats-header {
+    padding: 0.75rem;
+  }
+
+  .chats-tab {
+    padding: 0.5rem 0.65rem;
   }
 }
 
 @media (max-width: 992px) {
   .chats-list {
-    width: 280px;
-    min-width: 220px;
+    width: 290px;
+    min-width: 250px;
   }
 
-  .chats-tab {
-    font-size: 0.75rem;
-    padding: 0.3rem 0.6rem;
+  .chats-header {
+    flex-wrap: wrap;
   }
 
-  .conversa-cliente {
-    font-size: 0.8rem;
+  .chats-header .table-count {
+    width: 100%;
   }
 
-  .conversa-pedido {
-    font-size: 0.65rem;
+  .chat-header-admin-page {
+    padding: 0.75rem 1rem;
   }
 
-  .conversa-ultima {
-    font-size: 0.7rem;
+  .pedido-info-admin {
+    padding: 0.75rem 1rem;
+  }
+
+  .chat-messages-admin-page {
+    padding: 1rem;
+  }
+
+  .chat-footer-admin-page {
+    padding: 0.75rem 1rem;
   }
 }
 
@@ -602,67 +770,50 @@
   .chats-container {
     flex-direction: column;
     height: auto;
-    min-height: 500px;
-    border-radius: 8px;
-    gap: 0;
+    min-height: 600px;
+    overflow: hidden;
   }
 
   .chats-list {
     width: 100%;
-    min-width: unset;
-    max-height: 220px;
+    min-width: 0;
+    max-height: 260px;
     border-right: none;
-    border-bottom: 1px solid #e8ecf0;
+    border-bottom: 1px solid #dfe2e6;
     overflow-y: auto;
   }
 
   .chats-header {
-    padding: 0.5rem 0.75rem;
-    position: sticky;
-    top: 0;
-    background: white;
-    z-index: 2;
+    flex-wrap: nowrap;
+    min-height: 52px;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .chats-header .table-count {
+    width: auto;
   }
 
   .chats-tab {
-    font-size: 0.7rem;
-    padding: 0.25rem 0.5rem;
-  }
-
-  .conversa-item {
-    padding: 0.5rem 0.75rem;
-  }
-
-  .conversa-cliente {
+    min-height: 34px;
+    padding: 0.45rem 0.75rem;
     font-size: 0.75rem;
   }
 
-  .conversa-pedido {
-    font-size: 0.6rem;
-  }
-
-  .conversa-ultima {
-    font-size: 0.65rem;
-  }
-
-  .badge-nao-lida {
-    min-width: 16px;
-    height: 16px;
-    font-size: 0.5rem;
-    top: 0.3rem;
-    right: 0.5rem;
+  .conversa-item {
+    padding: 0.85rem;
   }
 
   .chat-area-admin {
-    min-height: 400px;
+    min-height: 440px;
+  }
+
+  .chat-container-admin {
+    min-height: 440px;
   }
 
   .chat-header-admin-page {
-    padding: 0.5rem 0.75rem;
-  }
-
-  .chat-header-info-admin {
-    gap: 0.4rem;
+    min-height: 60px;
+    padding: 0.75rem 0.85rem;
   }
 
   .chat-cliente-nome {
@@ -670,90 +821,159 @@
   }
 
   .chat-pedido-ref {
-    font-size: 0.65rem;
-  }
-
-  .chat-status {
-    font-size: 0.55rem;
-    padding: 0.1rem 0.4rem;
+    font-size: 0.7rem;
   }
 
   .pedido-info-admin {
-    padding: 0.4rem 0.75rem;
+    padding: 0.75rem 0.85rem;
   }
 
   .pedido-card-header {
-    padding: 0.35rem 0.5rem;
-  }
-
-  .pedido-card-id {
-    font-size: 0.75rem;
-  }
-
-  .pedido-card-id i {
-    font-size: 0.7rem;
-  }
-
-  .pedido-status-admin {
-    font-size: 0.55rem;
-    padding: 0.1rem 0.4rem;
-  }
-
-  .pedido-status-admin i {
-    font-size: 0.5rem;
+    padding: 0.65rem 0.75rem;
   }
 
   .pedido-card-body {
-    padding: 0.35rem 0.5rem;
+    padding: 0.75rem;
   }
 
-  .item-nome {
+  .chat-messages-admin-page {
+    min-height: 220px;
+    padding: 0.85rem;
+  }
+
+  .message-bubble-admin-page {
+    max-width: 85%;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .chat-footer-admin-page {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .chat-input-admin-page {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .chats-container {
+    min-height: 550px;
+  }
+
+  .chats-list {
+    max-height: 220px;
+  }
+
+  .chats-header {
+    gap: 6px;
+    padding: 0.5rem 0.65rem;
+  }
+
+  .chats-tab {
+    padding: 0.45rem 0.55rem;
     font-size: 0.7rem;
+  }
+
+  .chats-tab .tab-badge {
+    min-width: 16px;
+    min-height: 16px;
+    font-size: 0.6rem;
+  }
+
+  .conversa-item {
+    padding: 0.75rem;
+  }
+
+  .conversa-cliente {
+    font-size: 0.8rem;
+  }
+
+  .conversa-pedido {
+    font-size: 0.65rem;
+  }
+
+  .conversa-ultima {
+    font-size: 0.7rem;
+  }
+
+  .chat-area-admin,
+  .chat-container-admin {
+    min-height: 400px;
+  }
+
+  .chat-header-admin-page {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .chat-header-info-admin {
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .chat-header-actions {
+    gap: 6px;
+  }
+
+  .chat-header-actions .btn-danger {
+    min-height: 34px;
+    padding: 0.4rem 0.65rem;
+    font-size: 0.75rem;
+  }
+
+  .btn-fechar-chat {
+    width: 34px;
+    height: 34px;
+  }
+
+  .pedido-info-admin {
+    padding: 0.65rem 0.75rem;
+  }
+
+  .pedido-card-header {
+    padding: 0.6rem;
+  }
+
+  .pedido-card-body {
+    padding: 0.65rem;
+  }
+
+  .pedido-item-admin {
+    gap: 8px;
+  }
+
+  .item-nome,
+  .item-preco {
+    font-size: 0.75rem;
   }
 
   .item-qtd {
-    font-size: 0.55rem;
-  }
-
-  .item-preco {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
 
   .pedido-subtotal,
   .pedido-frete,
   .pedido-desconto {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
   }
 
   .pedido-total-admin {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
   }
 
   .pedido-total-admin strong:last-child {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
   }
 
   .chat-messages-admin-page {
     padding: 0.75rem;
   }
 
-  .chat-footer-admin-page {
-    padding: 0.5rem 0.75rem;
-  }
-
-  .chat-input-admin-page {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.6rem;
-  }
-
-  .chat-send-btn-admin-page {
-    padding: 0.4rem 0.7rem;
-    font-size: 0.8rem;
-  }
-
   .message-bubble-admin-page {
-    max-width: 85%;
-    padding: 0.4rem 0.6rem;
+    max-width: 90%;
+    padding: 0.6rem 0.75rem;
   }
 
   .message-text-admin-page {
@@ -761,102 +981,50 @@
   }
 
   .message-time-admin-page {
-    font-size: 0.5rem;
+    font-size: 0.6rem;
   }
 
-  .message-author-admin-page {
-    font-size: 0.55rem;
+  .chat-footer-admin-page {
+    padding: 0.65rem 0.75rem;
+  }
+
+  .chat-input-wrapper-admin-page {
+    gap: 8px;
+  }
+
+  .chat-send-btn-admin-page {
+    width: 44px;
+    height: 44px;
   }
 
   .chat-reativar-btn-admin {
-    font-size: 0.7rem;
-    padding: 0.3rem 0.7rem;
-  }
-
-  .btn-fechar-chat {
-    font-size: 1rem;
-  }
-
-  .btn-fechar-chat i {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
   }
 }
 
-@media (max-width: 480px) {
-  .chats-container {
-    min-height: 450px;
-    border-radius: 6px;
-  }
-
+@media (max-width: 360px) {
   .chats-list {
-    max-height: 180px;
+    max-height: 200px;
   }
 
-  .chats-tab {
-    font-size: 0.6rem;
-    padding: 0.2rem 0.4rem;
+  .chats-header {
+    flex-wrap: wrap;
   }
 
-  .chats-tab .tab-badge {
-    font-size: 0.45rem;
-    padding: 0.05rem 0.25rem;
+  .chats-header .table-count {
+    width: 100%;
   }
 
-  .conversa-item {
-    padding: 0.35rem 0.5rem;
-  }
-
-  .conversa-cliente {
-    font-size: 0.65rem;
+  .conversa-info {
+    flex-wrap: wrap;
   }
 
   .conversa-pedido {
-    font-size: 0.55rem;
-  }
-
-  .conversa-ultima {
-    font-size: 0.55rem;
-  }
-
-  .conversa-status {
-    font-size: 0.5rem;
-    padding: 0.05rem 0.3rem;
-  }
-
-  .badge-nao-lida {
-    min-width: 14px;
-    height: 14px;
-    font-size: 0.45rem;
-    top: 0.25rem;
-    right: 0.4rem;
-  }
-
-  .chat-area-admin {
-    min-height: 350px;
+    font-size: 0.65rem;
   }
 
   .chat-header-admin-page {
-    padding: 0.35rem 0.5rem;
-    flex-direction: column;
     align-items: flex-start;
-  }
-
-  .chat-header-info-admin {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .chat-cliente-nome {
-    font-size: 0.75rem;
-  }
-
-  .chat-pedido-ref {
-    font-size: 0.55rem;
-  }
-
-  .chat-status {
-    font-size: 0.5rem;
-    padding: 0.05rem 0.3rem;
   }
 
   .chat-header-actions {
@@ -864,255 +1032,7 @@
     justify-content: flex-end;
   }
 
-  .pedido-info-admin {
-    padding: 0.3rem 0.5rem;
-  }
-
-  .pedido-card-header {
-    padding: 0.25rem 0.4rem;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .pedido-card-id {
-    font-size: 0.65rem;
-  }
-
-  .pedido-card-id i {
-    font-size: 0.6rem;
-  }
-
-  .pedido-status-admin {
-    font-size: 0.5rem;
-    padding: 0.05rem 0.3rem;
-    align-self: flex-start;
-  }
-
-  .pedido-card-body {
-    padding: 0.25rem 0.4rem;
-  }
-
-  .pedido-item-admin {
-    flex-wrap: wrap;
-    gap: 0.2rem;
-  }
-
-  .item-info {
-    flex: 1 1 60%;
-  }
-
-  .item-nome {
-    font-size: 0.6rem;
-  }
-
-  .item-qtd {
-    font-size: 0.5rem;
-    padding: 0.05rem 0.3rem;
-  }
-
-  .item-preco {
-    font-size: 0.6rem;
-  }
-
-  .pedido-subtotal,
-  .pedido-frete,
-  .pedido-desconto {
-    font-size: 0.55rem;
-  }
-
-  .pedido-total-admin {
-    font-size: 0.7rem;
-  }
-
-  .pedido-total-admin strong:last-child {
-    font-size: 0.7rem;
-  }
-
-  .chat-messages-admin-page {
-    padding: 0.5rem;
-  }
-
-  .chat-empty-admin-page i {
-    font-size: 2rem;
-  }
-
-  .chat-empty-admin-page h3 {
-    font-size: 1rem;
-  }
-
-  .chat-empty-admin-page p {
-    font-size: 0.8rem;
-  }
-
-  .chat-footer-admin-page {
-    padding: 0.35rem 0.5rem;
-  }
-
-  .chat-input-admin-page {
-    font-size: 0.7rem;
-    padding: 0.3rem 0.5rem;
-  }
-
-  .chat-send-btn-admin-page {
-    font-size: 0.7rem;
-    padding: 0.3rem 0.5rem;
-  }
-
-  .chat-send-btn-admin-page i {
-    font-size: 0.7rem;
-  }
-
-  .message-bubble-admin-page {
-    max-width: 90%;
-    padding: 0.3rem 0.5rem;
-  }
-
-  .message-text-admin-page {
-    font-size: 0.7rem;
-  }
-
-  .message-time-admin-page {
-    font-size: 0.45rem;
-  }
-
-  .message-author-admin-page {
-    font-size: 0.5rem;
-  }
-
-  .chat-reativar-btn-admin {
-    font-size: 0.6rem;
-    padding: 0.25rem 0.5rem;
-  }
-
-  .chat-placeholder i {
-    font-size: 2.5rem;
-  }
-
-  .chat-placeholder h3 {
-    font-size: 1rem;
-  }
-
-  .chat-placeholder p {
-    font-size: 0.8rem;
-  }
-
-  .btn-danger {
-    font-size: 0.7rem;
-    padding: 0.3rem 0.5rem;
-  }
-}
-
-@media (max-width: 360px) {
-  .chats-list {
-    max-height: 150px;
-  }
-
-  .chats-tab {
-    font-size: 0.5rem;
-    padding: 0.15rem 0.3rem;
-  }
-
-  .conversa-item {
-    padding: 0.25rem 0.4rem;
-  }
-
-  .conversa-cliente {
-    font-size: 0.55rem;
-  }
-
-  .conversa-pedido {
-    font-size: 0.5rem;
-  }
-
-  .conversa-ultima {
-    font-size: 0.5rem;
-  }
-
-  .badge-nao-lida {
-    min-width: 12px;
-    height: 12px;
-    font-size: 0.4rem;
-    padding: 0.05rem 0.2rem;
-    top: 0.2rem;
-    right: 0.3rem;
-  }
-
-  .chat-area-admin {
-    min-height: 300px;
-  }
-
-  .chat-header-admin-page {
-    padding: 0.25rem 0.35rem;
-  }
-
-  .chat-cliente-nome {
-    font-size: 0.65rem;
-  }
-
-  .chat-pedido-ref {
-    font-size: 0.5rem;
-  }
-
-  .pedido-info-admin {
-    padding: 0.2rem 0.35rem;
-  }
-
-  .pedido-card-header {
-    padding: 0.2rem 0.3rem;
-  }
-
-  .pedido-card-id {
-    font-size: 0.55rem;
-  }
-
-  .pedido-status-admin {
-    font-size: 0.45rem;
-  }
-
-  .pedido-card-body {
-    padding: 0.2rem 0.3rem;
-  }
-
-  .item-nome {
-    font-size: 0.5rem;
-  }
-
-  .item-qtd {
-    font-size: 0.45rem;
-  }
-
-  .item-preco {
-    font-size: 0.5rem;
-  }
-
-  .pedido-total-admin {
-    font-size: 0.6rem;
-  }
-
-  .chat-messages-admin-page {
-    padding: 0.35rem;
-  }
-
-  .chat-footer-admin-page {
-    padding: 0.25rem 0.35rem;
-  }
-
-  .chat-input-admin-page {
-    font-size: 0.6rem;
-    padding: 0.25rem 0.35rem;
-  }
-
-  .chat-send-btn-admin-page {
-    font-size: 0.6rem;
-    padding: 0.25rem 0.35rem;
-  }
-
   .message-bubble-admin-page {
     max-width: 95%;
-    padding: 0.25rem 0.4rem;
-  }
-
-  .message-text-admin-page {
-    font-size: 0.6rem;
   }
 }

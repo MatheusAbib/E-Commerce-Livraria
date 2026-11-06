@@ -27,13 +27,11 @@ public class AdminInitializer {
                 admin.setAtivo(true);
                 admin.setDataCadastro(LocalDate.now());
                 clienteRepository.save(admin);
-                System.out.println("Admin criado com sucesso!");
             } else {
                 String senhaAtual = admin.getSenha();
                 if (senhaAtual == null || senhaAtual.isEmpty()) {
                     admin.setSenha(encoder.encode("admin123"));
                     clienteRepository.save(admin);
-                    System.out.println("Senha do Admin estava vazia, foi resetada com sucesso!");
                 }
             }
         };

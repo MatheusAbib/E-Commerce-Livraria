@@ -1,0 +1,12 @@
+# 1. Entre na pasta do frontend:
+## cd C:\Users\97857\Desktop\projects\Livraria-Online\frontend
+
+# 2. Faça o build:
+## npm run build
+
+# 3. Entre na pasta do build:
+
+## cd dist\livraria-frontend-angular\browser
+
+# 4. Faça o deploy no Vercel:
+## vercel --prod

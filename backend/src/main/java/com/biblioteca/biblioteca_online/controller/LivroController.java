@@ -82,7 +82,6 @@ public class LivroController {
                     try {
                         fileStorageService.deleteFile(livroAtual.getImagemUrl());
                     } catch (Exception e) {
-                        System.err.println("Erro ao deletar imagem antiga: " + e.getMessage());
                     }
                 }
                 String nomeArquivo = fileStorageService.storeFile(imagem);
@@ -113,7 +112,6 @@ public class LivroController {
                 try {
                     fileStorageService.deleteFile(livroAtual.getImagemUrl());
                 } catch (Exception e) {
-                    System.err.println("Erro ao deletar imagem antiga: " + e.getMessage());
                 }
             }
 
@@ -155,7 +153,6 @@ public class LivroController {
             try {
                 fileStorageService.deleteFile(livro.get().getImagemUrl());
             } catch (Exception e) {
-                System.err.println("Erro ao deletar imagem do livro: " + e.getMessage());
             }
         }
 

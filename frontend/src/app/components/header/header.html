@@ -1,56 +1,116 @@
+
 <header id="main-header">
   <div class="header-container">
-    <div class="logo">
-      <a routerLink="/">
-        <i class="pi pi-book"></i>
-        <span>Livraria Online</span>
+    <div class="header-brand">
+      <a
+        routerLink="/"
+        class="brand-link"
+        (click)="fecharMenu()"
+        aria-label="Livraria Online - Página inicial">
+        <span class="brand-name">Livraria<span>Online</span></span>
       </a>
+
+      <span class="brand-caption">
+        {{ isLoggedIn && usuario?.nome ? usuario.nome : 'LIVROS & OUTRAS HISTÓRIAS' }}
+      </span>
     </div>
 
-<button class="menu-toggle" *ngIf="isLoggedIn" (click)="toggleMenu()" [class.active]="menuAberto">
-  <span></span>
-  <span></span>
-  <span></span>
-</button>
+    <nav
+      class="nav-desktop"
+      [class.open]="menuAberto"
+      aria-label="Navegação principal">
 
-    <nav class="nav-desktop" [class.open]="menuAberto">
-      <a routerLink="/principal" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="fecharMenu()">Início</a>
+      <div class="nav-section-label">NAVEGAÇÃO / 01</div>
+
+      <a
+        routerLink="/principal"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="fecharMenu()">
+        Início
+      </a>
+
       <ng-container *ngIf="isLoggedIn; else guestNav">
-        <a routerLink="/pedidos" routerLinkActive="active" (click)="fecharMenu()">Meus Pedidos</a>
-        <a routerLink="/transacoes" routerLinkActive="active" (click)="fecharMenu()">Minhas Transações</a>
+        <a
+          routerLink="/pedidos"
+          routerLinkActive="active"
+          (click)="fecharMenu()">
+          Meus Pedidos
+        </a>
+
+        <a
+          routerLink="/transacoes"
+          routerLinkActive="active"
+          (click)="fecharMenu()">
+          Minhas Transações
+        </a>
       </ng-container>
+
       <ng-template #guestNav>
-        <span class="guest-message">Faça login ou cadastre-se e tenha acesso a todas as funcionalidades</span>
+        <span class="guest-message">
+          Faça login para acessar todas as funcionalidades.
+        </span>
       </ng-template>
 
-<div class="nav-mobile-actions" *ngIf="isLoggedIn">
-  <a (click)="fecharMenu(); abrirPerfil()">
-    <i class="pi pi-user"></i> Perfil
-  </a>
-  <a (click)="fecharMenu(); abrirFavoritos()">
-    <i class="pi pi-heart"></i> Favoritos
-    <span class="badge-mobile" *ngIf="favoritosCount > 0">{{favoritosCount}}</span>
-  </a>
-  <a (click)="fecharMenu(); abrirCarrinho()">
-    <i class="pi pi-shopping-cart"></i> Carrinho
-    <span class="badge-mobile" *ngIf="carrinhoItens > 0">{{carrinhoItens}}</span>
-  </a>
-  <a (click)="fecharMenu(); abrirNotificacoes()">
-    <i class="pi pi-bell"></i> Notificações
-    <span class="badge-mobile" *ngIf="notificacoesNaoLidas > 0">{{notificacoesNaoLidas}}</span>
-  </a>
-  <a (click)="fecharMenu(); abrirCupons()">
-    <i class="pi pi-tag"></i> Cupons
-    <span class="badge-mobile" *ngIf="cuponsDisponiveisCount > 0">{{cuponsDisponiveisCount}}</span>
-  </a>
-  <a (click)="fecharMenu(); abrirChatsModal()">
-    <i class="pi pi-comment"></i> Chats
-    <span class="badge-mobile" *ngIf="totalChatsNaoLidas > 0">{{totalChatsNaoLidas}}</span>
-  </a>
-  <a (click)="fecharMenu(); abrirLogout()" class="logout-mobile">
-    <i class="pi pi-sign-out"></i> Sair
-  </a>
-</div>
+      <div class="nav-mobile-actions" *ngIf="isLoggedIn">
+        <div class="nav-mobile-label">MINHA CONTA / 02</div>
+
+        <a (click)="fecharMenu(); abrirFavoritos()">
+          <i class="pi pi-heart"></i>
+          Favoritos
+          <span class="badge-mobile" *ngIf="favoritosCount > 0">
+            {{ favoritosCount }}
+          </span>
+        </a>
+
+        <a (click)="fecharMenu(); abrirCarrinho()">
+          <i class="pi pi-shopping-cart"></i>
+          Carrinho
+          <span class="badge-mobile" *ngIf="carrinhoItens > 0">
+            {{ carrinhoItens }}
+          </span>
+        </a>
+
+        <a (click)="fecharMenu(); abrirNotificacoes()">
+          <i class="pi pi-bell"></i>
+          Notificações
+          <span class="badge-mobile" *ngIf="notificacoesNaoLidas > 0">
+            {{ notificacoesNaoLidas }}
+          </span>
+        </a>
+
+        <a (click)="fecharMenu(); abrirCupons()">
+          <i class="pi pi-tag"></i>
+          Cupons
+          <span class="badge-mobile" *ngIf="cuponsDisponiveisCount > 0">
+            {{ cuponsDisponiveisCount }}
+          </span>
+        </a>
+
+        <a (click)="fecharMenu(); abrirChatsModal()">
+          <i class="pi pi-comment"></i>
+          Chats
+          <span class="badge-mobile" *ngIf="totalChatsNaoLidas > 0">
+            {{ totalChatsNaoLidas }}
+          </span>
+        </a>
+
+        <div class="nav-mobile-label nav-mobile-label-conta">
+          CONTA / 03
+        </div>
+
+        <a (click)="fecharMenu(); abrirPerfil()">
+          <i class="pi pi-user"></i>
+          Meu perfil
+        </a>
+
+        <a
+          class="nav-mobile-logout"
+          (click)="fecharMenu(); abrirLogout()">
+          <i class="pi pi-sign-out"></i>
+          Sair da conta
+        </a>
+      </div>
     </nav>
 
     <div class="header-actions">
@@ -62,41 +122,128 @@
         styleClass="p-button-outlined p-button-sm">
       </p-button>
 
-<div *ngIf="isLoggedIn" class="user-actions" [class.menu-aberto]="menuAberto">
-  <div class="user-info" (click)="abrirPerfil()">
-    <p-avatar icon="pi pi-user" styleClass="user-avatar" shape="circle"></p-avatar>
-    <span class="user-name">{{usuario?.nome}}</span>
-  </div>
+      <div *ngIf="isLoggedIn" class="user-actions">
+        <button
+          type="button"
+          class="action-icon"
+          (click)="abrirFavoritos()"
+          title="Favoritos"
+          aria-label="Favoritos">
+          <i class="pi pi-heart"></i>
+          <span
+            class="badge-cart"
+            *ngIf="favoritosCount > 0">
+            {{ favoritosCount }}
+          </span>
+        </button>
 
-  <div class="action-icon" (click)="abrirFavoritos()" *ngIf="!menuAberto">
-    <i class="pi pi-heart"></i>
-    <span class="badge-cart" *ngIf="favoritosCount > 0">{{favoritosCount}}</span>
-  </div>
+        <button
+          type="button"
+          class="action-icon"
+          (click)="abrirCarrinho()"
+          title="Carrinho"
+          aria-label="Carrinho">
+          <i class="pi pi-shopping-cart"></i>
+          <span
+            class="badge-cart"
+            *ngIf="carrinhoItens > 0">
+            {{ carrinhoItens }}
+          </span>
+        </button>
 
-  <div class="action-icon" (click)="abrirCarrinho()" *ngIf="!menuAberto">
-    <i class="pi pi-shopping-cart"></i>
-    <span class="badge-cart" *ngIf="carrinhoItens > 0">{{carrinhoItens}}</span>
-  </div>
+        <button
+          type="button"
+          class="action-icon"
+          (click)="abrirNotificacoes()"
+          title="Notificações"
+          aria-label="Notificações">
+          <i class="pi pi-bell"></i>
+          <span
+            class="badge-notif"
+            *ngIf="notificacoesNaoLidas > 0">
+            {{ notificacoesNaoLidas }}
+          </span>
+        </button>
 
-  <div class="action-icon" (click)="abrirNotificacoes()" *ngIf="!menuAberto">
-    <i class="pi pi-bell"></i>
-    <span class="badge-notif" *ngIf="notificacoesNaoLidas > 0">{{notificacoesNaoLidas}}</span>
-  </div>
+        <button
+          type="button"
+          class="action-icon"
+          (click)="abrirCupons()"
+          title="Cupons"
+          aria-label="Cupons">
+          <i class="pi pi-tag"></i>
+          <span
+            class="badge-cart"
+            *ngIf="cuponsDisponiveisCount > 0">
+            {{ cuponsDisponiveisCount }}
+          </span>
+        </button>
 
-  <div class="action-icon" (click)="abrirCupons()" *ngIf="!menuAberto">
-    <i class="pi pi-tag"></i>
-    <span class="badge-cart" *ngIf="cuponsDisponiveisCount > 0">{{ cuponsDisponiveisCount }}</span>
-  </div>
+        <button
+          type="button"
+          class="action-icon"
+          (click)="abrirChatsModal()"
+          title="Chats"
+          aria-label="Chats">
+          <i class="pi pi-comment"></i>
+          <span
+            class="badge-cart"
+            *ngIf="totalChatsNaoLidas > 0">
+            {{ totalChatsNaoLidas }}
+          </span>
+        </button>
+      </div>
 
-  <div class="action-icon" (click)="abrirChatsModal()" *ngIf="!menuAberto">
-    <i class="pi pi-comment"></i>
-    <span class="badge-cart" *ngIf="totalChatsNaoLidas > 0">{{ totalChatsNaoLidas }}</span>
-  </div>
+      <div class="account-dropdown" *ngIf="isLoggedIn">
+        <button
+          type="button"
+          class="account-toggle"
+          (click)="menuContaAberto = !menuContaAberto"
+          [attr.aria-expanded]="menuContaAberto"
+          aria-label="Abrir menu da conta"
+          title="Minha conta">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
 
-  <div class="action-icon logout" (click)="abrirLogout()" *ngIf="!menuAberto">
-    <i class="pi pi-sign-out"></i>
-  </div>
-</div>
+        <div class="account-menu" *ngIf="menuContaAberto">
+          <div class="account-menu-header">
+            <span>MINHA CONTA / 01</span>
+            <strong>{{ usuario?.nome || 'Minha conta' }}</strong>
+          </div>
+
+          <button
+            type="button"
+            class="account-menu-item"
+            (click)="menuContaAberto = false; abrirPerfil()">
+            <i class="pi pi-user"></i>
+            <span>Meu perfil</span>
+            <i class="pi pi-arrow-up-right"></i>
+          </button>
+
+          <button
+            type="button"
+            class="account-menu-item account-menu-item-sair"
+            (click)="menuContaAberto = false; abrirLogout()">
+            <i class="pi pi-sign-out"></i>
+            <span>Sair da conta</span>
+            <i class="pi pi-arrow-up-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="menu-toggle"
+        *ngIf="isLoggedIn"
+        (click)="toggleMenu()"
+        [class.active]="menuAberto"
+        [attr.aria-expanded]="menuAberto"
+        aria-label="Abrir ou fechar navegação">
+        <span></span>
+        <span></span>
+      </button>
     </div>
   </div>
 </header>

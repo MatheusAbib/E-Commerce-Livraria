@@ -37,7 +37,6 @@ public class ChatController {
                 log.setLevel("info");
                 logService.salvarLog(log);
             } catch (Exception e) {
-                System.err.println("Erro ao registrar log: " + e.getMessage());
             }
             
             return ResponseEntity.ok(msg);
@@ -61,7 +60,6 @@ public class ChatController {
                 log.setLevel("info");
                 logService.salvarLog(log);
             } catch (Exception e) {
-                System.err.println("Erro ao registrar log: " + e.getMessage());
             }
             
             return ResponseEntity.ok(msg);

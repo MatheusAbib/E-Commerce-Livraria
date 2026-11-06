@@ -134,8 +134,6 @@ public class EnderecoController {
             enderecoService.excluir(id);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
-            System.err.println("Erro ao excluir endereço: " + e.getMessage());
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
