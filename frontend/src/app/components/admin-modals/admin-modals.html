@@ -1,4 +1,4 @@
-<!-- Modal Perfil Admin -->
+
 <div class="custom-modal" [class.active]="displayPerfilModal">
   <div class="custom-modal-overlay" (click)="fecharPerfil()"></div>
   <div class="custom-modal-content" style="width: 480px; max-width: 95%;">
@@ -56,8 +56,6 @@
     </div>
   </div>
 </div>
-
-<!-- Modal Logout -->
 <div class="custom-modal" [class.active]="displayLogoutModal">
   <div class="custom-modal-overlay" (click)="fecharLogout()"></div>
   <div class="custom-modal-content" style="width: 380px; max-width: 95%;">
@@ -82,8 +80,6 @@
     </div>
   </div>
 </div>
-
-<!-- Modal Formulário Livro -->
 <div class="custom-modal" [class.active]="displayFormModal">
   <div class="custom-modal-overlay" (click)="fecharFormulario()"></div>
   <div class="custom-modal-content" style="width: 800px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
@@ -212,8 +208,6 @@
     </div>
   </div>
 </div>
-
-<!-- Modal Confirmar Exclusão -->
 <div class="custom-modal" [class.active]="displayExcluirModal">
   <div class="custom-modal-overlay" (click)="displayExcluirModal = false"></div>
   <div class="custom-modal-content" style="width: 400px; max-width: 95%;">
@@ -241,8 +235,6 @@
     </div>
   </div>
 </div>
-
-<!-- Modal Confirmar Status -->
 <div class="custom-modal" [class.active]="displayStatusModal">
   <div class="custom-modal-overlay" (click)="displayStatusModal = false"></div>
   <div class="custom-modal-content" style="width: 420px; max-width: 95%;">
@@ -276,8 +268,6 @@
     </div>
   </div>
 </div>
-
-<!-- Modal Detalhes -->
 <div class="custom-modal" [class.active]="displayDetalhesModal">
   <div class="custom-modal-overlay" (click)="displayDetalhesModal = false"></div>
   <div class="custom-modal-content" style="width: 700px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
@@ -381,8 +371,6 @@
     </div>
   </div>
 </div>
-
-<!-- Modal Detalhes do Pedido -->
 <div class="custom-modal" [class.active]="displayPedidoDetalhesModal">
   <div class="custom-modal-overlay" (click)="displayPedidoDetalhesModal = false"></div>
   <div class="custom-modal-content" style="width: 700px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
@@ -410,6 +398,7 @@
         <div class="detalhes-info full-width">
           <h4><i class="pi pi-map-marker"></i> Endereço</h4>
           <ng-container *ngIf="pedidoSelecionado.enderecoEntrega">
+            <p *ngIf="pedidoSelecionado.enderecoEntrega.nomeEndereco"><strong>{{ pedidoSelecionado.enderecoEntrega.nomeEndereco }}</strong></p>
             <p>{{ pedidoSelecionado.enderecoEntrega.rua || '-' }}, {{ pedidoSelecionado.enderecoEntrega.numero || '-' }} - {{ pedidoSelecionado.enderecoEntrega.bairro || '-' }}</p>
             <p>{{ pedidoSelecionado.enderecoEntrega.cidade || '-' }}/{{ pedidoSelecionado.enderecoEntrega.estado || '-' }} - {{ pedidoSelecionado.enderecoEntrega.cep || '-' }}</p>
             <p *ngIf="pedidoSelecionado.enderecoEntrega.complemento">Complemento: {{ pedidoSelecionado.enderecoEntrega.complemento }}</p>
@@ -418,23 +407,35 @@
         </div>
         <div class="detalhes-info full-width">
           <h4><i class="pi pi-credit-card"></i> Pagamento</h4>
-          <ng-container *ngIf="pedidoSelecionado.cartao">
-            <p>
-              <strong>Principal:</strong> {{ pedidoSelecionado.cartao.bandeira || 'Cartão' }}
-              **** {{ pedidoSelecionado.cartao.numero?.slice(-4) || '****' }}
-            </p>
-          </ng-container>
-          <ng-container *ngIf="pedidoSelecionado.cartoesAdicionais">
-            <div *ngFor="let cartao of pedidoSelecionado.cartoesAdicionais" class="cartao-adicional">
+          <ng-container *ngIf="pedidoSelecionado.pagamentos?.length; else pagamentoLegado">
+            <div *ngFor="let pagamento of pedidoSelecionado.pagamentos; let i = index" class="cartao-adicional">
               <p>
-                <strong>Adicional:</strong> {{ cartao.bandeira || 'Cartão' }}
-                **** {{ cartao.numero?.slice(-4) || '****' }}
+                <strong>Cartão {{ i + 1 }}:</strong>
+                {{ pagamento.bandeira || 'Cartão' }}
+                **** {{ pagamento.ultimosDigitos || '****' }}
               </p>
+              <p><strong>Valor:</strong> R$ {{ (pagamento.valor ?? 0) | number:'1.2-2' }}</p>
             </div>
           </ng-container>
-          <p *ngIf="!pedidoSelecionado.cartao && (!pedidoSelecionado.cartoesAdicionais || pedidoSelecionado.cartoesAdicionais.length === 0)">
-            Informações de pagamento não disponíveis
-          </p>
+          <ng-template #pagamentoLegado>
+            <ng-container *ngIf="pedidoSelecionado.cartao">
+              <p>
+                <strong>Principal:</strong> {{ pedidoSelecionado.cartao.bandeira || 'Cartão' }}
+                **** {{ pedidoSelecionado.cartao.ultimosDigitos || pedidoSelecionado.cartao.numero?.slice(-4) || '****' }}
+              </p>
+            </ng-container>
+            <ng-container *ngIf="pedidoSelecionado.cartoesAdicionais?.length">
+              <div *ngFor="let cartao of pedidoSelecionado.cartoesAdicionais" class="cartao-adicional">
+                <p>
+                  <strong>Adicional:</strong> {{ cartao.bandeira || 'Cartão' }}
+                  **** {{ cartao.ultimosDigitos || cartao.numero?.slice(-4) || '****' }}
+                </p>
+              </div>
+            </ng-container>
+            <p *ngIf="!pedidoSelecionado.cartao && !pedidoSelecionado.cartoesAdicionais?.length">
+              Informações de pagamento não disponíveis
+            </p>
+          </ng-template>
         </div>
         <div class="detalhes-info full-width">
           <h4><i class="pi pi-shopping-cart"></i> Itens</h4>
@@ -446,33 +447,29 @@
           </ng-container>
           <p *ngIf="!pedidoSelecionado.itens || pedidoSelecionado.itens.length === 0">Nenhum item encontrado</p>
         </div>
-
         <div class="detalhes-info full-width" *ngIf="pedidoSelecionado.codigoCupom">
           <h4><i class="pi pi-ticket"></i> Cupom Aplicado na Compra</h4>
           <p><strong>Código:</strong> {{ pedidoSelecionado.codigoCupom }}</p>
           <p><strong>Desconto:</strong> -R$ {{ (pedidoSelecionado.valorDesconto || 0) | number:'1.2-2' }}</p>
         </div>
-
         <div class="detalhes-info full-width" *ngIf="pedidoSelecionado.cupomGerado && pedidoSelecionado.cupomDisponivel">
           <h4><i class="pi pi-tag"></i> Cupom Gerado</h4>
           <p><strong>Código:</strong> {{ pedidoSelecionado.cupomGerado }}</p>
           <p><strong>Desconto:</strong> {{ pedidoSelecionado.cupomPorcentagem }}% na próxima compra</p>
           <p><span class="status-badge status-disponivel">Disponível para o cliente</span></p>
         </div>
-
         <div class="detalhes-info full-width" *ngIf="pedidoSelecionado.cupomGerado && !pedidoSelecionado.cupomDisponivel">
           <h4><i class="pi pi-tag"></i> Cupom Gerado</h4>
           <p><strong>Código:</strong> {{ pedidoSelecionado.cupomGerado }}</p>
           <p><strong>Desconto:</strong> {{ pedidoSelecionado.cupomPorcentagem }}% na próxima compra</p>
           <p><span class="status-badge status-usado">Já utilizado pelo cliente</span></p>
         </div>
-
         <div class="detalhes-info full-width" *ngIf="pedidoSelecionado.codigoRastreamentoEnvio">
           <h4><i class="pi pi-box"></i> Código de Rastreamento de Envio</h4>
           <p><strong>Código:</strong> {{ pedidoSelecionado.codigoRastreamentoEnvio }}</p>
           <p>
             <a
-              [href]="'https://rastreamento.correios.com.br/app/index.php'"
+              [href]="'https\://rastreamento.correios.com.br/app/index.php'"
               target="_blank"
               class="btn-rastreamento">
               <i class="pi pi-external-link"></i> Rastrear nos Correios
@@ -482,13 +479,12 @@
             <i class="pi pi-info-circle"></i> Código enviado pelo vendedor
           </p>
         </div>
-
         <div class="detalhes-info full-width" *ngIf="pedidoSelecionado.codigoRastreamentoDevolucao">
           <h4><i class="pi pi-box"></i> Código de Rastreamento de Devolução</h4>
           <p><strong>Código:</strong> {{ pedidoSelecionado.codigoRastreamentoDevolucao }}</p>
           <p>
             <a
-              [href]="'https://rastreamento.correios.com.br/app/index.php'"
+              [href]="'https\://rastreamento.correios.com.br/app/index.php'"
               target="_blank"
               class="btn-rastreamento">
               <i class="pi pi-external-link"></i> Rastrear nos Correios
@@ -498,7 +494,6 @@
             <i class="pi pi-info-circle"></i> Código enviado pelo cliente
           </p>
         </div>
-
         <div class="detalhes-info full-width" *ngIf="pedidoSelecionado.status === 'DEVOLVIDO'">
           <h4><i class="pi pi-money-bill"></i> Reembolso</h4>
           <p>
@@ -513,7 +508,6 @@
             <i class="pi pi-check-circle"></i> Cliente confirmou o recebimento
           </p>
         </div>
-
         <div class="detalhes-info full-width total">
           <h4>Total</h4>
           <p style="font-size: 1.2rem; font-weight: 700; color: #2a5298;">R$ {{ (pedidoSelecionado.valorTotal || 0) | number:'1.2-2' }}</p>
@@ -528,7 +522,7 @@
             <div *ngFor="let foto of pedidoSelecionado.fotosDevolucao; let i = index"
                  class="foto-devolucao-item-admin"
                  (click)="abrirFotoAmpliada(foto.caminho)">
-              <img [src]="'/uploads/devolucoes/' + foto.caminho" alt="Foto da devolução {{ i + 1 }}" class="foto-devolucao-img-admin">
+              <img [src]="'http://localhost:8081/' + foto.caminho" [alt]="'Foto da devolução ' + (i + 1)" class="foto-devolucao-img-admin">
               <span class="foto-badge-admin">Foto {{ i + 1 }}</span>
             </div>
           </div>
@@ -551,8 +545,6 @@
     </div>
   </div>
 </div>
-
-<!-- Modal Confirmar Status do Pedido -->
 <div class="custom-modal" [class.active]="displayPedidoStatusModal">
   <div class="custom-modal-overlay" (click)="displayPedidoStatusModal = false"></div>
   <div class="custom-modal-content" style="width: 480px; max-width: 95%;">
@@ -566,7 +558,6 @@
       <p style="color: #4a5a6a; font-size: 0.95rem;">
         Deseja alterar o status do pedido <strong>#{{ pedidoStatus?.id }}</strong> para <strong>{{ getStatusLabel(pedidoNovoStatus) }}</strong>?
       </p>
-
       <div *ngIf="pedidoNovoStatus === 'EM_TRANSITO'" class="rastreamento-section">
         <div class="rastreamento-config">
           <label>Código de rastreamento *</label>
@@ -585,13 +576,11 @@
           </small>
         </div>
       </div>
-
       <div *ngIf="pedidoNovoStatus === 'DEVOLVIDO'" class="cupom-section">
         <div class="cupom-toggle">
           <input type="checkbox" [(ngModel)]="gerarCupom" id="gerarCupom">
           <label for="gerarCupom">Gerar cupom de desconto para o cliente</label>
         </div>
-
         <div *ngIf="gerarCupom" class="cupom-config">
           <label>Porcentagem do desconto:</label>
           <div class="porcentagem-input">
@@ -618,8 +607,6 @@
     </div>
   </div>
 </div>
-
-<!-- Modal Confirmar Exclusão do Pedido -->
 <div class="custom-modal" [class.active]="displayPedidoExcluirModal">
   <div class="custom-modal-overlay" (click)="displayPedidoExcluirModal = false"></div>
   <div class="custom-modal-content" style="width: 400px; max-width: 95%;">
@@ -647,5 +634,4 @@
     </div>
   </div>
 </div>
-
 <p-toast position="top-right"></p-toast>

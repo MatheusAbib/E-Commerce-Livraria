@@ -6,6 +6,7 @@ import com.biblioteca.biblioteca_online.repository.CarteiraRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.math.BigDecimal;
 
@@ -51,10 +52,10 @@ public class CarteiraService {
         return carteiraRepository.save(carteira);
     }
 
-    @Transactional
-    public Carteira registrarCashback(Long clienteId, BigDecimal valorCompra) {
-        Carteira carteira = buscarPorCliente(clienteId);
-        carteira.acumularCashback(valorCompra);
-        return carteiraRepository.save(carteira);
-    }
+@Transactional(propagation = Propagation.REQUIRES_NEW)
+public Carteira registrarCashback(Long clienteId, BigDecimal valorCompra) {
+    Carteira carteira = buscarPorCliente(clienteId);
+    carteira.acumularCashback(valorCompra);
+    return carteiraRepository.save(carteira);
+}
 }

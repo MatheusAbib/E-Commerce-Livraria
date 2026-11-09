@@ -1,3 +1,4 @@
+
 package com.biblioteca.biblioteca_online.model;
 
 import jakarta.persistence.*;
@@ -24,6 +25,7 @@ public class Livro {
 
     private Integer paginas;
 
+    @Column(columnDefinition = "TEXT")
     private String sinopse;
 
     private Double altura;
@@ -57,9 +59,11 @@ public class Livro {
 
     private String imagemUrl;
 
+    @Transient
+    private Long quantidadeVendida = 0L;
+
     public Livro() {}
 
-    // Getters e Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -104,7 +108,6 @@ public class Livro {
 
     public String getSinopse() { return sinopse; }
     public void setSinopse(String sinopse) { this.sinopse = sinopse; }
-    
 
     public Integer getPaginas() { return paginas; }
     public void setPaginas(Integer paginas) { this.paginas = paginas; }
@@ -126,4 +129,9 @@ public class Livro {
 
     public String getImagemUrl() { return imagemUrl; }
     public void setImagemUrl(String imagemUrl) { this.imagemUrl = imagemUrl; }
+
+    public Long getQuantidadeVendida() { return quantidadeVendida; }
+    public void setQuantidadeVendida(Long quantidadeVendida) {
+        this.quantidadeVendida = quantidadeVendida;
+    }
 }

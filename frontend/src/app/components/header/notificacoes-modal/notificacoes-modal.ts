@@ -1,29 +1,41 @@
-import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef, OnChanges, SimpleChanges } from '@angular/core';
+
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnInit,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges,
+  ChangeDetectorRef
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-import { AuthService } from '../../../services/auth';
+import { Subscription } from 'rxjs';
+import { AuthService, Notificacao } from '../../../services/auth';
 
 @Component({
   selector: 'app-notificacoes-modal',
   standalone: true,
-  imports: [
-    CommonModule,
-    ButtonModule,
-    ToastModule
-  ],
+  imports: [CommonModule, ButtonModule, ToastModule],
   providers: [MessageService],
   templateUrl: './notificacoes-modal.html',
   styleUrls: ['./notificacoes-modal.css']
 })
-export class NotificacoesModalComponent implements OnInit, OnChanges {
+export class NotificacoesModalComponent implements OnInit, OnChanges, OnDestroy {
   @Input() visible: boolean = false;
   @Output() visibleChange = new EventEmitter<boolean>();
 
-  notificacoes: any[] = [];
+  notificacoes: Notificacao[] = [];
   loading: boolean = false;
   usuario: any = null;
+
+  private notificacoesSubscription?: Subscription;
+  private usuarioSubscription?: Subscription;
+  private requisicaoSubscription?: Subscription;
 
   constructor(
     private authService: AuthService,
@@ -33,39 +45,87 @@ export class NotificacoesModalComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     this.usuario = this.authService.getUser();
-    if (this.usuario) {
+
+    this.notificacoesSubscription = this.authService.notificacoes$.subscribe(
+      notificacoes => {
+        this.notificacoes = notificacoes;
+        this.cdr.detectChanges();
+      }
+    );
+
+    this.usuarioSubscription = this.authService.usuario$.subscribe(usuario => {
+      const usuarioAnteriorId = this.usuario?.id;
+      this.usuario = usuario;
+
+      if (!usuario) {
+        this.requisicaoSubscription?.unsubscribe();
+        this.notificacoes = [];
+        this.loading = false;
+        this.cdr.detectChanges();
+        return;
+      }
+
+      if (usuarioAnteriorId !== usuario.id || this.visible) {
+        this.carregarNotificacoes();
+      }
+    });
+
+    if (this.usuario && this.authService.isAuthenticated()) {
       this.carregarNotificacoes();
     }
-
-    this.authService.notificacoes$.subscribe(notificacoes => {
-      this.notificacoes = notificacoes;
-      this.cdr.detectChanges();
-    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['visible'] && changes['visible'].currentValue === true) {
+    if (changes['visible']?.currentValue === true) {
       this.carregarNotificacoes();
     }
   }
 
-carregarNotificacoes(): void {
-  if (!this.usuario) {
-    this.usuario = this.authService.getUser();
-    if (!this.usuario) return;
+  ngOnDestroy(): void {
+    this.notificacoesSubscription?.unsubscribe();
+    this.usuarioSubscription?.unsubscribe();
+    this.requisicaoSubscription?.unsubscribe();
   }
 
-  this.loading = true;
-  this.cdr.detectChanges();
+  carregarNotificacoes(): void {
+    this.usuario = this.authService.getUser();
 
-  setTimeout(() => {
-    const notificacoesPorUsuario = JSON.parse(localStorage.getItem('notificacoesPorUsuario') || '{}');
-    this.notificacoes = notificacoesPorUsuario[this.usuario.id] || [];
-    this.authService.notificacoesSubject.next(this.notificacoes);
-    this.loading = false;
+    if (!this.usuario || !this.authService.isAuthenticated()) {
+      this.notificacoes = [];
+      this.loading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.requisicaoSubscription?.unsubscribe();
+
+    this.loading = true;
     this.cdr.detectChanges();
-  }, 300);
-}
+
+    this.requisicaoSubscription = this.authService.buscarNotificacoes().subscribe({
+      next: notificacoes => {
+        if (this.authService.getUser()?.id !== this.usuario?.id) {
+          return;
+        }
+
+        this.notificacoes = notificacoes;
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loading = false;
+
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro ao carregar notificações',
+          detail: 'Não foi possível consultar suas notificações.',
+          life: 3000
+        });
+
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
   fechar(): void {
     this.visible = false;
@@ -73,35 +133,58 @@ carregarNotificacoes(): void {
   }
 
   marcarComoLida(id: number): void {
-    if (!this.usuario) return;
+    if (!this.usuario || !this.authService.isAuthenticated()) {
+      return;
+    }
 
-    const notificacoesPorUsuario = JSON.parse(localStorage.getItem('notificacoesPorUsuario') || '{}');
-    let notificacoes = notificacoesPorUsuario[this.usuario.id] || [];
-    notificacoes = notificacoes.map((n: any) => n.id === id ? {...n, lida: true} : n);
-    notificacoesPorUsuario[this.usuario.id] = notificacoes;
-    localStorage.setItem('notificacoesPorUsuario', JSON.stringify(notificacoesPorUsuario));
-
-    this.notificacoes = notificacoes;
-    this.authService.notificacoesSubject.next(notificacoes);
-    this.cdr.detectChanges();
+    this.authService.marcarNotificacaoComoLida(id).subscribe({
+      next: () => {
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Não foi possível marcar a notificação como lida.',
+          life: 3000
+        });
+      }
+    });
   }
 
   limparTodas(): void {
-    if (!this.usuario) return;
+    if (!this.usuario || !this.authService.isAuthenticated()) {
+      return;
+    }
 
-    const notificacoesPorUsuario = JSON.parse(localStorage.getItem('notificacoesPorUsuario') || '{}');
-    notificacoesPorUsuario[this.usuario.id] = [];
-    localStorage.setItem('notificacoesPorUsuario', JSON.stringify(notificacoesPorUsuario));
+    this.loading = true;
 
-    this.notificacoes = [];
-    this.authService.notificacoesSubject.next([]);
-    this.cdr.detectChanges();
+    this.authService.excluirTodasNotificacoes().subscribe({
+      next: () => {
+        this.notificacoes = [];
+        this.loading = false;
 
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Notificações limpas',
-      detail: 'Todas as notificações foram removidas com sucesso!',
-      life: 3000
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Notificações limpas',
+          detail: 'Todas as notificações foram removidas com sucesso!',
+          life: 3000
+        });
+
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.loading = false;
+
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Não foi possível excluir as notificações.',
+          life: 3000
+        });
+
+        this.cdr.detectChanges();
+      }
     });
   }
 }

@@ -1,9 +1,11 @@
+
 package com.biblioteca.biblioteca_online.controller;
 
 import com.biblioteca.biblioteca_online.model.Livro;
 import com.biblioteca.biblioteca_online.repository.LivroRepository;
 import com.biblioteca.biblioteca_online.service.LivroService;
 import com.biblioteca.biblioteca_online.service.FileStorageService;
+import com.biblioteca.biblioteca_online.service.MaisVendidosService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,15 +13,22 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/livros")
 public class LivroController {
 
     private final LivroService livroService;
+    private final MaisVendidosService maisVendidosService;
 
     @Autowired
     private FileStorageService fileStorageService;
@@ -27,16 +36,44 @@ public class LivroController {
     @Autowired
     private LivroRepository livroRepository;
 
-    public LivroController(LivroService livroService) {
+    public LivroController(
+            LivroService livroService,
+            MaisVendidosService maisVendidosService) {
         this.livroService = livroService;
+        this.maisVendidosService = maisVendidosService;
+    }
+
+    private Livro preencherQuantidadeVendida(
+            Livro livro,
+            Map<Long, Long> quantidadesVendidas) {
+        livro.setQuantidadeVendida(
+                quantidadesVendidas.getOrDefault(livro.getId(), 0L)
+        );
+        return livro;
+    }
+
+    private List<Livro> preencherQuantidadesVendidas(List<Livro> livros) {
+        Map<Long, Long> quantidadesVendidas =
+                maisVendidosService.buscarQuantidadesVendidas();
+
+        livros.forEach(livro ->
+                preencherQuantidadeVendida(livro, quantidadesVendidas)
+        );
+
+        return livros;
     }
 
     @PostMapping
     public ResponseEntity<Livro> salvar(@RequestBody Livro livro) {
-        return ResponseEntity.ok(livroService.salvar(livro));
+        Livro livroSalvo = livroService.salvar(livro);
+        return ResponseEntity.ok(
+                preencherQuantidadeVendida(
+                        livroSalvo,
+                        maisVendidosService.buscarQuantidadesVendidas()
+                )
+        );
     }
 
-    // NOVO ENDPOINT PARA SALVAR COM IMAGEM
     @PostMapping("/com-imagem")
     public ResponseEntity<?> salvarComImagem(
             @RequestPart("livro") Livro livro,
@@ -49,7 +86,12 @@ public class LivroController {
             }
 
             Livro livroSalvo = livroService.salvar(livro);
-            return ResponseEntity.ok(livroSalvo);
+            return ResponseEntity.ok(
+                    preencherQuantidadeVendida(
+                            livroSalvo,
+                            maisVendidosService.buscarQuantidadesVendidas()
+                    )
+            );
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Erro ao salvar livro: " + e.getMessage());
         }
@@ -57,10 +99,16 @@ public class LivroController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Livro> atualizar(@PathVariable Long id, @RequestBody Livro livro) {
-        return ResponseEntity.ok(livroService.atualizar(id, livro));
+        Livro livroAtualizado = livroService.atualizar(id, livro);
+
+        return ResponseEntity.ok(
+                preencherQuantidadeVendida(
+                        livroAtualizado,
+                        maisVendidosService.buscarQuantidadesVendidas()
+                )
+        );
     }
 
-    // NOVO ENDPOINT PARA ATUALIZAR COM IMAGEM
     @PutMapping("/{id}/com-imagem")
     public ResponseEntity<?> atualizarComImagem(
             @PathVariable Long id,
@@ -84,12 +132,19 @@ public class LivroController {
                     } catch (Exception e) {
                     }
                 }
+
                 String nomeArquivo = fileStorageService.storeFile(imagem);
                 livroAtual.setImagemUrl(nomeArquivo);
             }
 
             Livro livroAtualizado = livroService.salvar(livroAtual);
-            return ResponseEntity.ok(livroAtualizado);
+
+            return ResponseEntity.ok(
+                    preencherQuantidadeVendida(
+                            livroAtualizado,
+                            maisVendidosService.buscarQuantidadesVendidas()
+                    )
+            );
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Erro ao atualizar livro: " + e.getMessage());
         }
@@ -115,12 +170,17 @@ public class LivroController {
                 }
             }
 
-            // Salva nova imagem
             String nomeArquivo = fileStorageService.storeFile(imagem);
             livroAtual.setImagemUrl(nomeArquivo);
 
             Livro livroAtualizado = livroService.salvar(livroAtual);
-            return ResponseEntity.ok(livroAtualizado);
+
+            return ResponseEntity.ok(
+                    preencherQuantidadeVendida(
+                            livroAtualizado,
+                            maisVendidosService.buscarQuantidadesVendidas()
+                    )
+            );
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Erro ao fazer upload da imagem: " + e.getMessage());
         }
@@ -149,6 +209,7 @@ public class LivroController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
         Optional<Livro> livro = livroService.buscarPorId(id);
+
         if (livro.isPresent() && livro.get().getImagemUrl() != null) {
             try {
                 fileStorageService.deleteFile(livro.get().getImagemUrl());
@@ -174,12 +235,65 @@ public class LivroController {
 
     @GetMapping("/ativos")
     public ResponseEntity<List<Livro>> listarAtivos() {
-        return ResponseEntity.ok(livroService.listarAtivos());
+        return ResponseEntity.ok(
+                preencherQuantidadesVendidas(livroService.listarAtivos())
+        );
+    }
+
+    @GetMapping("/mais-vendidos")
+    public ResponseEntity<List<Livro>> listarMaisVendidos() {
+        List<Long> idsMaisVendidos = maisVendidosService.buscarIdsMaisVendidos();
+
+        List<Livro> livrosDisponiveis = livroService.listarAtivos()
+                .stream()
+                .filter(livro -> livro.getEstoque() != null && livro.getEstoque() > 0)
+                .toList();
+
+        Map<Long, Livro> livrosPorId = livrosDisponiveis.stream()
+                .collect(Collectors.toMap(
+                        Livro::getId,
+                        Function.identity(),
+                        (primeiro, segundo) -> primeiro
+                ));
+
+        List<Livro> resultado = new ArrayList<>();
+        Set<Long> idsSelecionados = new HashSet<>();
+
+        for (Long id : idsMaisVendidos) {
+            Livro livro = livrosPorId.get(id);
+
+            if (livro != null && idsSelecionados.add(id)) {
+                resultado.add(livro);
+            }
+
+            if (resultado.size() == 3) {
+                break;
+            }
+        }
+
+        if (resultado.size() < 3) {
+            livrosDisponiveis.stream()
+                    .filter(livro -> !idsSelecionados.contains(livro.getId()))
+                    .sorted(Comparator.comparing(Livro::getId))
+                    .limit(3 - resultado.size())
+                    .forEach(livro -> {
+                        resultado.add(livro);
+                        idsSelecionados.add(livro.getId());
+                    });
+        }
+
+        return ResponseEntity.ok(
+                preencherQuantidadesVendidas(resultado)
+        );
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Livro> buscarPorId(@PathVariable Long id) {
+        Map<Long, Long> quantidadesVendidas =
+                maisVendidosService.buscarQuantidadesVendidas();
+
         return livroService.buscarPorId(id)
+                .map(livro -> preencherQuantidadeVendida(livro, quantidadesVendidas))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -198,15 +312,32 @@ public class LivroController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String ordenarPor,
             @RequestParam(required = false) String direcao) {
+
         Map<String, Object> resultado = livroService.consultarComFiltrosComContagem(
-                titulo, autor, editora, isbn, categoria, precoMin, precoMax, estoqueMin, estoqueMax, status, ordenarPor,
-                direcao);
+                titulo, autor, editora, isbn, categoria, precoMin, precoMax,
+                estoqueMin, estoqueMax, status, ordenarPor, direcao
+        );
+
+        Map<Long, Long> quantidadesVendidas =
+                maisVendidosService.buscarQuantidadesVendidas();
+
+        Object livros = resultado.get("livros");
+
+        if (livros instanceof List<?> lista) {
+            for (Object item : lista) {
+                if (item instanceof Livro livro) {
+                    preencherQuantidadeVendida(livro, quantidadesVendidas);
+                }
+            }
+        }
+
         return ResponseEntity.ok(resultado);
     }
 
     @PostMapping("/change-status/{id}")
     public ResponseEntity<?> changeStatus(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
         Optional<Livro> livroOpt = livroRepository.findById(id);
+
         if (!livroOpt.isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -235,27 +366,66 @@ public class LivroController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/processar-pedido")
-    public ResponseEntity<?> processarPedido(@RequestBody Map<String, Object> payload) {
-        try {
-            List<Map<String, Object>> itens = (List<Map<String, Object>>) payload.get("itens");
-            livroService.processarCompra(itens);
-            return ResponseEntity.ok().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+
+
+@PostMapping("/processar-pedido")
+public ResponseEntity<?> processarPedido(@RequestBody Map<String, Object> payload) {
+    try {
+        Object dados = payload.get("itens");
+
+        if (!(dados instanceof List<?> lista)) {
+            return ResponseEntity.badRequest().body("Lista de itens inválida.");
         }
+
+        List<Map<String, Object>> itens = new ArrayList<>();
+
+        for (Object item : lista) {
+            if (!(item instanceof Map<?, ?> mapa)) {
+                return ResponseEntity.badRequest().body("Item do pedido inválido.");
+            }
+
+            Map<String, Object> itemConvertido = new java.util.HashMap<>();
+
+            for (Map.Entry<?, ?> entrada : mapa.entrySet()) {
+                if (!(entrada.getKey() instanceof String chave)) {
+                    return ResponseEntity.badRequest().body("Chave do item inválida.");
+                }
+
+                itemConvertido.put(chave, entrada.getValue());
+            }
+
+            itens.add(itemConvertido);
+        }
+
+        livroService.processarCompra(itens);
+        return ResponseEntity.ok().build();
+
+    } catch (RuntimeException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
+}
+
+
 
     @PutMapping("/{id}/repor-estoque")
-    public ResponseEntity<Livro> reporEstoque(@PathVariable Long id, @RequestParam Integer quantidade,
+    public ResponseEntity<Livro> reporEstoque(
+            @PathVariable Long id,
+            @RequestParam Integer quantidade,
             @RequestParam String motivo) {
+
         if (quantidade == null || quantidade <= 0) {
             return ResponseEntity.badRequest().body(null);
         }
 
         try {
             Livro livroAtualizado = livroService.reporEstoque(id, quantidade, motivo);
-            return ResponseEntity.ok(livroAtualizado);
+
+            return ResponseEntity.ok(
+                    preencherQuantidadeVendida(
+                            livroAtualizado,
+                            maisVendidosService.buscarQuantidadesVendidas()
+                    )
+            );
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -271,24 +441,37 @@ public class LivroController {
         }
 
         try {
-            Livro livroAtualizado = livroService.reporEstoque(id, request.getQuantidade(), request.getMotivo());
-            return ResponseEntity.ok(livroAtualizado);
+            Livro livroAtualizado = livroService.reporEstoque(
+                    id,
+                    request.getQuantidade(),
+                    request.getMotivo()
+            );
+
+            return ResponseEntity.ok(
+                    preencherQuantidadeVendida(
+                            livroAtualizado,
+                            maisVendidosService.buscarQuantidadesVendidas()
+                    )
+            );
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     @GetMapping("/categorias")
-        public ResponseEntity<List<String>> listarCategorias() {
-            return ResponseEntity.ok(livroService.listarCategorias());
-        }
+    public ResponseEntity<List<String>> listarCategorias() {
+        return ResponseEntity.ok(livroService.listarCategorias());
+    }
 
     @GetMapping
     public ResponseEntity<List<Livro>> listarTodos() {
-        return ResponseEntity.ok(livroService.listarTodos());
+        return ResponseEntity.ok(
+                preencherQuantidadesVendidas(livroService.listarTodos())
+        );
     }
 
     public static class ReporEstoqueRequest {
+
         private Integer quantidade;
         private String motivo;
 

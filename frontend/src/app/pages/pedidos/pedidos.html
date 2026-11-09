@@ -7,7 +7,6 @@
       </div>
     </div>
   </div>
-
   <div class="tabs-container">
     <div class="tabs-wrapper">
       <button
@@ -19,7 +18,6 @@
       </button>
     </div>
   </div>
-
   <div class="pedidos-wrapper">
   <div *ngIf="loading" class="loader-overlay" style="position: relative; min-height: 300px;">
     <div class="loader-container">
@@ -31,7 +29,6 @@
       <p class="loader-text">Carregando seus pedidos...</p>
     </div>
   </div>
-
   <div *ngIf="!loading && filteredPedidos.length === 0" class="empty-state">
     <i class="pi pi-inbox"></i>
     <h3>Nenhum pedido encontrado</h3>
@@ -40,7 +37,6 @@
       <i class="pi pi-arrow-left"></i> Voltar às compras
     </button>
   </div>
-
   <div *ngIf="!loading && filteredPedidos.length > 0" class="pedidos-grid">
     <div *ngFor="let pedido of filteredPedidos" class="pedido-card">
         <div class="pedido-header">
@@ -52,10 +48,9 @@
             {{ formatStatus(pedido.status) }}
           </span>
         </div>
-
         <div class="pedido-produtos">
           <div *ngFor="let item of pedido.itens" class="produto-item">
-<img [src]="item.livro?.imagemUrl ? '/uploads/' + item.livro.imagemUrl : 'https://via.placeholder.com/60x80?text=Sem+Imagem'"
+            <img [src]="item.livro?.imagemUrl ? '/uploads/' + item.livro.imagemUrl : 'https://via.placeholder.com/60x80?text=Sem+Imagem'"
               class="produto-imagem"
               [alt]="item.livro?.titulo">
             <div class="produto-info">
@@ -73,7 +68,6 @@
               <div *ngIf="item.statusDevolucao === 'DEVOLUCAO_PARCIAL'" class="status-parcial-badge">
                 <i class="pi pi-clock"></i> {{ item.quantidadeDevolvida }}/{{ item.quantidade }} em devolução
               </div>
-
               <div *ngIf="item.jaAvaliou" class="produto-avaliacao-feita">
                 <div class="estrelas-card">
                   <span *ngFor="let star of [0,1,2,3,4]" class="estrela-wrapper-readonly" style="width: 0.7rem; height: 0.7rem;">
@@ -96,7 +90,6 @@
             </div>
           </div>
         </div>
-
         <div *ngIf="pedido.status === 'DEVOLUCAO' && pedido.motivoDevolucao" class="motivo-devolucao">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
             <div style="flex: 1;">
@@ -115,13 +108,27 @@
             </div>
           </div>
         </div>
-
+        <div class="pedido-detalhes-adicionais" style="display: grid; gap: 1rem; margin: 1rem 0;">
+          <section class="pedido-pagamentos" *ngIf="obterPagamentos(pedido).length > 0" style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 10px;">
+            <h4 style="display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.75rem;"><i class="pi pi-credit-card"></i> Forma de pagamento</h4>
+            <div *ngFor="let pagamento of obterPagamentos(pedido)" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; padding: 0.4rem 0;">
+              <span>{{ pagamento.bandeira || 'Cartão' }} •••• {{ pagamento.ultimosDigitos || '****' }}</span>
+              <strong>{{ formatarMoeda(pagamento.valor || 0) }}</strong>
+            </div>
+          </section>
+          <section class="pedido-endereco" style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 10px;">
+            <h4 style="display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.75rem;"><i class="pi pi-map-marker"></i> Endereço de entrega</h4>
+            <p style="margin: 0; line-height: 1.6;">{{ formatarEnderecoEntrega(pedido) }}</p>
+            <button *ngIf="podeAlterarEndereco(pedido)" type="button" class="btn-secondary" style="margin-top: 0.85rem;" (click)="abrirAlterarEndereco(pedido)">
+              <i class="pi pi-pencil"></i> Alterar endereço
+            </button>
+          </section>
+        </div>
         <div class="pedido-total">
           <div *ngIf="pedido.status !== 'DEVOLUCAO' && pedido.status !== 'DEVOLVIDO' && pedido.status !== 'ENVIADO_DEVOLUCAO' && pedido.status !== 'EM_TRANSITO' && pedido.status !== 'EM_PROCESSAMENTO' && pedido.status !== 'ENTREGUE'">
             <div>Subtotal: {{ formatarMoeda(pedido.valorSubtotal || 0) }}</div>
             <div>Frete: {{ formatarMoeda(pedido.valorFrete || 0) }}</div>
           </div>
-
           <div *ngIf="pedido.status === 'EM_PROCESSAMENTO'">
             <div class="status-card status-card-processamento">
               <div class="status-card-icon" style="background: #fef3c7; color: #d97706;">
@@ -138,7 +145,6 @@
               </div>
             </div>
           </div>
-
           <div *ngIf="pedido.status === 'DEVOLUCAO'">
             <div class="status-card status-card-devolucao">
               <div class="status-card-icon">
@@ -155,7 +161,6 @@
               </div>
             </div>
           </div>
-
           <div *ngIf="pedido.status === 'EM_TRANSITO'">
             <div class="status-card status-card-transito">
               <div class="status-card-icon">
@@ -179,7 +184,6 @@
               </div>
             </div>
           </div>
-
           <div *ngIf="pedido.status === 'ENTREGUE'">
             <div class="status-card status-card-entregue">
               <div class="status-card-icon" style="background: #f0fdf4; color: #22c55e;">
@@ -201,7 +205,6 @@
               </div>
             </div>
           </div>
-
           <div *ngIf="pedido.status === 'ENVIADO_DEVOLUCAO'">
             <div class="status-card status-card-enviado">
               <div class="status-card-icon">
@@ -225,7 +228,6 @@
               </div>
             </div>
           </div>
-
           <div *ngIf="pedido.status === 'DEVOLVIDO'">
             <div class="status-card status-card-concluido">
               <div class="status-card-icon">
@@ -236,7 +238,7 @@
                 <p>Devolução processada com sucesso!</p>
                 <ul>
                   <li>Valor reembolsado: <strong>{{ formatarMoeda(pedido.valorTotal || 0) }}</strong></li>
-                  <li>Cartão: {{ pedido.cartao?.bandeira || 'Cartão' }} **** {{ pedido.cartao?.numero?.slice(-4) || '****' }}</li>
+                  <li *ngFor="let pagamento of obterPagamentos(pedido)">Cartão: {{ pagamento.bandeira || 'Cartão' }} •••• {{ pagamento.ultimosDigitos || '****' }} — {{ formatarMoeda(pagamento.valor || 0) }}</li>
                   <li>Prazo para aparecer na fatura: até 7 dias úteis</li>
                 </ul>
                 <div *ngIf="pedido.cupomGerado" class="cupom-devolucao">
@@ -263,7 +265,6 @@
               </div>
             </div>
           </div>
-
           <div *ngIf="pedido.valorDesconto > 0 && pedido.status !== 'DEVOLUCAO' && pedido.status !== 'DEVOLVIDO' && pedido.status !== 'ENVIADO_DEVOLUCAO' && pedido.status !== 'EM_TRANSITO' && pedido.status !== 'EM_PROCESSAMENTO' && pedido.status !== 'ENTREGUE'">
             <div *ngIf="pedido.cuponsAplicados && pedido.cuponsAplicados.length > 0">
               <div *ngFor="let cupom of pedido.cuponsAplicados" class="item-cupom-linha">
@@ -276,7 +277,6 @@
               <span *ngIf="pedido.codigoCupom">(Cupom: {{ pedido.codigoCupom }})</span>
             </div>
           </div>
-
           <div class="total-destaque">
             <strong>Total: {{ formatarMoeda(pedido.valorTotal || 0) }}</strong>
             <span *ngIf="pedido.status === 'DEVOLUCAO'" class="devolucao-total-label">(Aguardando aprovação)</span>
@@ -285,40 +285,36 @@
             <span *ngIf="pedido.status === 'DEVOLVIDO' && !pedido.reembolsoConfirmado" class="reembolso-pendente-label">(Aguardando reembolso)</span>
           </div>
         </div>
-
         <div class="pedido-acoes">
-<button
-  *ngIf="pedido.status === 'EM_PROCESSAMENTO'"
-  class="btn-danger"
-  (click)="cancelarPedido(pedido.id)"
-  [disabled]="carregandoCancelar"
-  [class.loading]="carregandoCancelar">
-  <i class="pi pi-times"></i> Cancelar Pedido
-</button>
-
-<button
-  *ngIf="pedido.status === 'EM_TRANSITO'"
-  class="btn-primary"
-  (click)="abrirConfirmarEntrega(pedido.id)"
-  [disabled]="carregandoEntrega"
-  [class.loading]="carregandoEntrega">
-  <i class="pi pi-check"></i> Marcar como Entregue
-</button>
-
-<button
-  *ngIf="pedido.status === 'ENTREGUE' && !verificarPrazoDevolucao(pedido.dataEntrega) && pedido.temItemDisponivelParaDevolucao"
-  class="btn-devolucao"
-  (click)="abrirDevolucao(pedido.id)">
-  <i class="pi pi-undo"></i> Solicitar Devolução
-</button>
           <button
+            *ngIf="pedido.status === 'EM_PROCESSAMENTO'"
+            class="btn-danger"
+            (click)="cancelarPedido(pedido.id)"
+            [disabled]="carregandoCancelar"
+            [class.loading]="carregandoCancelar">
+            <i class="pi pi-times"></i> Cancelar Pedido
+          </button>
+          <button
+            *ngIf="pedido.status === 'EM_TRANSITO'"
+            class="btn-primary"
+            (click)="abrirConfirmarEntrega(pedido.id)"
+            [disabled]="carregandoEntrega"
+            [class.loading]="carregandoEntrega">
+            <i class="pi pi-check"></i> Marcar como Entregue
+          </button>
+          <button
+            *ngIf="pedido.status === 'ENTREGUE' && !verificarPrazoDevolucao(pedido.dataEntrega) && pedido.temItemDisponivelParaDevolucao"
+            class="btn-devolucao"
+            (click)="abrirDevolucao(pedido.id)">
+            <i class="pi pi-undo"></i> Solicitar Devolução
+          </button>
+                    <button
             *ngIf="pedido.status === 'ENTREGUE' && verificarPrazoDevolucao(pedido.dataEntrega)"
             class="btn-devolucao disabled"
             disabled
             title="Prazo de devolução expirado">
             <i class="pi pi-undo"></i> Devolução indisponível
           </button>
-
           <button
             *ngIf="pedido.status === 'ENTREGUE'"
             class="btn-avaliar"
@@ -326,29 +322,26 @@
             <i class="pi pi-star"></i>
             {{ pedido.temAvaliacao ? 'Ver Avaliação' : 'Avaliar Produtos' }}
           </button>
-
           <button
             *ngIf="pedido.status === 'AUTORIZADO_DEVOLUCAO'"
             class="btn-enviar-devolucao"
             (click)="abrirInstrucoesEnvio(pedido.id)">
             <i class="pi pi-send"></i> Ver instruções de envio
           </button>
-
           <button
             *ngIf="pedido.status === 'EM_TRANSITO' || pedido.status === 'AUTORIZADO_DEVOLUCAO' || pedido.status === 'DEVOLVIDO'"
             class="btn-falar-vendedor"
             (click)="abrirChatVendedor(pedido.id)">
             <i class="pi pi-comment"></i> Falar com vendedor
           </button>
-
-<button
-  *ngIf="pedido.status === 'DEVOLVIDO' && !pedido.reembolsoConfirmado"
-  class="btn-confirmar-reembolso"
-  (click)="confirmarReembolso(pedido.id)"
-  [disabled]="carregandoReembolso"
-  [class.loading]="carregandoReembolso">
-  <i class="pi pi-check-circle"></i> Confirmar reembolso
-</button>
+          <button
+            *ngIf="pedido.status === 'DEVOLVIDO' && !pedido.reembolsoConfirmado"
+            class="btn-confirmar-reembolso"
+            (click)="confirmarReembolso(pedido.id)"
+            [disabled]="carregandoReembolso"
+            [class.loading]="carregandoReembolso">
+            <i class="pi pi-check-circle"></i> Confirmar reembolso
+          </button>
         </div>
       </div>
     </div>
@@ -375,9 +368,13 @@
         <button class="btn-secondary" (click)="displayCancelamentoModal = false">
           <i class="pi pi-times"></i> Voltar
         </button>
-<button class="btn-danger" (click)="confirmarCancelamento()" [disabled]="carregandoCancelar" [class.loading]="carregandoCancelar">
-  <i class="pi pi-check"></i> Sim, Cancelar
-</button>
+        <button
+          class="btn-danger"
+          (click)="confirmarCancelamento()"
+          [disabled]="carregandoCancelar"
+          [class.loading]="carregandoCancelar">
+          <i class="pi pi-check"></i> Sim, Cancelar
+        </button>
       </div>
     </div>
   </div>
@@ -402,7 +399,11 @@
         <div class="itens-container">
           <div *ngFor="let item of itensDevolucao" class="item-devolucao">
             <div class="item-checkbox">
-              <input type="checkbox" [(ngModel)]="item.selecionado" id="item-{{item.id}}" [disabled]="item.jaDevolvido">
+              <input
+                type="checkbox"
+                [(ngModel)]="item.selecionado"
+                id="item-{{item.id}}"
+                [disabled]="item.jaDevolvido">
               <label for="item-{{item.id}}">
                 <span>{{ item.livro?.titulo || 'Livro desconhecido' }}</span>
                 <span> - Quantidade: {{ item.quantidade }}</span>
@@ -424,7 +425,6 @@
           </div>
         </div>
       </div>
-
       <div class="field">
         <label>Motivo da devolução:</label>
         <textarea
@@ -434,17 +434,26 @@
           class="auth-input">
         </textarea>
       </div>
-
       <div class="field">
         <label>Fotos (opcional - até 3)</label>
         <div class="file-upload-wrapper">
-          <input type="file" (change)="onFotosDevolucaoSelected($event)" accept="image/*" multiple class="file-input">
-          <span class="file-label"><i class="pi pi-cloud-upload"></i> Selecionar fotos</span>
+          <input
+            type="file"
+            (change)="onFotosDevolucaoSelected($event)"
+            accept="image/*"
+            multiple
+            class="file-input">
+          <span class="file-label">
+            <i class="pi pi-cloud-upload"></i> Selecionar fotos
+          </span>
         </div>
         <div *ngIf="fotosDevolucaoPreview.length > 0" class="preview-container-multiple">
           <div *ngFor="let preview of fotosDevolucaoPreview; let j = index" class="preview-item">
             <img [src]="preview" class="preview-img">
-            <button class="preview-remove" (click)="removerFotoDevolucao(j)" title="Remover foto">
+            <button
+              class="preview-remove"
+              (click)="removerFotoDevolucao(j)"
+              title="Remover foto">
               <i class="pi pi-times"></i>
             </button>
           </div>
@@ -456,9 +465,13 @@
         <button class="btn-secondary" (click)="displayDevolucaoModal = false">
           <i class="pi pi-times"></i> Cancelar
         </button>
-<button class="btn-primary" (click)="confirmarDevolucao()" [disabled]="carregandoDevolucao" [class.loading]="carregandoDevolucao">
-  <i class="pi pi-check"></i> Solicitar Devolução
-</button>
+        <button
+          class="btn-primary"
+          (click)="confirmarDevolucao()"
+          [disabled]="carregandoDevolucao"
+          [class.loading]="carregandoDevolucao">
+          <i class="pi pi-check"></i> Solicitar Devolução
+        </button>
       </div>
     </div>
   </div>
@@ -486,7 +499,6 @@
             <p>Embalar o produto em sua embalagem original ou em uma caixa adequada, protegendo o item para evitar danos durante o transporte.</p>
           </div>
         </div>
-
         <div class="instrucao-item">
           <div class="instrucao-numero">2</div>
           <div class="instrucao-conteudo">
@@ -494,7 +506,6 @@
             <p>Incluir cópia do comprovante de compra e do formulário de devolução que foi enviado por e-mail.</p>
           </div>
         </div>
-
         <div class="instrucao-item">
           <div class="instrucao-numero">3</div>
           <div class="instrucao-conteudo">
@@ -508,7 +519,6 @@
             </div>
           </div>
         </div>
-
         <div class="instrucao-item">
           <div class="instrucao-numero">4</div>
           <div class="instrucao-conteudo">
@@ -516,7 +526,6 @@
             <p>Você tem até <strong>7 dias corridos</strong> para postar o pacote nos Correios.</p>
           </div>
         </div>
-
         <div class="instrucao-item">
           <div class="instrucao-numero">5</div>
           <div class="instrucao-conteudo">
@@ -526,17 +535,17 @@
               <input
                 type="text"
                 [(ngModel)]="codigoRastreamento"
-                (input)="validarCodigoRastreamentoInput($event.target.value)"
+                (input)="validarCodigoRastreamentoInput($any($event.target).value)"
                 placeholder="Ex: AA123456789BR"
                 class="auth-input"
                 style="text-transform: uppercase;">
-<button
-  class="btn-primary btn-sm"
-  (click)="salvarRastreamento()"
-  [disabled]="!codigoRastreamento || !codigoRastreamentoValido || carregandoRastreamento"
-  [class.loading]="carregandoRastreamento">
-  <i class="pi pi-save"></i> Salvar
-</button>
+              <button
+                class="btn-primary btn-sm"
+                (click)="salvarRastreamento()"
+                [disabled]="!codigoRastreamento || !codigoRastreamentoValido || carregandoRastreamento"
+                [class.loading]="carregandoRastreamento">
+                <i class="pi pi-save"></i> Salvar
+              </button>
             </div>
             <small style="color: #6b7a8f; font-size: 0.75rem;">
               Formato: 2 letras + 9 números + 2 letras (ex: AA123456789BR)
@@ -578,10 +587,11 @@
         <span style="color: #94a3b8; font-size: 0.85rem;">Pedido #{{ pedidoReembolso?.id }}</span>
       </p>
       <div style="margin-top: 0.5rem; padding: 0.75rem; background: #f0fdf4; border-radius: 8px;">
-        <p style="margin: 0; font-size: 0.85rem; color: #166534;">
+        <div *ngFor="let pagamento of obterPagamentos(pedidoReembolso)" style="margin: 0.35rem 0; font-size: 0.85rem; color: #166534;">
           <i class="pi pi-credit-card" style="margin-right: 0.5rem;"></i>
-          Cartão: {{ pedidoReembolso?.cartao?.bandeira || 'Cartão' }} **** {{ pedidoReembolso?.cartao?.numero?.slice(-4) || '****' }}
-        </p>
+          {{ pagamento.bandeira || 'Cartão' }} •••• {{ pagamento.ultimosDigitos || '****' }}
+          — {{ formatarMoeda(pagamento.valor || 0) }}
+        </div>
       </div>
     </div>
     <div class="custom-modal-footer">
@@ -589,9 +599,13 @@
         <button class="btn-secondary" (click)="displayConfirmarReembolso = false">
           <i class="pi pi-times"></i> Cancelar
         </button>
-<button class="btn-primary" (click)="confirmarReembolsoFinal()" [disabled]="carregandoReembolso" [class.loading]="carregandoReembolso">
-  <i class="pi pi-check"></i> Sim, Confirmar
-</button>
+        <button
+          class="btn-primary"
+          (click)="confirmarReembolsoFinal()"
+          [disabled]="carregandoReembolso"
+          [class.loading]="carregandoReembolso">
+          <i class="pi pi-check"></i> Sim, Confirmar
+        </button>
       </div>
     </div>
   </div>
@@ -612,7 +626,8 @@
         Você confirma que recebeu o pedido <strong>#{{ pedidoEntrega?.id }}</strong>?
       </p>
       <p style="color: #94a3b8; font-size: 0.85rem;">
-        Itens: <span *ngFor="let item of pedidoEntrega?.itens; let i = index">
+        Itens:
+        <span *ngFor="let item of pedidoEntrega?.itens; let i = index">
           {{ item.livro?.titulo }}{{ i < pedidoEntrega.itens.length - 1 ? ', ' : '' }}
         </span>
       </p>
@@ -626,7 +641,7 @@
         <p style="margin: 0; font-size: 0.8rem; color: #1e40af;">
           <i class="pi pi-box" style="margin-right: 0.5rem;"></i>
           Código de rastreamento: {{ pedidoEntrega.codigoRastreamentoEnvio }}
-        </p>
+                  </p>
       </div>
     </div>
     <div class="custom-modal-footer">
@@ -634,9 +649,13 @@
         <button class="btn-secondary" (click)="fecharConfirmarEntrega()">
           <i class="pi pi-times"></i> Cancelar
         </button>
-<button class="btn-primary" (click)="confirmarEntregaFinal()" [disabled]="carregandoEntrega" [class.loading]="carregandoEntrega">
-  <i class="pi pi-check"></i> Sim, Confirmar
-</button>
+        <button
+          class="btn-primary"
+          (click)="confirmarEntregaFinal()"
+          [disabled]="carregandoEntrega"
+          [class.loading]="carregandoEntrega">
+          <i class="pi pi-check"></i> Sim, Confirmar
+        </button>
       </div>
     </div>
   </div>
@@ -657,22 +676,32 @@
     </div>
     <div class="custom-modal-body" style="text-align: center;">
       <div class="fotos-carousel">
-        <button class="carousel-btn carousel-prev" (click)="fotoAnterior()" *ngIf="fotosDevolucaoList.length > 1">
+        <button
+          class="carousel-btn carousel-prev"
+          (click)="fotoAnterior()"
+          *ngIf="fotosDevolucaoList.length > 1">
           <i class="pi pi-chevron-left"></i>
         </button>
-        <img [src]="'/uploads/devolucoes/' + fotoAtual" class="foto-modal-img" alt="Foto da devolução">
-        <button class="carousel-btn carousel-next" (click)="fotoProxima()" *ngIf="fotosDevolucaoList.length > 1">
+        <img
+          [src]="fotoAtual"
+          class="foto-modal-img"
+          alt="Foto da devolução">
+        <button
+          class="carousel-btn carousel-next"
+          (click)="fotoProxima()"
+          *ngIf="fotosDevolucaoList.length > 1">
           <i class="pi pi-chevron-right"></i>
         </button>
       </div>
-      <div class="fotos-thumbnails" *ngIf="fotosDevolucaoList.length > 1">
-        <div *ngFor="let foto of fotosDevolucaoList; let i = index"
-             class="thumb-item"
-             [class.active]="i === fotoIndexAtual"
-             (click)="selecionarFoto(i)">
-          <img [src]="'/uploads/devolucoes/' + foto" alt="Miniatura {{ i + 1 }}">
-        </div>
-      </div>
+<div class="fotos-thumbnails" *ngIf="fotosDevolucaoList.length > 1">
+  <div
+    *ngFor="let foto of fotosDevolucaoList; let i = index"
+    class="thumb-item"
+    [class.active]="i === fotoIndexAtual"
+    (click)="selecionarFoto(i)">
+    <img [src]="foto" alt="Miniatura {{ i + 1 }}">
+  </div>
+</div>
       <div class="foto-counter" *ngIf="fotosDevolucaoList.length > 1">
         {{ fotoIndexAtual + 1 }} de {{ fotosDevolucaoList.length }}
       </div>
@@ -703,7 +732,8 @@
     <div class="custom-modal-body">
       <div *ngFor="let avaliacao of avaliacoes; let i = index" class="avaliacao-item">
         <div class="avaliacao-produto">
-          <img [src]="avaliacao.imagemUrl ? '/uploads/' + avaliacao.imagemUrl : 'https://via.placeholder.com/40x50?text=Sem+Imagem'"
+          <img
+            [src]="avaliacao.imagemUrl ? '/uploads/' + avaliacao.imagemUrl : 'https://via.placeholder.com/40x50?text=Sem+Imagem'"
             class="avaliacao-imagem"
             [alt]="avaliacao.titulo">
           <div class="avaliacao-info">
@@ -713,65 +743,81 @@
             </span>
           </div>
         </div>
-
         <div *ngIf="!avaliacao.avaliado" class="avaliacao-inputs">
           <div class="estrelas-container">
-            <span *ngFor="let star of [0,1,2,3,4]"
-                  class="estrela-wrapper"
-                  (click)="alternarEstrela(i, star)">
-              <i *ngIf="getTipoEstrela(avaliacao, star) === 'cheia'"
-                 class="pi pi-star-fill" style="color: #fbbf24; font-size: 1.8rem;"></i>
-              <i *ngIf="getTipoEstrela(avaliacao, star) === 'vazia'"
-                 class="pi pi-star" style="color: #d1d5db; font-size: 1.8rem;"></i>
-              <span *ngIf="getTipoEstrela(avaliacao, star) === 'meia'"
-                    class="estrela-meia-wrapper">
-                <i class="pi pi-star-fill" style="color: #fbbf24; font-size: 1.8rem; clip-path: inset(0 50% 0 0);"></i>
-                <i class="pi pi-star-fill" style="color: #d1d5db; font-size: 1.8rem; clip-path: inset(0 0 0 50%); position: absolute; top: 0; left: 0;"></i>
+            <span
+              *ngFor="let star of [0,1,2,3,4]"
+              class="estrela-wrapper"
+              (click)="alternarEstrela(i, star)">
+              <i
+                *ngIf="getTipoEstrela(avaliacao, star) === 'cheia'"
+                class="pi pi-star-fill"
+                style="color: #fbbf24; font-size: 1.8rem;"></i>
+              <i
+                *ngIf="getTipoEstrela(avaliacao, star) === 'vazia'"
+                class="pi pi-star"
+                style="color: #d1d5db; font-size: 1.8rem;"></i>
+              <span
+                *ngIf="getTipoEstrela(avaliacao, star) === 'meia'"
+                class="estrela-meia-wrapper">
+                <i
+                  class="pi pi-star-fill"
+                  style="color: #fbbf24; font-size: 1.8rem; clip-path: inset(0 50% 0 0);"></i>
+                <i
+                  class="pi pi-star-fill"
+                  style="color: #d1d5db; font-size: 1.8rem; clip-path: inset(0 0 0 50%); position: absolute; top: 0; left: 0;"></i>
               </span>
             </span>
             <span class="avaliacao-nota-texto">{{ avaliacao.nota.toFixed(1) }}</span>
           </div>
-
           <textarea
             [(ngModel)]="avaliacao.comentario"
             placeholder="Deixe um comentário (opcional)"
             class="auth-input"
             rows="2">
           </textarea>
-
-<button class="btn-primary btn-salvar-avaliacao" (click)="salvarAvaliacao(i)" [disabled]="carregandoAvaliacao[i]" [class.loading]="carregandoAvaliacao[i]">
-  <i class="pi pi-check"></i> {{ avaliacao.avaliacaoId ? 'Atualizar Avaliação' : 'Salvar Avaliação' }}
-</button>
-        </div>
-
-        <div *ngIf="avaliacao.avaliado" class="avaliacao-feita">
+          <button
+            class="btn-primary btn-salvar-avaliacao"
+            (click)="salvarAvaliacao(i)"
+            [disabled]="carregandoAvaliacao[i]"
+            [class.loading]="carregandoAvaliacao[i]">
+            <i class="pi pi-check"></i>
+            {{ avaliacao.avaliacaoId ? 'Atualizar Avaliação' : 'Salvar Avaliação' }}
+          </button>
+                  </div>
+        <div *ngIf="avaliacao.avaliado" class="avaliacao-concluida">
           <div class="estrelas-container">
             <span *ngFor="let star of [0,1,2,3,4]" class="estrela-wrapper-readonly">
-              <i *ngIf="getTipoEstrela(avaliacao, star) === 'cheia'"
-                 class="pi pi-star-fill" style="color: #fbbf24; font-size: 1.8rem;"></i>
-              <i *ngIf="getTipoEstrela(avaliacao, star) === 'vazia'"
-                 class="pi pi-star" style="color: #d1d5db; font-size: 1.8rem;"></i>
-              <span *ngIf="getTipoEstrela(avaliacao, star) === 'meia'"
-                    class="estrela-meia-wrapper">
-                <i class="pi pi-star-fill" style="color: #fbbf24; font-size: 1.8rem; clip-path: inset(0 50% 0 0);"></i>
-                <i class="pi pi-star-fill" style="color: #d1d5db; font-size: 1.8rem; clip-path: inset(0 0 0 50%); position: absolute; top: 0; left: 0;"></i>
+              <i
+                *ngIf="getTipoEstrela(avaliacao, star) === 'cheia'"
+                class="pi pi-star-fill"
+                style="color: #fbbf24; font-size: 1.4rem;"></i>
+              <i
+                *ngIf="getTipoEstrela(avaliacao, star) === 'vazia'"
+                class="pi pi-star"
+                style="color: #d1d5db; font-size: 1.4rem;"></i>
+              <span
+                *ngIf="getTipoEstrela(avaliacao, star) === 'meia'"
+                class="estrela-meia-wrapper">
+                <i
+                  class="pi pi-star-fill"
+                  style="color: #fbbf24; font-size: 1.4rem; clip-path: inset(0 50% 0 0);"></i>
+                <i
+                  class="pi pi-star-fill"
+                  style="color: #d1d5db; font-size: 1.4rem; clip-path: inset(0 0 0 50%); position: absolute; top: 0; left: 0;"></i>
               </span>
             </span>
             <span class="avaliacao-nota-texto">{{ avaliacao.nota.toFixed(1) }}</span>
           </div>
-
-          <p *ngIf="avaliacao.comentario" class="avaliacao-comentario-feito">
-            "{{ avaliacao.comentario }}"
+          <p *ngIf="avaliacao.comentario" class="avaliacao-comentario">
+            {{ avaliacao.comentario }}
           </p>
-
-          <div class="avaliacao-acoes-edit">
-            <button class="btn-primary" (click)="editarAvaliacao(i)">
-              <i class="pi pi-pencil"></i> Editar Avaliação
-            </button>
-          </div>
+          <button
+            class="btn-secondary btn-editar-avaliacao"
+            (click)="editarAvaliacao(i)">
+            <i class="pi pi-pencil"></i> Editar Avaliação
+          </button>
         </div>
-
-        <hr *ngIf="i < avaliacoes.length - 1" class="avaliacao-divider">
       </div>
     </div>
     <div class="custom-modal-footer">
@@ -784,4 +830,159 @@
   </div>
 </div>
 
-<p-toast position="top-right"></p-toast>
+<p-dialog
+  header="Alterar endereço de entrega"
+  [(visible)]="displayAlterarEnderecoModal"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="!salvandoEndereco"
+  [closable]="!salvandoEndereco"
+  [style]="{ width: '540px', maxWidth: '95vw' }"
+  [contentStyle]="{ overflow: 'auto', maxHeight: '65vh' }"
+  (onHide)="fecharAlterarEndereco()">
+
+  <div class="alterar-endereco-modal">
+    <div
+      *ngIf="pedidoAlterarEndereco"
+      style="display: flex; align-items: flex-start; gap: 0.75rem; padding: 1rem; margin-bottom: 1.25rem; border: 1px solid #e2e8f0; border-radius: 10px;">
+
+      <i
+        class="pi pi-info-circle"
+        style="font-size: 1.15rem; color: #64748b; margin-top: 0.15rem;">
+      </i>
+
+      <div>
+        <strong style="display: block; margin-bottom: 0.35rem;">
+          Pedido #{{ pedidoAlterarEndereco.id }}
+        </strong>
+
+        <p style="margin: 0; color: #64748b; font-size: 0.875rem; line-height: 1.6;">
+          Você pode alterar o endereço de entrega enquanto o pedido estiver em processamento.
+          Após o envio, essa opção não estará mais disponível.
+        </p>
+      </div>
+    </div>
+
+    <div *ngIf="carregandoEnderecos" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 2.5rem 1rem;">
+      <i
+        class="pi pi-spin pi-spinner"
+        style="font-size: 1.75rem; color: #64748b;">
+      </i>
+
+      <span style="font-size: 0.875rem; color: #64748b;">
+        Carregando endereços cadastrados...
+      </span>
+    </div>
+
+    <div *ngIf="!carregandoEnderecos">
+      <div style="margin-bottom: 1rem;">
+        <h4 style="margin: 0 0 0.35rem; font-size: 1rem;">
+          Selecione um endereço
+        </h4>
+
+        <p style="margin: 0; color: #64748b; font-size: 0.875rem;">
+          Escolha um dos seus endereços cadastrados para receber este pedido.
+        </p>
+      </div>
+
+      <div
+        *ngIf="enderecosDisponiveis.length === 0"
+        style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 2rem 1rem; text-align: center; border: 1px solid #e2e8f0; border-radius: 10px;">
+
+        <i
+          class="pi pi-map-marker"
+          style="font-size: 1.75rem; color: #94a3b8;">
+        </i>
+
+        <strong>Nenhum endereço encontrado</strong>
+
+        <p style="margin: 0; color: #64748b; font-size: 0.875rem; line-height: 1.6;">
+          Você precisa ter pelo menos um endereço cadastrado para alterar a entrega deste pedido.
+        </p>
+      </div>
+
+      <div
+        *ngIf="enderecosDisponiveis.length > 0"
+        style="display: flex; flex-direction: column; gap: 0.75rem;">
+
+        <label
+          *ngFor="let endereco of enderecosDisponiveis"
+          [for]="'endereco-entrega-' + endereco.id"
+          style="display: flex; align-items: flex-start; gap: 0.85rem; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 10px; cursor: pointer;"
+          [style.borderColor]="enderecoSelecionadoId == endereco.id ? '#475569' : '#e2e8f0'"
+          [style.background]="enderecoSelecionadoId == endereco.id ? '#f8fafc' : 'transparent'">
+
+          <input
+            type="radio"
+            name="enderecoEntregaSelecionado"
+            [id]="'endereco-entrega-' + endereco.id"
+            [value]="endereco.id"
+            [(ngModel)]="enderecoSelecionadoId"
+            [disabled]="salvandoEndereco"
+            style="margin-top: 0.25rem; cursor: pointer; accent-color: #475569;">
+
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.45rem;">
+              <strong style="font-size: 0.9rem;">
+                {{ endereco.apelido || endereco.nome || 'Endereço cadastrado' }}
+              </strong>
+
+              <span
+                *ngIf="pedidoAlterarEndereco?.enderecoEntrega?.id == endereco.id"
+                style="padding: 0.2rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.7rem; color: #475569;">
+                Endereço atual
+              </span>
+
+              <span
+                *ngIf="enderecoSelecionadoId == endereco.id"
+                style="display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: #475569;">
+                <i class="pi pi-check-circle"></i>
+                Selecionado
+              </span>
+            </div>
+
+            <p style="margin: 0; font-size: 0.875rem; line-height: 1.65; color: #475569;">
+              {{ formatarEndereco(endereco) }}
+            </p>
+          </div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div style="display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0.75rem; width: 100%;">
+
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="fecharAlterarEndereco()"
+        [disabled]="salvandoEndereco">
+        <i class="pi pi-times"></i>
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        class="btn-primary"
+        (click)="salvarAlteracaoEndereco()"
+        [disabled]="
+          salvandoEndereco ||
+          carregandoEnderecos ||
+          enderecoSelecionadoId == null ||
+          enderecosDisponiveis.length === 0 ||
+          !podeAlterarEndereco(pedidoAlterarEndereco) ||
+          pedidoAlterarEndereco?.enderecoEntrega?.id == enderecoSelecionadoId
+        ">
+
+        <i
+          class="pi"
+          [ngClass]="salvandoEndereco ? 'pi-spin pi-spinner' : 'pi-check'">
+        </i>
+
+        {{ salvandoEndereco ? 'Salvando...' : 'Salvar endereço' }}
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>

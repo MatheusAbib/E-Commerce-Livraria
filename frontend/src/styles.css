@@ -30,6 +30,7 @@ textarea,
 
 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]),
 select,
+textarea,
 .p-inputtext,
 .p-inputnumber-input,
 .p-password-input,
@@ -59,6 +60,45 @@ select,
 .p-password-input,
 .p-datepicker-input {
   padding: 0.65rem 0.85rem;
+}
+
+.p-toast {
+  z-index: 99999 !important;
+  width: 400px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+}
+
+.p-toast-message {
+  position: relative;
+  z-index: 99999 !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.p-toast-message-content,
+.p-toast-message-text,
+.p-toast-summary,
+.p-toast-detail,
+.p-toast-message-content-wrapper,
+.p-toast-message-text-content {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.p-toast-message-content {
+  display: flex;
+  align-items: flex-start;
+}
+
+.p-toast-message-text {
+  flex: 1;
+}
+
+.p-toast-icon-close,
+.p-toast-close-button {
+  flex-shrink: 0;
 }
 
 textarea,
@@ -178,5 +218,50 @@ textarea:disabled,
   .p-select,
   .p-multiselect {
     font-size: 16px !important;
+  }
+
+  .p-toast {
+    width: calc(100vw - 32px) !important;
+    max-width: 400px !important;
+    left: auto !important;
+    right: 16px !important;
+    top: 16px !important;
+  }
+
+  .p-toast-message {
+    margin-bottom: 10px;
+  }
+
+  .p-toast-message-content {
+    padding: 12px !important;
+    gap: 10px;
+  }
+
+  .p-toast-summary {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .p-toast-detail {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+}
+
+@media (max-width: 480px) {
+  .p-toast {
+    width: calc(100vw - 24px) !important;
+    max-width: none !important;
+    right: 12px !important;
+    top: 12px !important;
+  }
+
+  .p-toast-message-content {
+    padding: 12px !important;
+  }
+
+  .p-toast-icon-close,
+  .p-toast-close-button {
+    flex-shrink: 0;
   }
 }

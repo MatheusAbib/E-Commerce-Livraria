@@ -3047,4 +3047,219 @@ textarea.auth-input {
     flex: none;
   }
 }
-/* FIM PEDIDOS EDITORIAL V3 */
+
+.pedido-detalhes-adicionais {
+  padding: 0 30px;
+  margin: 0 !important;
+  gap: 0 !important;
+}
+
+.pedido-detalhes-adicionais .pedido-pagamentos,
+.pedido-detalhes-adicionais .pedido-endereco {
+  padding: 22px 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--pd-line, #e2e5e9) !important;
+  border-radius: 0 !important;
+  min-width: 0;
+}
+
+.pedido-detalhes-adicionais h4 {
+  margin: 0 0 13px !important;
+  color: var(--pd-ink, #1a2332);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+
+.pedido-detalhes-adicionais h4 i {
+  font-size: 15px;
+}
+
+.pedido-pagamentos > div {
+  color: var(--pd-muted, #737d8b);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.pedido-pagamentos > div strong {
+  color: var(--pd-ink, #1a2332);
+  font-weight: 800;
+}
+
+.pedido-endereco > p {
+  color: var(--pd-muted, #737d8b);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.pedido-endereco > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 11px 16px;
+  border: 1px solid var(--pd-ink, #1a2332);
+  border-radius: 0;
+  background: #fff;
+  color: var(--pd-ink, #1a2332);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .2s ease, color .2s ease;
+}
+
+.pedido-endereco > button:hover {
+  background: var(--pd-ink, #1a2332);
+  color: #fff;
+}
+
+.pedido-endereco > button:focus-visible,
+.alterar-endereco-modal input:focus-visible {
+  outline: 2px solid #2a5298;
+  outline-offset: 3px;
+}
+
+.pedido-endereco > button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+:host ::ng-deep .p-dialog {
+  border: 1px solid var(--pd-line, #e2e5e9);
+  border-radius: 0;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-header {
+  padding: 24px 28px;
+  background: #fff;
+  border-bottom: 1px solid #e2e5e9;
+  border-radius: 0;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-title {
+  color: #1a2332;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -.035em;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-content {
+  padding: 24px 28px;
+  background: #fff;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-footer {
+  padding: 18px 28px;
+  border-top: 1px solid #e2e5e9;
+  background: #fff;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-header-icon {
+  border-radius: 0;
+}
+
+.alterar-endereco-modal {
+  min-width: 0;
+  color: var(--pd-ink, #1a2332);
+}
+
+.alterar-endereco-modal label {
+  transition: border-color .2s ease, background-color .2s ease;
+  border-radius: 0 !important;
+}
+
+.alterar-endereco-modal label:hover {
+  border-color: #aeb8c5 !important;
+}
+
+.alterar-endereco-modal label:has(input:checked) {
+  border-color: #1a2332 !important;
+  background: #f7f8fa !important;
+}
+
+.alterar-endereco-modal input[type="radio"] {
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  accent-color: #1a2332;
+}
+
+.alterar-endereco-modal label strong,
+.alterar-endereco-modal h4 {
+  color: #1a2332;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-footer .btn-primary,
+:host ::ng-deep .p-dialog .p-dialog-footer .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 11px 17px;
+  border-radius: 0;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-footer .btn-primary {
+  background: #1a2332;
+  border: 1px solid #1a2332;
+  color: #fff;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-footer .btn-secondary {
+  background: #fff;
+  border: 1px solid #cbd2da;
+  color: #1a2332;
+}
+
+:host ::ng-deep .p-dialog .p-dialog-footer button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .pedido-detalhes-adicionais {
+    padding: 0 20px;
+  }
+
+  .pedido-pagamentos > div {
+    align-items: flex-start !important;
+  }
+
+  :host ::ng-deep .p-dialog .p-dialog-header,
+  :host ::ng-deep .p-dialog .p-dialog-content {
+    padding: 20px;
+  }
+
+  :host ::ng-deep .p-dialog .p-dialog-footer {
+    padding: 16px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pedido-detalhes-adicionais {
+    padding: 0 16px;
+  }
+
+  .pedido-endereco > button {
+    width: 100%;
+  }
+
+  :host ::ng-deep .p-dialog .p-dialog-footer > div {
+    flex-direction: column-reverse;
+  }
+
+  :host ::ng-deep .p-dialog .p-dialog-footer button {
+    width: 100%;
+  }
+}

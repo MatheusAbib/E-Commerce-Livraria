@@ -19,9 +19,13 @@
           stroke-linecap="round"
           stroke-linejoin="round"
           opacity="0.85">
-          <path d="M-20 95 L115 45 L245 165 L365 75 L490 190 L625 60 L760 145 L900 45 L1040 160 L1220 80"/>
-          <path d="M40 310 L170 220 L310 340 L455 250 L600 365 L745 240 L890 345 L1050 245 L1190 330"/>
-          <path d="M-30 500 L125 420 L260 550 L410 440 L555 570 L705 455 L855 555 L1010 435 L1230 530"/>
+
+          <path d="M0 95 L115 45 L245 165 L365 75 L490 190 L625 60 L760 145 L900 45 L1040 160 L1200 80"/>
+
+          <path d="M0 310 L170 220 L310 340 L455 250 L600 365 L745 240 L890 345 L1050 245 L1200 330"/>
+
+          <path d="M0 500 L125 420 L260 550 L410 440 L555 570 L705 455 L855 555 L1010 435 L1200 530"/>
+
           <path d="M115 45 L170 220 L125 420 M245 165 L310 340 L260 550 M365 75 L455 250 L410 440 M490 190 L600 365 L555 570 M625 60 L745 240 L705 455 M760 145 L890 345 L855 555 M900 45 L1050 245 L1010 435"/>
         </g>
         <g fill="#ffffff">
@@ -109,7 +113,7 @@
   <section class="exploracao-livraria" aria-label="Explore a livraria">
     <div class="exploracao-grid">
       <button type="button" class="exploracao-card" (click)="abrirExploracao('catalogo')">
-        <span class="exploracao-numero">01 / CATÁLOGO</span>
+        <span class="exploracao-numero">CATÁLOGO</span>
         <span class="exploracao-conteudo">
           <span class="exploracao-icone"><i class="pi pi-book"></i></span>
           <span class="exploracao-titulo">Explore os livros</span>
@@ -123,7 +127,7 @@
         class="exploracao-card"
         [class.exploracao-card-ativo]="painelExploracao === 'autores'"
         (click)="abrirExploracao('autores')">
-        <span class="exploracao-numero">02 / AUTORES</span>
+        <span class="exploracao-numero">AUTORES</span>
         <span class="exploracao-conteudo">
           <span class="exploracao-icone"><i class="pi pi-users"></i></span>
           <span class="exploracao-titulo">Encontre um autor</span>
@@ -137,7 +141,7 @@
         class="exploracao-card"
         [class.exploracao-card-ativo]="painelExploracao === 'generos'"
         (click)="abrirExploracao('generos')">
-        <span class="exploracao-numero">03 / GÊNEROS</span>
+        <span class="exploracao-numero">GÊNEROS</span>
         <span class="exploracao-conteudo">
           <span class="exploracao-icone"><i class="pi pi-th-large"></i></span>
           <span class="exploracao-titulo">Explore categorias</span>
@@ -246,10 +250,96 @@
     </div>
   </section>
 
+
+<section
+  class="mais-vendidos-livraria"
+  id="mais-vendidos"
+  aria-labelledby="mais-vendidos-titulo"
+  *ngIf="carregandoMaisVendidos || maisVendidos.length > 0">
+
+  <div class="mais-vendidos-cabecalho">
+    <div class="mais-vendidos-introducao">
+      <span class="mais-vendidos-indice">01 / DESTAQUES</span>
+      <h2 id="mais-vendidos-titulo">Os mais vendidos</h2>
+      <p>Livros que conquistaram nossos leitores.</p>
+    </div>
+
+    <span class="mais-vendidos-contador">
+      TOP 03
+    </span>
+  </div>
+
+  <div class="mais-vendidos-grid" *ngIf="!carregandoMaisVendidos">
+    <button
+      type="button"
+      class="mais-vendidos-card"
+      *ngFor="let livro of maisVendidos; let i = index"
+      (click)="verDetalhes(livro)"
+      [attr.aria-label]="'Ver detalhes de ' + livro.titulo">
+
+      <div class="mais-vendidos-card-topo">
+        <span class="mais-vendidos-posicao">
+          {{ (i + 1).toString().padStart(2, '0') }}
+        </span>
+
+        <span class="mais-vendidos-card-selo">
+          MAIS VENDIDO
+        </span>
+      </div>
+
+      <div class="mais-vendidos-imagem">
+        <img
+          [src]="livro.imagemUrl ? '/uploads/' + livro.imagemUrl : '/images/livro.png'"
+          [alt]="'Capa do livro ' + livro.titulo"
+          loading="lazy">
+      </div>
+
+      <div class="mais-vendidos-card-informacoes">
+        <div class="mais-vendidos-card-textos">
+          <span class="mais-vendidos-categoria">
+            {{ livro.categoria || 'LITERATURA' }}
+          </span>
+          <h3>{{ livro.titulo }}</h3>
+
+          <p>{{ livro.autor || 'Autor desconhecido' }}</p>
+
+          <div class="livro-vendas">
+            <i class="pi pi-shopping-bag"></i>
+            <span>
+              {{ livro.quantidadeVendida || 0 }}
+              {{ livro.quantidadeVendida === 1 ? 'unidade vendida' : 'unidades vendidas' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="mais-vendidos-card-rodape">
+          <span class="mais-vendidos-preco">
+            {{ livro.precoVenda | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+          </span>
+
+          <span class="mais-vendidos-abrir">
+            <i class="pi pi-arrow-up-right"></i>
+          </span>
+        </div>
+      </div>
+    </button>
+  </div>
+
+  <div class="mais-vendidos-carregamento" *ngIf="carregandoMaisVendidos">
+    <i class="pi pi-spin pi-spinner"></i>
+    <span>Carregando destaques...</span>
+  </div>
+
+  <div class="mais-vendidos-rodape">
+    <span>01 — 03</span>
+  </div>
+</section>
+
+
   <section class="catalogo-livraria container-fluid" id="produtos">
     <div class="catalogo-cabecalho">
       <div class="catalogo-cabecalho-principal">
-        <span class="catalogo-indice">01 / CATÁLOGO</span>
+        <span class="catalogo-indice">02 / CATÁLOGO</span>
         <h2>Livros</h2>
       </div>
 
@@ -428,7 +518,7 @@
           </div>
 
           <div *ngIf="!loading && filteredLivros.length > 0" class="produtos-grid">
-            <p-card *ngFor="let livro of livrosPaginados">
+            <p-card *ngFor="let livro of livrosPaginados" (click)="verDetalhes(livro)">
               <ng-template pTemplate="header">
                 <div class="card-header-wrapper">
                   <img
@@ -443,7 +533,7 @@
 
                   <button
                     class="btn-favorito"
-                    (click)="favoritar(livro.id)"
+                    (click)="$event.stopPropagation(); favoritar(livro.id)"
                     [disabled]="carregandoFavorito[livro.id]"
                     [class.loading]="carregandoFavorito[livro.id]"
                     [class.favoritado]="favoritosIds.includes(livro.id)"
@@ -457,10 +547,13 @@
                 </div>
               </ng-template>
 
-              <h3>{{livro.titulo}}</h3>
-              <p>{{livro.autor || 'Autor desconhecido'}}</p>
+                <h3>{{livro.titulo}}</h3>
+                <p>{{livro.autor || 'Autor desconhecido'}}</p>
 
-              <div class="produto-preco">
+
+
+                <div class="produto-preco">
+
                 R$ {{livro.precoVenda || 0 | number:'1.2-2'}}
               </div>
 
@@ -513,31 +606,49 @@
                 <span class="sem-avaliacao-texto">Sem avaliações</span>
               </div>
 
-              <div class="produto-botoes full-width">
-                <button class="btn-secondary" (click)="verDetalhes(livro)">
-                  <i class="pi pi-eye"></i> Ver
-                </button>
+                              <div class="livro-vendas">
+                  <i class="pi pi-shopping-bag"></i>
+                  <span>
+                    {{ livro.quantidadeVendida || 0 }}
+                    {{ livro.quantidadeVendida === 1 ? 'unidade vendida' : 'unidades vendidas' }}
+                  </span>
+                </div>
 
-                <span
-                  *ngIf="!isLoggedIn"
-                  pTooltip="Faça login para comprar"
-                  tooltipPosition="top"
-                  [showDelay]="0">
-                  <button class="btn-primary" disabled>
-                    <i class="pi pi-cart-plus"></i> Comprar
-                  </button>
-                </span>
 
-                <span *ngIf="isLoggedIn">
-                  <button
-                    class="btn-primary"
-                    (click)="adicionarAoCarrinho(livro.id)"
-                    [disabled]="livro.estoque <= 0 || !livro.ativo || carregandoCarrinho[livro.id]"
-                    [class.loading]="carregandoCarrinho[livro.id]">
-                    <i class="pi pi-cart-plus"></i> Comprar
-                  </button>
-                </span>
-              </div>
+<div class="produto-botoes full-width" (click)="$event.stopPropagation()">
+  <button
+    class="btn-secondary"
+    (click)="verDetalhes(livro)"
+  >
+    <i class="pi pi-eye"></i>
+    Ver
+  </button>
+
+  <span
+    *ngIf="!isLoggedIn"
+    pTooltip="Faça login para comprar"
+    tooltipPosition="top"
+    [showDelay]="0"
+  >
+    <button class="btn-primary" disabled>
+      <i class="pi pi-cart-plus"></i>
+      Comprar
+    </button>
+  </span>
+
+  <span *ngIf="isLoggedIn">
+    <button
+      class="btn-primary"
+      (click)="adicionarAoCarrinho(livro.id)"
+      [disabled]="livro.estoque <= 0 || !livro.ativo || carregandoCarrinho[livro.id]"
+      [class.loading]="carregandoCarrinho[livro.id]"
+    >
+      <i class="pi pi-cart-plus"></i>
+      Adicionar
+    </button>
+  </span>
+</div>
+
             </p-card>
           </div>
 
@@ -554,37 +665,64 @@
     </div>
   </section>
 
-  <p-dialog
-    header="Detalhes do Livro"
-    [(visible)]="displayDialog"
-    [modal]="true"
-    [draggable]="false"
-    [resizable]="false"
-    [style]="{ width: '95%', maxWidth: '900px' }"
-    styleClass="livro-dialog">
 
-    <div *ngIf="selectedLivro" class="detalhes-container">
+<p-dialog
+  [(visible)]="displayDialog"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="false"
+  [dismissableMask]="true"
+  [style]="{ width: '96vw', maxWidth: '1040px' }"
+  styleClass="livro-dialog"
+>
+  <div *ngIf="selectedLivro" class="detalhes-container">
+    <div class="detalhes-topo">
+      <div class="detalhes-topo-identidade">
+        <span class="detalhes-topo-indice">LIVRARIA ONLINE / CATÁLOGO</span>
+        <h2>Detalhes do livro</h2>
+        <p>Conheça melhor sua próxima leitura.</p>
+      </div>
+
+      <button
+        type="button"
+        class="detalhes-fechar"
+        (click)="displayDialog = false"
+        aria-label="Fechar detalhes"
+        title="Fechar"
+      >
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
+
+    <div class="detalhes-corpo">
       <div class="detalhes-grid">
         <div class="detalhes-imagem-wrapper">
           <div class="detalhes-imagem">
             <img
               [src]="selectedLivro.imagemUrl ? '/uploads/' + selectedLivro.imagemUrl : '/images/livro.png'"
               [alt]="selectedLivro.titulo"
-              class="zoom-image">
+              class="zoom-image"
+            />
             <div class="zoom-lens"></div>
           </div>
 
           <div class="imagem-badges">
             <span
               *ngIf="selectedLivro.ativo && selectedLivro.estoque > 0"
-              class="badge-estoque">
+              class="badge-estoque"
+            >
+              <i class="pi pi-check-circle"></i>
               Em estoque
             </span>
+
             <span
-              *ngIf="selectedLivro.estoque <= 0 && selectedLivro.ativo"
-              class="badge-esgotado">
+              *ngIf="selectedLivro.ativo && selectedLivro.estoque <= 0"
+              class="badge-esgotado"
+            >
               Esgotado
             </span>
+
             <span *ngIf="!selectedLivro.ativo" class="badge-inativo">
               Inativo
             </span>
@@ -592,91 +730,96 @@
         </div>
 
         <div class="detalhes-info">
-          <div class="detalhes-header">
-            <h2 class="detalhes-titulo">{{selectedLivro.titulo}}</h2>
-            <button
-              class="btn-favorito-modal"
-              (click)="favoritarDoModal()"
-              [disabled]="carregandoFavoritoModal"
-              [class.loading]="carregandoFavoritoModal"
-              [class.favoritado]="selectedIsFavorited"
-              title="Favoritar">
-              <i
-                class="pi"
-                [class.pi-heart]="!selectedIsFavorited"
-                [class.pi-heart-fill]="selectedIsFavorited">
-              </i>
-            </button>
-          </div>
+          <div class="detalhes-identificacao">
+            <span class="detalhes-categoria">
+              {{ selectedLivro.categoria || 'LIVRO' }}
+            </span>
 
-          <p class="detalhes-autor">
-            <i class="pi pi-user"></i>
-            {{selectedLivro.autor || 'Autor desconhecido'}}
-          </p>
+            <div class="detalhes-header">
+              <h2 class="detalhes-titulo">
+                {{ selectedLivro.titulo }}
+              </h2>
+
+              <button
+                type="button"
+                class="btn-favorito-modal"
+                (click)="favoritarDoModal()"
+                [disabled]="carregandoFavoritoModal"
+                [class.loading]="carregandoFavoritoModal"
+                [class.favoritado]="selectedIsFavorited"
+                [attr.aria-label]="selectedIsFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'"
+                [title]="selectedIsFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'"
+              >
+                <i
+                  class="pi"
+                  [class.pi-heart]="!selectedIsFavorited"
+                  [class.pi-heart-fill]="selectedIsFavorited"
+                ></i>
+              </button>
+            </div>
+
+            <p class="detalhes-autor">
+              <i class="pi pi-user"></i>
+              {{ selectedLivro.autor || 'Autor desconhecido' }}
+            </p>
+          </div>
 
           <div class="detalhes-metas">
             <div class="meta-item">
-              <span class="meta-label">Editora</span>
-              <span class="meta-value">{{selectedLivro.editora || '-'}}</span>
+              <span class="meta-label">EDITORA</span>
+              <span class="meta-value">{{ selectedLivro.editora || '-' }}</span>
             </div>
 
             <div class="meta-item">
               <span class="meta-label">ISBN</span>
-              <span class="meta-value">{{selectedLivro.isbn || '-'}}</span>
+              <span class="meta-value">{{ selectedLivro.isbn || '-' }}</span>
             </div>
 
             <div class="meta-item">
-              <span class="meta-label">Páginas</span>
-              <span class="meta-value">{{selectedLivro.paginas || '-'}}</span>
+              <span class="meta-label">PÁGINAS</span>
+              <span class="meta-value">{{ selectedLivro.paginas || '-' }}</span>
             </div>
 
             <div class="meta-item">
-              <span class="meta-label">Categoria</span>
-              <span class="meta-value">{{selectedLivro.categoria || '-'}}</span>
+              <span class="meta-label">CATEGORIA</span>
+              <span class="meta-value">{{ selectedLivro.categoria || '-' }}</span>
             </div>
-          </div>
-
-          <div class="detalhes-preco">
-            <span class="preco-atual">
-              R$ {{selectedLivro.precoVenda || 0 | number:'1.2-2'}}
-            </span>
-            <span class="preco-parcelado">
-              ou até 3x de R$ {{(selectedLivro.precoVenda / 3) || 0 | number:'1.2-2'}} sem juros
-            </span>
           </div>
 
           <div
             class="modal-avaliacao"
-            *ngIf="selectedLivro?.avaliacao && selectedLivro.avaliacao.totalAvaliacoes > 0">
+            *ngIf="selectedLivro?.avaliacao && selectedLivro.avaliacao.totalAvaliacoes > 0"
+          >
             <div class="avaliacao-resumo-modal">
               <div class="estrelas-modal">
                 <span
                   *ngFor="let star of [0,1,2,3,4]"
-                  class="estrela-wrapper-readonly">
+                  class="estrela-wrapper-readonly"
+                >
                   <i
                     *ngIf="getTipoEstrelaPrincipal(selectedLivro.avaliacao.media, star) === 'cheia'"
                     class="pi pi-star-fill"
-                    style="color: #fbbf24; font-size: 1.2rem;">
-                  </i>
+                    style="color: #e5a83b"
+                  ></i>
 
                   <i
                     *ngIf="getTipoEstrelaPrincipal(selectedLivro.avaliacao.media, star) === 'vazia'"
                     class="pi pi-star"
-                    style="color: #d1d5db; font-size: 1.2rem;">
-                  </i>
+                    style="color: #d1d5db"
+                  ></i>
 
                   <span
                     *ngIf="getTipoEstrelaPrincipal(selectedLivro.avaliacao.media, star) === 'meia'"
                     class="estrela-meia-wrapper"
-                    style="width: 1.2rem; height: 1.2rem;">
+                  >
                     <i
                       class="pi pi-star-fill"
-                      style="color: #fbbf24; font-size: 1.2rem; clip-path: inset(0 50% 0 0);">
-                    </i>
+                      style="color: #e5a83b; clip-path: inset(0 50% 0 0)"
+                    ></i>
                     <i
                       class="pi pi-star-fill"
-                      style="color: #d1d5db; font-size: 1.2rem; clip-path: inset(0 0 0 50%); position: absolute; top: 0; left: 0;">
-                    </i>
+                      style="color: #d1d5db; clip-path: inset(0 0 0 50%)"
+                    ></i>
                   </span>
                 </span>
               </div>
@@ -684,125 +827,182 @@
               <span class="avaliacao-nota-modal">
                 {{ formatarNota(selectedLivro.avaliacao.media) }}
               </span>
+
               <span class="avaliacao-total-modal">
-                ({{ selectedLivro.avaliacao.totalAvaliacoes }} avaliações)
+                {{ selectedLivro.avaliacao.totalAvaliacoes }} avaliações
               </span>
+
             </div>
+
+          </div>
+                      <div class="livro-vendas-modal">
+            <i class="pi pi-shopping-bag"></i>
+            <span>
+              {{ selectedLivro.quantidadeVendida || 0 }}
+              {{ selectedLivro.quantidadeVendida === 1 ? 'unidade vendida' : 'unidades vendidas' }}
+            </span>
           </div>
 
           <div
             class="modal-sem-avaliacao"
-            *ngIf="!selectedLivro?.avaliacao || selectedLivro.avaliacao.totalAvaliacoes === 0">
-            <span style="color: #94a3b8; font-size: 0.9rem;">
-              Este livro ainda não possui avaliações
-            </span>
+            *ngIf="!selectedLivro?.avaliacao || selectedLivro.avaliacao.totalAvaliacoes === 0"
+          >
+            <i class="pi pi-star"></i>
+            Este livro ainda não possui avaliações
           </div>
 
-          <div *ngIf="selectedLivro.ativo">
-            <div
-              class="detalhes-quantidade"
-              *ngIf="selectedLivro.estoque > 0">
-              <label>Quantidade</label>
-
-              <div class="quantidade-controles">
-                <button
-                  class="qtd-btn"
-                  (click)="diminuirQuantidade()"
-                  [disabled]="quantidadeSelecionada <= 1">
-                  -
-                </button>
-
-                <span class="qtd-valor">{{quantidadeSelecionada}}</span>
-
-                <button
-                  class="qtd-btn"
-                  (click)="aumentarQuantidade()"
-                  [disabled]="quantidadeSelecionada >= selectedLivro.estoque">
-                  +
-                </button>
-
-                <span class="qtd-estoque">
-                  ({{selectedLivro.estoque}} disponíveis)
-                </span>
-              </div>
+          <div class="detalhes-compra">
+            <div class="detalhes-preco">
+              <span class="detalhes-preco-label">PREÇO</span>
+              <span class="preco-atual">
+                R$ {{ selectedLivro.precoVenda || 0 | number:'1.2-2' }}
+              </span>
+              <span class="preco-parcelado">
+                ou até 3x de R$ {{ (selectedLivro.precoVenda / 3) || 0 | number:'1.2-2' }} sem juros
+              </span>
             </div>
 
-            <button
-              *ngIf="selectedLivro.estoque > 0 && !isLoggedIn"
-              class="btn-primary"
-              disabled
-              pTooltip="Faça login para comprar"
-              tooltipPosition="top">
-              <i class="pi pi-cart-plus"></i>
-              Adicionar ao Carrinho
-            </button>
+            <div *ngIf="selectedLivro.ativo && selectedLivro.estoque > 0">
+              <div class="detalhes-quantidade">
+                <label>QUANTIDADE</label>
 
-            <button
-              *ngIf="selectedLivro.estoque > 0 && isLoggedIn"
-              class="btn-primary"
-              (click)="adicionarAoCarrinhoComQuantidade(selectedLivro.id)"
-              [disabled]="carregandoCarrinhoModal"
-              [class.loading]="carregandoCarrinhoModal">
-              <i class="pi pi-cart-plus"></i>
-              Adicionar ao Carrinho
-            </button>
+                <div class="quantidade-controles">
+                  <div class="quantidade-seletor">
+                    <button
+                      type="button"
+                      class="qtd-btn"
+                      (click)="diminuirQuantidade()"
+                      [disabled]="quantidadeSelecionada <= 1"
+                      aria-label="Diminuir quantidade"
+                    >
+                      <i class="pi pi-minus"></i>
+                    </button>
 
-            <p *ngIf="selectedLivro.estoque <= 0" class="text-danger">
+                    <span class="qtd-valor">
+                      {{ quantidadeSelecionada }}
+                    </span>
+
+                    <button
+                      type="button"
+                      class="qtd-btn"
+                      (click)="aumentarQuantidade()"
+                      [disabled]="quantidadeSelecionada >= selectedLivro.estoque"
+                      aria-label="Aumentar quantidade"
+                    >
+                      <i class="pi pi-plus"></i>
+                    </button>
+                  </div>
+
+                  <span class="qtd-estoque">
+                    {{ selectedLivro.estoque }} disponíveis
+                  </span>
+                </div>
+              </div>
+
+              <button
+                *ngIf="!isLoggedIn"
+                type="button"
+                class="btn-primary detalhes-comprar"
+                disabled
+                pTooltip="Faça login para comprar"
+                tooltipPosition="top"
+              >
+                <i class="pi pi-shopping-cart"></i>
+                Adicionar ao carrinho
+              </button>
+
+              <button
+                *ngIf="isLoggedIn"
+                type="button"
+                class="btn-primary detalhes-comprar"
+                (click)="adicionarAoCarrinhoComQuantidade(selectedLivro.id)"
+                [disabled]="carregandoCarrinhoModal"
+                [class.loading]="carregandoCarrinhoModal"
+              >
+                <i
+                  class="pi"
+                  [class.pi-spin]="carregandoCarrinhoModal"
+                  [class.pi-spinner]="carregandoCarrinhoModal"
+                  [class.pi-shopping-cart]="!carregandoCarrinhoModal"
+                ></i>
+                {{ carregandoCarrinhoModal ? 'Adicionando...' : 'Adicionar ao carrinho' }}
+              </button>
+            </div>
+
+            <p
+              *ngIf="selectedLivro.ativo && selectedLivro.estoque <= 0"
+              class="text-danger"
+            >
+              <i class="pi pi-exclamation-circle"></i>
               Produto esgotado
             </p>
-          </div>
 
-          <div *ngIf="!selectedLivro.ativo" class="produto-inativo-msg">
-            <i class="pi pi-exclamation-triangle"></i>
-            <span>Este produto está inativo no momento.</span>
-            <p
-              *ngIf="selectedLivro.motivoInativacao"
-              class="motivo-inativacao-texto">
-              <strong>Motivo:</strong>
-              {{selectedLivro.motivoInativacao}}
-            </p>
+            <div *ngIf="!selectedLivro.ativo" class="produto-inativo-msg">
+              <i class="pi pi-exclamation-triangle"></i>
+              <div>
+                <strong>Produto indisponível</strong>
+                <p>Este produto está inativo no momento.</p>
+                <p
+                  *ngIf="selectedLivro.motivoInativacao"
+                  class="motivo-inativacao-texto"
+                >
+                  {{ selectedLivro.motivoInativacao }}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div *ngIf="selectedLivro?.sinopse" class="sinopse-texto">
-        <h4>Sinopse</h4>
-        <p>{{selectedLivro.sinopse}}</p>
+      <div *ngIf="selectedLivro.sinopse" class="sinopse-texto">
+        <div class="detalhes-secao-cabecalho">
+          <span>01 / SOBRE A OBRA</span>
+          <h3>Sinopse</h3>
+        </div>
+
+        <p>{{ selectedLivro.sinopse }}</p>
       </div>
 
       <div
         *ngIf="!selectedLivro.ativo && selectedLivro.motivoInativacao"
-        class="motivo-inativacao">
-        <h4>Motivo da Inativação</h4>
+        class="motivo-inativacao"
+      >
+        <h4>Motivo da inativação</h4>
         <p>
           <i class="pi pi-info-circle"></i>
-          {{selectedLivro.motivoInativacao}}
+          {{ selectedLivro.motivoInativacao }}
         </p>
       </div>
 
       <div class="comentarios-section">
-        <div class="comentarios-header" (click)="toggleComentarios()">
+        <button
+          type="button"
+          class="comentarios-header"
+          (click)="toggleComentarios()"
+          [attr.aria-expanded]="comentariosExpandido"
+        >
           <div class="comentarios-header-left">
-            <i class="pi pi-comment"></i>
-            <span>Comentários</span>
+            <i class="pi pi-comments"></i>
+            <span>Comentários e avaliações</span>
             <span
               class="comentarios-count"
-              *ngIf="selectedLivro?.avaliacao?.totalAvaliacoes > 0">
-              ({{ selectedLivro.avaliacao.totalAvaliacoes }})
+              *ngIf="selectedLivro?.avaliacao?.totalAvaliacoes > 0"
+            >
+              {{ selectedLivro.avaliacao.totalAvaliacoes }}
             </span>
           </div>
 
           <div class="comentarios-header-right">
             <span class="comentarios-toggle-text">
-              {{ comentariosExpandido ? 'Ocultar' : 'Ver' }}
+              {{ comentariosExpandido ? 'Ocultar' : 'Ver comentários' }}
             </span>
             <i
               class="pi"
               [class.pi-chevron-down]="!comentariosExpandido"
-              [class.pi-chevron-up]="comentariosExpandido">
-            </i>
+              [class.pi-chevron-up]="comentariosExpandido"
+            ></i>
           </div>
-        </div>
+        </button>
 
         <div *ngIf="comentariosExpandido" class="comentarios-body">
           <div *ngIf="comentariosLoading" class="comentarios-loading">
@@ -812,17 +1012,20 @@
 
           <div
             *ngIf="!comentariosLoading && comentariosPaginados.length === 0"
-            class="comentarios-empty">
-            <i class="pi pi-inbox"></i>
+            class="comentarios-empty"
+          >
+            <i class="pi pi-comment"></i>
             <span>Nenhum comentário ainda. Seja o primeiro a avaliar!</span>
           </div>
 
           <div
             *ngIf="!comentariosLoading && comentariosPaginados.length > 0"
-            class="comentarios-list">
+            class="comentarios-list"
+          >
             <div
               *ngFor="let comentario of comentariosPaginados"
-              class="comentario-item">
+              class="comentario-item"
+            >
               <div class="comentario-avatar">
                 <span>{{ getIniciais(comentario.cliente?.nome) }}</span>
               </div>
@@ -840,31 +1043,32 @@
                 <div class="comentario-estrelas">
                   <span
                     *ngFor="let star of [0,1,2,3,4]"
-                    class="estrela-wrapper-comentario">
+                    class="estrela-wrapper-comentario"
+                  >
                     <i
                       *ngIf="getTipoEstrelaComentario(comentario.nota, star) === 'cheia'"
                       class="pi pi-star-fill"
-                      style="color: #fbbf24; font-size: 0.8rem;">
-                    </i>
+                      style="color: #e5a83b"
+                    ></i>
 
                     <i
                       *ngIf="getTipoEstrelaComentario(comentario.nota, star) === 'vazia'"
                       class="pi pi-star"
-                      style="color: #d1d5db; font-size: 0.8rem;">
-                    </i>
+                      style="color: #d1d5db"
+                    ></i>
 
                     <span
                       *ngIf="getTipoEstrelaComentario(comentario.nota, star) === 'meia'"
                       class="estrela-meia-comentario"
-                      style="width: 0.8rem; height: 0.8rem; display: inline-block; position: relative;">
+                    >
                       <i
                         class="pi pi-star-fill"
-                        style="color: #fbbf24; font-size: 0.8rem; clip-path: inset(0 50% 0 0); position: absolute; top: 0; left: 0;">
-                      </i>
+                        style="color: #e5a83b; clip-path: inset(0 50% 0 0)"
+                      ></i>
                       <i
                         class="pi pi-star-fill"
-                        style="color: #d1d5db; font-size: 0.8rem; clip-path: inset(0 0 0 50%); position: absolute; top: 0; left: 0;">
-                      </i>
+                        style="color: #d1d5db; clip-path: inset(0 0 0 50%)"
+                      ></i>
                     </span>
                   </span>
 
@@ -875,14 +1079,16 @@
 
                 <p
                   class="comentario-texto"
-                  *ngIf="comentario.comentario">
-                  "{{ comentario.comentario }}"
+                  *ngIf="comentario.comentario"
+                >
+                  {{ comentario.comentario }}
                 </p>
 
                 <p
                   class="comentario-sem-texto"
-                  *ngIf="!comentario.comentario">
-                  <em>Sem comentário escrito</em>
+                  *ngIf="!comentario.comentario"
+                >
+                  Sem comentário escrito
                 </p>
               </div>
             </div>
@@ -894,13 +1100,16 @@
               [totalRecords]="comentariosTotal"
               (onPageChange)="onComentariosPageChange($event)"
               [rowsPerPageOptions]="[5, 10, 20]"
-              styleClass="comentarios-paginator">
+              styleClass="comentarios-paginator"
+            >
             </p-paginator>
           </div>
         </div>
       </div>
     </div>
-  </p-dialog>
+  </div>
+</p-dialog>
+
 
   <p-toast position="top-right"></p-toast>
 </main>

@@ -54,13 +54,9 @@ public class ItemPedido {
         return pedido;
     }
 
-public void setPedido(Pedido pedido) {
-    this.pedido = pedido;
-    if (pedido != null && !pedido.getItens().contains(this)) {
-        pedido.getItens().add(this);
+    public void setPedido(Pedido pedido) {
+        this.pedido = pedido;
     }
-}
-
 
     public Livro getLivro() {
         return livro;

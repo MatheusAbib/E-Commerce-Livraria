@@ -1,7 +1,14 @@
+
 <div class="custom-modal" [class.active]="visible">
   <div class="custom-modal-overlay" (click)="fechar()"></div>
+
   <div class="custom-modal-content" style="width: 600px; max-width: 95%; max-height: 85vh;">
-    <button class="custom-modal-close" (click)="fechar()">
+    <button
+      type="button"
+      class="custom-modal-close"
+      (click)="fechar()"
+      aria-label="Fechar notificações"
+    >
       <i class="pi pi-times"></i>
     </button>
 
@@ -9,6 +16,7 @@
       <div class="auth-icon">
         <i class="pi pi-bell"></i>
       </div>
+
       <h2>Notificações</h2>
       <p>Fique por dentro de tudo que acontece</p>
     </div>
@@ -19,46 +27,109 @@
         <p>Carregando notificações...</p>
       </div>
 
-      <div *ngIf="!loading && notificacoes.length === 0" class="empty-state">
-        <i class="pi pi-bell" style="font-size: 3rem; color: #cbd5e1;"></i>
+      <div
+        *ngIf="!loading && notificacoes.length === 0"
+        class="empty-state"
+      >
+        <i
+          class="pi pi-bell"
+          style="font-size: 3rem; color: #cbd5e1;"
+        ></i>
+
         <h3>Nenhuma notificação</h3>
         <p>Você não tem notificações no momento</p>
       </div>
 
-      <div *ngIf="!loading && notificacoes.length > 0" class="notificacoes-list">
-        <div *ngFor="let notificacao of notificacoes" class="notificacao-item" [class.lida]="notificacao.lida" [class]="'notificacao-' + notificacao.tipo">
+      <div
+        *ngIf="!loading && notificacoes.length > 0"
+        class="notificacoes-list"
+      >
+        <div
+          *ngFor="let notificacao of notificacoes"
+          class="notificacao-item"
+          [class.lida]="notificacao.lida"
+          [ngClass]="'notificacao-' + (notificacao.tipo || 'info')"
+        >
           <div class="notificacao-icon">
-            <i *ngIf="notificacao.tipo === 'success'" class="pi pi-check-circle" style="color: #22c55e;"></i>
-            <i *ngIf="notificacao.tipo === 'error'" class="pi pi-times-circle" style="color: #dc2626;"></i>
-            <i *ngIf="notificacao.tipo === 'warning'" class="pi pi-exclamation-triangle" style="color: #eab308;"></i>
-            <i *ngIf="notificacao.tipo === 'info' || !notificacao.tipo" class="pi pi-info-circle" style="color: #3b82f6;"></i>
+            <i
+              *ngIf="notificacao.tipo === 'success'"
+              class="pi pi-check-circle"
+              style="color: #22c55e;"
+            ></i>
+
+            <i
+              *ngIf="notificacao.tipo === 'error'"
+              class="pi pi-times-circle"
+              style="color: #dc2626;"
+            ></i>
+
+            <i
+              *ngIf="notificacao.tipo === 'warning'"
+              class="pi pi-exclamation-triangle"
+              style="color: #eab308;"
+            ></i>
+
+            <i
+              *ngIf="
+                !notificacao.tipo ||
+                !['success', 'error', 'warning'].includes(notificacao.tipo)
+              "
+              class="pi pi-info-circle"
+              style="color: #3b82f6;"
+            ></i>
           </div>
+
           <div class="notificacao-content">
             <div class="notificacao-header">
               <h4>{{ notificacao.titulo }}</h4>
-              <span class="notificacao-data">{{ notificacao.data | date:'dd/MM/yyyy HH:mm' }}</span>
+
+              <span class="notificacao-data">
+                {{ notificacao.data | date:'dd/MM/yyyy HH:mm' }}
+              </span>
             </div>
+
             <p>{{ notificacao.mensagem }}</p>
           </div>
-<button *ngIf="!notificacao.lida" class="btn-marcar-lida" (click)="marcarComoLida(notificacao.id)" title="Marcar como lida">
-  <i class="pi pi-check-circle"></i>
-  <span>Lida</span>
-</button>
+
+          <button
+            *ngIf="!notificacao.lida"
+            type="button"
+            class="btn-marcar-lida"
+            (click)="marcarComoLida(notificacao.id)"
+            [disabled]="loading"
+            title="Marcar como lida"
+            aria-label="Marcar notificação como lida"
+          >
+            <i class="pi pi-check-circle"></i>
+            <span>Lida</span>
+          </button>
         </div>
       </div>
     </div>
 
-<div class="custom-modal-footer">
-  <div class="modal-actions">
-    <button class="p-button-outlined" (click)="fechar()">
-      <i class="pi pi-times"></i> Fechar
-    </button>
-    <button class="btn-danger" (click)="limparTodas()" *ngIf="notificacoes.length > 0">
-      <i class="pi pi-trash"></i> Limpar todas
-    </button>
-  </div>
-</div>
-  </div>
-</div>
-<p-toast position="top-right"></p-toast>
+    <div class="custom-modal-footer">
+      <div class="modal-actions">
+        <button
+          type="button"
+          class="p-button-outlined"
+          (click)="fechar()"
+        >
+          <i class="pi pi-times"></i>
+          Fechar
+        </button>
 
+        <button
+          *ngIf="notificacoes.length > 0 && !loading"
+          type="button"
+          class="btn-danger"
+          (click)="limparTodas()"
+        >
+          <i class="pi pi-trash"></i>
+          Limpar todas
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p-toast position="top-right"></p-toast>

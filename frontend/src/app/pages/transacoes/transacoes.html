@@ -102,7 +102,7 @@
           </ng-template>
 
           <ng-template pTemplate="body" let-log>
-            <tr>
+            <tr (click)="abrirDetalhes(log)">
               <td>
                 <span class="date-cell">
                   <i class="pi pi-calendar"></i>

@@ -44,6 +44,8 @@ import { environment } from '../../../environments/environment';
 })
 export class Principal implements OnInit {
   livros: any[] = [];
+  maisVendidos: any[] = [];
+  carregandoMaisVendidos: boolean = false;
   filteredLivros: any[] = [];
   selectedLivro: any = null;
   displayDialog: boolean = false;
@@ -104,6 +106,7 @@ export class Principal implements OnInit {
     });
 
     this.carregarLivros();
+    this.carregarMaisVendidos();
     const user = JSON.parse(localStorage.getItem('clienteLogado') || 'null');
     this.isLoggedIn = !!user;
     if (this.isLoggedIn) {
@@ -290,13 +293,52 @@ export class Principal implements OnInit {
     this.aplicarFiltros();
     setTimeout(() => this.scrollTo('produtos'), 0);
   }
-  scrollTo(elementId: string): void {
-    const element = document.getElementById(elementId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+scrollTo(elementId: string): void {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-  async carregarLivros(): Promise<void> {
+}
+
+private rolarParaCatalogo(): void {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const catalogo = document.getElementById('produtos');
+
+      if (!catalogo) return;
+
+      const headerOffset = 90;
+      const posicao = catalogo.getBoundingClientRect().top + window.scrollY - headerOffset;
+
+      window.scrollTo({
+        top: Math.max(0, posicao),
+        behavior: 'smooth'
+      });
+    });
+  });
+}
+
+async carregarMaisVendidos(): Promise<void> {
+  this.carregandoMaisVendidos = true;
+
+  try {
+    const response = await fetch(`${environment.apiUrl}/livros/mais-vendidos`);
+
+    if (!response.ok) {
+      throw new Error('Erro ao buscar os livros mais vendidos');
+    }
+
+    this.maisVendidos = await response.json();
+  } catch (error) {
+    console.error('Erro ao carregar os mais vendidos:', error);
+    this.maisVendidos = [];
+  } finally {
+    this.carregandoMaisVendidos = false;
+    this.cdr.detectChanges();
+  }
+}
+
+async carregarLivros(): Promise<void> {
     this.loading = true;
     try {
       const response = await fetch(`${environment.apiUrl}/livros`);
@@ -331,51 +373,81 @@ export class Principal implements OnInit {
     this.categorias = [...new Set(cats)].map(c => ({ label: c, value: c }));
   }
   filtrando: boolean = false;
-  async aplicarFiltros(): Promise<void> {
+async aplicarFiltros(): Promise<void> {
   if (this.carregandoFiltro) return;
+
   this.carregandoFiltro = true;
   this.loading = true;
+
   const inicio = Date.now();
+
   this.filteredLivros = this.livros.filter(l => {
     let match = true;
+
     if (this.filtros.titulo && !l.titulo?.toLowerCase().includes(this.filtros.titulo.toLowerCase())) match = false;
     if (this.filtros.autor && !l.autor?.toLowerCase().includes(this.filtros.autor.toLowerCase())) match = false;
     if (this.filtros.editora && !l.editora?.toLowerCase().includes(this.filtros.editora.toLowerCase())) match = false;
     if (this.filtros.categoria && l.categoria !== this.filtros.categoria) match = false;
     if (this.filtros.precoMax && l.precoVenda > this.filtros.precoMax) match = false;
+
     return match;
   });
+
   this.totalRecords = this.filteredLivros.length;
   this.first = 0;
+
+  this.rolarParaCatalogo();
+
   const decorrido = Date.now() - inicio;
   const restante = Math.max(0, 500 - decorrido);
+
   setTimeout(() => {
     this.loading = false;
     this.carregandoFiltro = false;
+    this.cdr.detectChanges();
   }, restante);
 }
 async limparFiltros(): Promise<void> {
   if (this.carregandoLimpar) return;
+
   this.carregandoLimpar = true;
   this.loading = true;
+
   const inicio = Date.now();
-  this.filtros = { titulo: '', autor: '', editora: '', categoria: '', precoMax: null };
+
+  this.filtros = {
+    titulo: '',
+    autor: '',
+    editora: '',
+    categoria: '',
+    precoMax: null
+  };
+
   this.filteredLivros = [...this.livros];
   this.totalRecords = this.filteredLivros.length;
   this.first = 0;
+
+  this.rolarParaCatalogo();
+
   const decorrido = Date.now() - inicio;
   const restante = Math.max(0, 500 - decorrido);
+
   setTimeout(() => {
     this.loading = false;
     this.carregandoLimpar = false;
+    this.cdr.detectChanges();
   }, restante);
 }
 onPageChange(event: any): void {
   this.loading = true;
   this.first = event.first;
   this.rows = event.rows;
+
+  this.rolarParaCatalogo();
+
   setTimeout(() => {
     this.loading = false;
+    this.cdr.detectChanges();
   }, 300);
 }
   get livrosPaginados(): any[] {

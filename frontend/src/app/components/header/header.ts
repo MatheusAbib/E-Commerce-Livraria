@@ -1,5 +1,12 @@
 ﻿
-import { Component, OnInit, ChangeDetectorRef, ViewChild, HostListener } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ChangeDetectorRef,
+  ViewChild,
+  HostListener
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AvatarModule } from 'primeng/avatar';
@@ -7,6 +14,7 @@ import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem, MessageService } from 'primeng/api';
+import { Subscription } from 'rxjs';
 import { LoginModalComponent } from './login-modal/login-modal';
 import { CadastroModalComponent } from './cadastro-modal/cadastro-modal';
 import { PerfilModalComponent } from './perfil-modal/perfil-modal';
@@ -16,7 +24,7 @@ import { FavoritosModalComponent } from './favoritos-modal/favoritos-modal';
 import { CupomModalComponent } from './cupom-modal/cupom-modal';
 import { ChatModalComponent } from './chat-modal/chat-modal';
 import { CarrinhoService } from '../../services/carrinho';
-import { AuthService } from '../../services/auth';
+import { AuthService, Notificacao } from '../../services/auth';
 import { ChatService } from '../../services/chat.service';
 import { environment } from '../../../environments/environment';
 import { AppComponent } from '../../app';
@@ -45,15 +53,20 @@ import { Menu } from 'primeng/menu';
   templateUrl: './header.html',
   styleUrls: ['./header.css']
 })
-export class HeaderComponent implements OnInit {
-@ViewChild(FavoritosModalComponent) favoritosModal!: FavoritosModalComponent;
-@ViewChild(CupomModalComponent) cupomModal!: CupomModalComponent;
-@ViewChild('menuContaPopup') menuContaPopup!: Menu;
+export class HeaderComponent implements OnInit, OnDestroy {
+  @ViewChild(FavoritosModalComponent)
+  favoritosModal!: FavoritosModalComponent;
+
+  @ViewChild(CupomModalComponent)
+  cupomModal!: CupomModalComponent;
+
+  @ViewChild('menuContaPopup')
+  menuContaPopup!: Menu;
 
   isLoggedIn: boolean = false;
   usuario: any = null;
   carrinhoItens: number = 0;
-  notificacoes: any[] = [];
+  notificacoes: Notificacao[] = [];
   notificacoesNaoLidas: number = 0;
   favoritosCount: number = 0;
 
@@ -64,6 +77,7 @@ export class HeaderComponent implements OnInit {
   displayLogout: boolean = false;
   displayFavoritos: boolean = false;
   displayCupons: boolean = false;
+
   cuponsDisponiveisCount: number = 0;
   menuContaAberto: boolean = false;
 
@@ -95,6 +109,9 @@ export class HeaderComponent implements OnInit {
 
   private ultimoStatusPorPedido: Map<number, boolean> = new Map();
   private ultimosChats: any[] = [];
+  private subscriptions = new Subscription();
+  private intervaloContadores: ReturnType<typeof setInterval> | null = null;
+  private usuarioNotificacoesId: number | null = null;
 
   constructor(
     private carrinhoService: CarrinhoService,
@@ -107,44 +124,86 @@ export class HeaderComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.carrinhoService.carrinhoItens$.subscribe(total => {
-      this.carrinhoItens = total;
-      this.cdr.detectChanges();
-    });
-
-    this.authService.favoritosCount$.subscribe(count => {
-      this.favoritosCount = count;
-      this.cdr.detectChanges();
-    });
-
-    this.authService.cuponsCount$.subscribe(count => {
-      this.cuponsDisponiveisCount = count;
-      this.cdr.detectChanges();
-    });
-
-    this.authService.usuario$.subscribe(usuario => {
-      if (usuario && this.usuario && usuario.id === this.usuario.id) {
-        this.usuario.nome = usuario.nome;
+    this.subscriptions.add(
+      this.carrinhoService.carrinhoItens$.subscribe(total => {
+        this.carrinhoItens = total;
         this.cdr.detectChanges();
-      }
-    });
+      })
+    );
 
-    this.authService.notificacoes$.subscribe(notificacoes => {
-      if (this.usuario) {
-        this.notificacoes = notificacoes;
-        this.notificacoesNaoLidas = this.notificacoes.filter((n: any) => !n.lida).length;
+    this.subscriptions.add(
+      this.authService.favoritosCount$.subscribe(count => {
+        this.favoritosCount = count;
         this.cdr.detectChanges();
-      }
-    });
+      })
+    );
+
+    this.subscriptions.add(
+      this.authService.cuponsCount$.subscribe(count => {
+        this.cuponsDisponiveisCount = count;
+        this.cdr.detectChanges();
+      })
+    );
+
+    this.subscriptions.add(
+      this.authService.usuario$.subscribe(usuario => {
+        if (usuario && this.usuario && usuario.id === this.usuario.id) {
+          this.usuario.nome = usuario.nome;
+          this.cdr.detectChanges();
+        }
+      })
+    );
+
+    this.subscriptions.add(
+      this.authService.notificacoes$.subscribe(notificacoes => {
+        if (this.isLoggedIn && this.usuario) {
+          this.notificacoes = notificacoes;
+          this.notificacoesNaoLidas = notificacoes.filter(
+            notificacao => !notificacao.lida
+          ).length;
+        } else {
+          this.notificacoes = [];
+          this.notificacoesNaoLidas = 0;
+        }
+
+        this.cdr.detectChanges();
+      })
+    );
+
+    this.subscriptions.add(
+      this.authService.loginStatus$.subscribe(logado => {
+        if (!logado) {
+          this.isLoggedIn = false;
+          this.usuario = null;
+          this.usuarioNotificacoesId = null;
+          this.notificacoes = [];
+          this.notificacoesNaoLidas = 0;
+          this.ultimoStatusPorPedido.clear();
+          this.ultimosChats = [];
+          this.totalChatsNaoLidas = 0;
+          this.cdr.detectChanges();
+          return;
+        }
+
+        const usuario = this.authService.getUser();
+
+        if (!usuario) {
+          return;
+        }
+
+        if (
+          this.usuarioNotificacoesId !== usuario.id ||
+          !this.isLoggedIn
+        ) {
+          this.atualizarUI(usuario);
+        }
+      })
+    );
 
     if (this.authService.isAuthenticated()) {
       const user = this.authService.getUser();
-      if (user) {
-        this.atualizarUI(user);
-      }
-    } else {
-      const user = JSON.parse(localStorage.getItem('clienteLogado') || 'null');
-      if (user && user.id) {
+
+      if (user && !this.isLoggedIn) {
         this.atualizarUI(user);
       }
     }
@@ -152,21 +211,40 @@ export class HeaderComponent implements OnInit {
     this.carregarContadorChats();
     this.carregarContadorCupons();
 
-    setInterval(() => {
+    this.intervaloContadores = setInterval(() => {
       this.carregarContadorChats();
       this.carregarContadorCupons();
     }, 2000);
   }
 
+  ngOnDestroy(): void {
+    if (this.intervaloContadores) {
+      clearInterval(this.intervaloContadores);
+      this.intervaloContadores = null;
+    }
+
+    this.subscriptions.unsubscribe();
+  }
+
   @HostListener('window:livraria:abrir-atalho', ['$event'])
   abrirAtalhoDaPrincipal(event: Event): void {
-    if (!this.isLoggedIn) return;
+    if (!this.isLoggedIn) {
+      return;
+    }
 
     const tipo = (event as CustomEvent<string>).detail;
 
-    if (tipo === 'favoritos') this.abrirFavoritos();
-    if (tipo === 'carrinho') void this.abrirCarrinho();
-    if (tipo === 'cupons') this.abrirCupons();
+    if (tipo === 'favoritos') {
+      this.abrirFavoritos();
+    }
+
+    if (tipo === 'carrinho') {
+      void this.abrirCarrinho();
+    }
+
+    if (tipo === 'cupons') {
+      this.abrirCupons();
+    }
   }
 
   toggleMenu(): void {
@@ -182,119 +260,165 @@ export class HeaderComponent implements OnInit {
     this.displayChatsModal = true;
   }
 
+  @HostListener('document:click', ['$event'])
+  fecharMenuContaAoClicarFora(event: MouseEvent): void {
+    const alvo = event.target as HTMLElement;
 
-@HostListener('document:click', ['$event'])
-fecharMenuContaAoClicarFora(event: MouseEvent): void {
-  const alvo = event.target as HTMLElement;
-
-  if (!alvo.closest('.account-dropdown')) {
-    this.menuContaAberto = false;
+    if (!alvo.closest('.account-dropdown')) {
+      this.menuContaAberto = false;
+    }
   }
-}
-
 
   async carregarContadorChats(): Promise<void> {
     const user = this.authService.getUser();
-    if (!user) return;
+
+    if (!user || !this.authService.isAuthenticated()) {
+      return;
+    }
 
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/chat/cliente/${user.id}/conversas`, {
-        headers: {
-          'Authorization': 'Bearer ' + token
-        }
-      });
 
-      if (response.ok) {
-        const data = await response.json();
-        const ativos = data.ativos || [];
-        const encerrados = data.encerrados || [];
-        const novoTotal = ativos.reduce((sum: number, chat: any) => sum + (chat.naoLidas || 0), 0);
-        const todosChats = [...ativos, ...encerrados];
-
-        for (const chat of todosChats) {
-          const statusAnterior = this.ultimoStatusPorPedido.get(chat.pedidoId);
-          const statusAtual = chat.ativo !== false;
-
-          if (statusAnterior !== undefined && statusAnterior !== statusAtual) {
-            let titulo, mensagem;
-
-            if (!statusAtual) {
-              titulo = 'Atendimento encerrado';
-              mensagem = `O vendedor encerrou o atendimento do pedido #${chat.pedidoId}`;
-            } else {
-              titulo = 'Atendimento reativado';
-              mensagem = `Reativado a conversa do pedido #${chat.pedidoId}`;
-            }
-
-            this.messageService.add({
-              severity: 'info',
-              summary: titulo,
-              detail: mensagem
-            });
-
-            this.authService.adicionarNotificacao(titulo, mensagem, 'info');
-          }
-
-          this.ultimoStatusPorPedido.set(chat.pedidoId, statusAtual);
-        }
-
-        let temNovaMensagem = false;
-
-        for (const chat of ativos) {
-          const chatAnterior = this.ultimosChats.find((c: any) => c.id === chat.pedidoId);
-
-          if (chatAnterior && chatAnterior.ultima !== chat.ultimaMensagem) {
-            temNovaMensagem = true;
-            break;
-          }
-
-          if (!chatAnterior) {
-            temNovaMensagem = true;
-            break;
+      const response = await fetch(
+        `${environment.apiUrl}/chat/cliente/${user.id}/conversas`,
+        {
+          headers: {
+            Authorization: 'Bearer ' + token
           }
         }
+      );
 
-        if (temNovaMensagem && this.ultimosChats.length > 0) {
-          const totalAnterior = this.ultimosChats.reduce((sum: number, chat: any) => sum + (chat.lidas || 0), 0);
-
-          if (novoTotal > totalAnterior) {
-            this.messageService.add({
-              severity: 'info',
-              summary: 'Nova mensagem',
-              detail: 'Você recebeu uma nova mensagem no chat'
-            });
-
-            this.authService.adicionarNotificacao('Nova mensagem', 'Você recebeu uma nova mensagem no chat', 'info');
-          }
-        }
-
-        this.ultimosChats = ativos.map((c: any) => ({
-          id: c.pedidoId,
-          ultima: c.ultimaMensagem,
-          lidas: c.naoLidas
-        }));
-
-        this.totalChatsNaoLidas = novoTotal;
-        this.cdr.detectChanges();
+      if (!response.ok || this.authService.getUser()?.id !== user.id) {
+        return;
       }
+
+      const data = await response.json();
+      const ativos = data.ativos || [];
+      const encerrados = data.encerrados || [];
+
+      const novoTotal = ativos.reduce(
+        (sum: number, chat: any) => sum + (chat.naoLidas || 0),
+        0
+      );
+
+      const todosChats = [...ativos, ...encerrados];
+
+      for (const chat of todosChats) {
+        const statusAnterior = this.ultimoStatusPorPedido.get(
+          chat.pedidoId
+        );
+
+        const statusAtual = chat.ativo !== false;
+
+        if (
+          statusAnterior !== undefined &&
+          statusAnterior !== statusAtual
+        ) {
+          let titulo: string;
+          let mensagem: string;
+
+          if (!statusAtual) {
+            titulo = 'Atendimento encerrado';
+            mensagem = `O vendedor encerrou o atendimento do pedido #${chat.pedidoId}`;
+          } else {
+            titulo = 'Atendimento reativado';
+            mensagem = `Reativado a conversa do pedido #${chat.pedidoId}`;
+          }
+
+          this.messageService.add({
+            severity: 'info',
+            summary: titulo,
+            detail: mensagem
+          });
+        }
+
+        this.ultimoStatusPorPedido.set(
+          chat.pedidoId,
+          statusAtual
+        );
+      }
+
+      let temNovaMensagem = false;
+
+      for (const chat of ativos) {
+        const chatAnterior = this.ultimosChats.find(
+          (c: any) => c.id === chat.pedidoId
+        );
+
+        if (
+          chatAnterior &&
+          chatAnterior.ultima !== chat.ultimaMensagem
+        ) {
+          temNovaMensagem = true;
+          break;
+        }
+
+        if (!chatAnterior) {
+          temNovaMensagem = true;
+          break;
+        }
+      }
+
+      if (temNovaMensagem && this.ultimosChats.length > 0) {
+        const totalAnterior = this.ultimosChats.reduce(
+          (sum: number, chat: any) => sum + (chat.lidas || 0),
+          0
+        );
+
+        if (novoTotal > totalAnterior) {
+          this.messageService.add({
+            severity: 'info',
+            summary: 'Nova mensagem',
+            detail: 'Você recebeu uma nova mensagem no chat'
+          });
+        }
+      }
+
+      this.ultimosChats = ativos.map((c: any) => ({
+        id: c.pedidoId,
+        ultima: c.ultimaMensagem,
+        lidas: c.naoLidas
+      }));
+
+      this.totalChatsNaoLidas = novoTotal;
+      this.cdr.detectChanges();
     } catch (error) {
       console.error('Erro ao carregar contador de chats:', error);
     }
   }
 
-  abrirChatDrawer(event: { pedidoId: number, pedido: any }): void {
+  abrirChatDrawer(event: {
+    pedidoId: number;
+    pedido: any;
+  }): void {
     this.chatService.limparUltimoPedido();
 
     setTimeout(() => {
-      this.chatService.abrirChat(event.pedidoId, event.pedido);
+      this.chatService.abrirChat(
+        event.pedidoId,
+        event.pedido
+      );
     }, 100);
   }
 
   atualizarUI(usuario: any): void {
     if (usuario && usuario.id) {
+      const usuarioMudou =
+        this.usuarioNotificacoesId !== usuario.id;
+
       this.isLoggedIn = true;
       this.usuario = usuario;
+
+      if (usuarioMudou) {
+        this.usuarioNotificacoesId = usuario.id;
+        this.notificacoes = [];
+        this.notificacoesNaoLidas = 0;
+        this.ultimoStatusPorPedido.clear();
+        this.ultimosChats = [];
+
+        this.authService.notificacoesSubject.next([]);
+      }
+
       this.carrinhoService.atualizarContador();
       this.carregarNotificacoes(usuario.id);
       this.carregarContadorFavoritos();
@@ -303,11 +427,17 @@ fecharMenuContaAoClicarFora(event: MouseEvent): void {
     } else {
       this.isLoggedIn = false;
       this.usuario = null;
+      this.usuarioNotificacoesId = null;
       this.carrinhoItens = 0;
       this.notificacoes = [];
       this.notificacoesNaoLidas = 0;
       this.favoritosCount = 0;
       this.cuponsDisponiveisCount = 0;
+      this.ultimoStatusPorPedido.clear();
+      this.ultimosChats = [];
+      this.totalChatsNaoLidas = 0;
+
+      this.authService.notificacoesSubject.next([]);
       this.authService.atualizarFavoritosCount(0);
       this.authService.atualizarCuponsCount(0);
       this.authService.atualizarLoginStatus(false);
@@ -317,18 +447,41 @@ fecharMenuContaAoClicarFora(event: MouseEvent): void {
   }
 
   public atualizarNomeDoUsuario(usuario: any): void {
-    if (usuario && this.usuario && usuario.id === this.usuario.id) {
+    if (
+      usuario &&
+      this.usuario &&
+      usuario.id === this.usuario.id
+    ) {
       this.usuario.nome = usuario.nome;
       this.cdr.detectChanges();
     }
   }
 
   carregarNotificacoes(usuarioId: number): void {
-    const notificacoesPorUsuario = JSON.parse(localStorage.getItem('notificacoesPorUsuario') || '{}');
-    this.notificacoes = notificacoesPorUsuario[usuarioId] || [];
-    this.notificacoesNaoLidas = this.notificacoes.filter((n: any) => !n.lida).length;
-    this.authService.notificacoesSubject.next(this.notificacoes);
-    this.cdr.detectChanges();
+    if (
+      !this.authService.isAuthenticated() ||
+      this.authService.getUser()?.id !== usuarioId
+    ) {
+      return;
+    }
+
+    this.authService.buscarNotificacoes().subscribe({
+      next: notificacoes => {
+        if (this.authService.getUser()?.id !== usuarioId) {
+          return;
+        }
+
+        this.notificacoes = notificacoes;
+        this.notificacoesNaoLidas = notificacoes.filter(
+          notificacao => !notificacao.lida
+        ).length;
+
+        this.cdr.detectChanges();
+      },
+      error: error => {
+        console.error('Erro ao carregar notificações:', error);
+      }
+    });
   }
 
   abrirCupons(): void {
@@ -339,7 +492,7 @@ fecharMenuContaAoClicarFora(event: MouseEvent): void {
   async carregarContadorCupons(): Promise<void> {
     const user = this.authService.getUser();
 
-    if (!user) {
+    if (!user || !this.authService.isAuthenticated()) {
       this.cuponsDisponiveisCount = 0;
       this.authService.atualizarCuponsCount(0);
       return;
@@ -347,14 +500,22 @@ fecharMenuContaAoClicarFora(event: MouseEvent): void {
 
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/cupons/cliente/${user.id}/disponiveis`, {
-        headers: {
-          'Authorization': 'Bearer ' + token
-        }
-      });
 
-      if (response.ok) {
+      const response = await fetch(
+        `${environment.apiUrl}/cupons/cliente/${user.id}/disponiveis`,
+        {
+          headers: {
+            Authorization: 'Bearer ' + token
+          }
+        }
+      );
+
+      if (
+        response.ok &&
+        this.authService.getUser()?.id === user.id
+      ) {
         const cupons = await response.json();
+
         this.cuponsDisponiveisCount = cupons.length;
         this.authService.atualizarCuponsCount(cupons.length);
         this.cdr.detectChanges();
@@ -370,22 +531,37 @@ fecharMenuContaAoClicarFora(event: MouseEvent): void {
       return;
     }
 
+    const usuarioId = this.usuario.id;
+
     try {
       const token = this.authService.getToken();
-      const headers: any = { 'Content-Type': 'application/json' };
+
+      const headers: any = {
+        'Content-Type': 'application/json'
+      };
 
       if (token) {
         headers['Authorization'] = 'Bearer ' + token;
       }
 
-      const response = await fetch(`${environment.apiUrl}/clientes/${this.usuario.id}/favoritos`, {
-        headers: headers
-      });
+      const response = await fetch(
+        `${environment.apiUrl}/clientes/${usuarioId}/favoritos`,
+        {
+          headers
+        }
+      );
 
-      if (response.ok) {
+      if (
+        response.ok &&
+        this.authService.getUser()?.id === usuarioId
+      ) {
         const favoritos = await response.json();
+
         this.favoritosCount = favoritos.length;
-        this.authService.atualizarFavoritosCount(favoritos.length);
+        this.authService.atualizarFavoritosCount(
+          favoritos.length
+        );
+
         this.cdr.detectChanges();
       }
     } catch (error) {
@@ -416,15 +592,27 @@ fecharMenuContaAoClicarFora(event: MouseEvent): void {
     this.displayPerfil = true;
 
     setTimeout(() => {
-      const perfilModal = document.querySelector('app-perfil-modal') as any;
+      const perfilModal = document.querySelector(
+        'app-perfil-modal'
+      ) as any;
 
-      if (perfilModal && perfilModal.carregarDadosPerfil) {
+      if (
+        perfilModal &&
+        perfilModal.carregarDadosPerfil
+      ) {
         perfilModal.carregarDadosPerfil();
       }
     }, 200);
   }
 
   abrirNotificacoes(): void {
+    if (
+      !this.usuario ||
+      !this.authService.isAuthenticated()
+    ) {
+      return;
+    }
+
     this.displayNotificacoes = true;
     this.carregarNotificacoes(this.usuario.id);
   }
@@ -435,7 +623,9 @@ fecharMenuContaAoClicarFora(event: MouseEvent): void {
 
   fazerLogout(): void {
     this.appComponent.loading = true;
+
     this.authService.logout();
+
     this.messageService.add({
       severity: 'info',
       summary: 'Logout',
@@ -451,30 +641,51 @@ fecharMenuContaAoClicarFora(event: MouseEvent): void {
   }
 
   marcarNotificacaoLida(id: number): void {
-    if (!this.usuario) return;
+    if (
+      !this.usuario ||
+      !this.authService.isAuthenticated()
+    ) {
+      return;
+    }
 
-    const notificacoesPorUsuario = JSON.parse(localStorage.getItem('notificacoesPorUsuario') || '{}');
-    let notificacoes = notificacoesPorUsuario[this.usuario.id] || [];
-
-    notificacoes = notificacoes.map((n: any) => n.id === id ? { ...n, lida: true } : n);
-    notificacoesPorUsuario[this.usuario.id] = notificacoes;
-    localStorage.setItem('notificacoesPorUsuario', JSON.stringify(notificacoesPorUsuario));
-
-    this.carregarNotificacoes(this.usuario.id);
+    this.authService.marcarNotificacaoComoLida(id).subscribe({
+      error: error => {
+        console.error(
+          'Erro ao marcar notificação como lida:',
+          error
+        );
+      }
+    });
   }
 
   limparNotificacoes(): void {
-    if (!this.usuario) return;
+    if (
+      !this.usuario ||
+      !this.authService.isAuthenticated()
+    ) {
+      return;
+    }
 
-    const notificacoesPorUsuario = JSON.parse(localStorage.getItem('notificacoesPorUsuario') || '{}');
-    notificacoesPorUsuario[this.usuario.id] = [];
-    localStorage.setItem('notificacoesPorUsuario', JSON.stringify(notificacoesPorUsuario));
+    this.authService.excluirTodasNotificacoes().subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Notificações',
+          detail: 'Todas as notificações foram removidas!'
+        });
+      },
+      error: error => {
+        console.error(
+          'Erro ao limpar notificações:',
+          error
+        );
 
-    this.carregarNotificacoes(this.usuario.id);
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Notificações',
-      detail: 'Todas as notificações foram removidas!'
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: 'Não foi possível remover as notificações.'
+        });
+      }
     });
   }
 
@@ -487,36 +698,50 @@ fecharMenuContaAoClicarFora(event: MouseEvent): void {
         summary: 'Erro',
         detail: 'Faça login para acessar o carrinho'
       });
+
       return;
     }
 
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/clientes/${user.id}`, {
-        headers: {
-          'Authorization': 'Bearer ' + token
+
+      const response = await fetch(
+        `${environment.apiUrl}/clientes/${user.id}`,
+        {
+          headers: {
+            Authorization: 'Bearer ' + token
+          }
         }
-      });
+      );
 
       if (!response.ok) {
         throw new Error('Erro ao buscar dados do usuário');
       }
 
       const usuarioCompleto = await response.json();
+
       this.authService.atualizarUsuario(usuarioCompleto);
 
-      const temEndereco = usuarioCompleto.enderecos && usuarioCompleto.enderecos.length > 0;
-      const temCartao = usuarioCompleto.cartoes && usuarioCompleto.cartoes.length > 0;
+      const temEndereco =
+        usuarioCompleto.enderecos &&
+        usuarioCompleto.enderecos.length > 0;
+
+      const temCartao =
+        usuarioCompleto.cartoes &&
+        usuarioCompleto.cartoes.length > 0;
 
       if (!temEndereco || !temCartao) {
         let mensagem = '';
 
         if (!temEndereco && !temCartao) {
-          mensagem = 'Cadastre um endereço e um cartão antes de acessar o carrinho';
+          mensagem =
+            'Cadastre um endereço e um cartão antes de acessar o carrinho';
         } else if (!temEndereco) {
-          mensagem = 'Cadastre um endereço antes de acessar o carrinho';
+          mensagem =
+            'Cadastre um endereço antes de acessar o carrinho';
         } else {
-          mensagem = 'Cadastre um cartão antes de acessar o carrinho';
+          mensagem =
+            'Cadastre um cartão antes de acessar o carrinho';
         }
 
         this.messageService.add({
@@ -526,14 +751,17 @@ fecharMenuContaAoClicarFora(event: MouseEvent): void {
           life: 4000
         });
 
-        this.authService.adicionarNotificacao('Dados incompletos', mensagem, 'warning');
         this.abrirPerfil();
         return;
       }
 
       this.router.navigate(['/carrinho']);
     } catch (error) {
-      console.error('Erro ao verificar dados do usuário:', error);
+      console.error(
+        'Erro ao verificar dados do usuário:',
+        error
+      );
+
       this.router.navigate(['/carrinho']);
     }
   }

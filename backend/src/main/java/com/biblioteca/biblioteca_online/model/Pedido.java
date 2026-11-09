@@ -1,3 +1,4 @@
+
 package com.biblioteca.biblioteca_online.model;
 
 import jakarta.persistence.*;
@@ -25,15 +26,27 @@ public class Pedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-@ManyToOne(fetch = FetchType.LAZY)
-@JoinColumn(name = "cliente_id", nullable = false)
-@JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "enderecos", "cartoes", "pedidos", "carteira"}, allowSetters = true)
-private Cliente cliente;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cliente_id", nullable = false)
+    @JsonIgnoreProperties(value = {
+        "hibernateLazyInitializer",
+        "handler",
+        "enderecos",
+        "cartoes",
+        "pedidos",
+        "carteira"
+    }, allowSetters = true)
+    private Cliente cliente;
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     @Builder.Default
     private List<ItemPedido> itens = new ArrayList<>();
+
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"pedido", "cartao"})
+    @Builder.Default
+    private List<PagamentoPedido> pagamentos = new ArrayList<>();
 
     @Column(name = "valor_subtotal", nullable = false, precision = 10, scale = 2)
     @Builder.Default
@@ -53,15 +66,23 @@ private Cliente cliente;
     @Column(name = "pedido_original_id")
     private Long pedidoOriginalId;
 
-@ManyToOne(fetch = FetchType.LAZY)
-@JoinColumn(name = "endereco_id", nullable = true)
-@JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "cliente"}, allowSetters = true)
-private Endereco enderecoEntrega;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "endereco_id", nullable = true)
+    @JsonIgnoreProperties(value = {
+        "hibernateLazyInitializer",
+        "handler",
+        "cliente"
+    }, allowSetters = true)
+    private Endereco enderecoEntrega;
 
-@ManyToOne(fetch = FetchType.LAZY)
-@JoinColumn(name = "cartao_id", nullable = true)
-@JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "cliente"}, allowSetters = true)
-private Cartao cartao;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cartao_id", nullable = true)
+    @JsonIgnoreProperties(value = {
+        "hibernateLazyInitializer",
+        "handler",
+        "cliente"
+    }, allowSetters = true)
+    private Cartao cartao;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -102,16 +123,27 @@ private Cartao cartao;
     public void adicionarItem(Livro livro, Integer quantidade) {
         for (ItemPedido itemExistente : this.itens) {
             if (itemExistente.getLivro().getId().equals(livro.getId())) {
-                itemExistente.setQuantidade(itemExistente.getQuantidade() + quantidade);
+                itemExistente.setQuantidade(
+                    itemExistente.getQuantidade() + quantidade
+                );
                 return;
             }
         }
+
         ItemPedido item = new ItemPedido();
         item.setLivro(livro);
         item.setQuantidade(quantidade);
         item.setPrecoUnitario(livro.getPrecoVenda());
         item.setPedido(this);
         this.itens.add(item);
+    }
+
+    public void adicionarPagamento(Cartao cartao, BigDecimal valor) {
+        PagamentoPedido pagamento = new PagamentoPedido();
+        pagamento.setPedido(this);
+        pagamento.setCartao(cartao);
+        pagamento.setValor(valor);
+        this.pagamentos.add(pagamento);
     }
 
     public void limparItens() {

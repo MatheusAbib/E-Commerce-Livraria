@@ -1,10 +1,9 @@
-
 package com.biblioteca.biblioteca_online.config;
 
-import com.biblioteca.biblioteca_online.config.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -34,19 +33,26 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/clientes/login",
                     "/api/clientes",
-                    "/api/clientes/**",
                     "/api/livros",
                     "/api/livros/**",
-                    "/api/enderecos",
-                    "/api/enderecos/**",
                     "/api/icones/**",
                     "/uploads/**",
-                    "/**"
+                    "/error"
                 ).permitAll()
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/avaliacoes/livro/**"
+                ).permitAll()
+                .requestMatchers("/api/notificacoes/**").authenticated()
                 .anyRequest().authenticated()
             )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .addFilterBefore(
+                jwtAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter.class
+            );
 
         return http.build();
     }
@@ -60,7 +66,14 @@ public class SecurityConfig {
             "https://livrariaonline-gold.vercel.app"
         ));
 
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList(
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "OPTIONS"
+        ));
+
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
 
@@ -71,7 +84,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    public AuthenticationManager authenticationManager(
+        AuthenticationConfiguration config
+    ) throws Exception {
         return config.getAuthenticationManager();
     }
 }

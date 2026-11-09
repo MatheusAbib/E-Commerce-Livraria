@@ -1,3 +1,4 @@
+
 import { Component, EventEmitter, Output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,7 +7,6 @@ import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { AdminService } from '../../services/admin.service';
-import { AppComponent } from '../../app';
 import { DropdownModule } from 'primeng/dropdown';
 import { environment } from '../../../environments/environment';
 
@@ -68,6 +68,7 @@ export class AdminModalsComponent {
     imagem: null,
     imagemUrl: ''
   };
+
   imagemPreview: string | null = null;
 
   pedidoSelecionado: any = null;
@@ -95,15 +96,16 @@ export class AdminModalsComponent {
     private authService: AuthService,
     private adminService: AdminService,
     private messageService: MessageService,
-    private router: Router,
-    private appComponent: AppComponent
+    private router: Router
   ) {}
 
   abrirPerfil(): void {
     const user = this.authService.getUser();
+
     if (user) {
       this.usuario = { ...user };
     }
+
     this.novaSenha = '';
     this.confirmarSenha = '';
     this.displayPerfilModal = true;
@@ -118,8 +120,10 @@ export class AdminModalsComponent {
   togglePassword(inputId: string): void {
     const input = document.getElementById(inputId) as HTMLInputElement;
     if (!input) return;
+
     const icon = input.parentElement?.querySelector('.password-toggle') as HTMLElement;
     if (!icon) return;
+
     if (input.type === 'password') {
       input.type = 'text';
       icon.className = 'pi pi-eye-slash password-toggle';
@@ -129,15 +133,22 @@ export class AdminModalsComponent {
     }
   }
 
-  abrirFotoAmpliada(caminho: string): void {
-    window.open(`${environment.apiUrl}/../${caminho}`, '_blank');
-  }
+abrirFotoAmpliada(caminho: string): void {
+  const url = caminho.startsWith('http')
+    ? caminho
+    : `http://localhost:8081/${caminho.replace(/^\/+/, '')}`;
+
+  window.open(url, '_blank');
+}
 
   async salvarPerfil(): Promise<void> {
     if (this.carregandoSalvarPerfil) return;
+
     this.carregandoSalvarPerfil = true;
+
     try {
       const user = this.authService.getUser();
+
       if (!user) {
         this.carregandoSalvarPerfil = false;
         return;
@@ -149,12 +160,19 @@ export class AdminModalsComponent {
       };
 
       let senhaAlterada = false;
+
       if (this.novaSenha) {
         if (this.novaSenha !== this.confirmarSenha) {
-          this.messageService.add({severity:'error', summary:'Erro', detail:'As senhas não conferem'});
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: 'As senhas não conferem'
+          });
+
           this.carregandoSalvarPerfil = false;
           return;
         }
+
         dados.senha = this.novaSenha;
         dados.confirmacaoSenha = this.confirmarSenha;
         senhaAlterada = true;
@@ -170,6 +188,7 @@ export class AdminModalsComponent {
 
       localStorage.setItem('user_data', JSON.stringify(userAtualizado));
       localStorage.setItem('clienteLogado', JSON.stringify(userAtualizado));
+
       this.authService.atualizarUsuario(userAtualizado);
       this.usuario = { ...userAtualizado };
       this.perfilAtualizado.emit();
@@ -178,11 +197,21 @@ export class AdminModalsComponent {
         this.atualizarSenhaSalva(this.novaSenha);
       }
 
-      this.messageService.add({severity:'success', summary:'Sucesso', detail:'Perfil atualizado com sucesso!'});
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Sucesso',
+        detail: 'Perfil atualizado com sucesso!'
+      });
+
       this.fecharPerfil();
     } catch (error) {
       console.error('Erro ao salvar perfil:', error);
-      this.messageService.add({severity:'error', summary:'Erro', detail:'Falha ao atualizar perfil'});
+
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Falha ao atualizar perfil'
+      });
     } finally {
       this.carregandoSalvarPerfil = false;
     }
@@ -191,6 +220,7 @@ export class AdminModalsComponent {
   private atualizarSenhaSalva(novaSenha: string): void {
     const REMEMBER_KEY = 'login_remember';
     const dados = localStorage.getItem(REMEMBER_KEY);
+
     if (dados) {
       try {
         const parsed = JSON.parse(dados);
@@ -231,7 +261,6 @@ export class AdminModalsComponent {
   }
 
   confirmarLogout(): void {
-    this.appComponent.showLoader();
     this.fecharLogout();
     this.authService.logout();
     this.router.navigate(['/principal']);
@@ -260,6 +289,7 @@ export class AdminModalsComponent {
         imagem: null,
         imagemUrl: livro.imagemUrl || ''
       };
+
       if (livro.imagemUrl) {
         this.imagemPreview = `${environment.apiUrl}/../uploads/${livro.imagemUrl}`;
       } else {
@@ -287,13 +317,16 @@ export class AdminModalsComponent {
         imagem: null,
         imagemUrl: ''
       };
+
       this.imagemPreview = null;
     }
+
     this.displayFormModal = true;
   }
 
   fecharFormulario(): void {
     this.displayFormModal = false;
+
     this.livroEditando = {
       id: null,
       titulo: '',
@@ -315,17 +348,22 @@ export class AdminModalsComponent {
       imagem: null,
       imagemUrl: ''
     };
+
     this.imagemPreview = null;
   }
 
   onFileSelected(event: any): void {
     const file = event.target.files[0];
+
     if (file) {
       this.livroEditando.imagem = file;
+
       const reader = new FileReader();
+
       reader.onload = (e: any) => {
         this.imagemPreview = e.target.result;
       };
+
       reader.readAsDataURL(file);
     }
   }
@@ -342,10 +380,13 @@ export class AdminModalsComponent {
 
   salvarLivro(): void {
     if (this.carregandoSalvarLivro) return;
+
     this.carregandoSalvarLivro = true;
+
     if (this.onSalvarLivro) {
       this.onSalvarLivro();
     }
+
     this.carregandoSalvarLivro = false;
   }
 
@@ -356,22 +397,28 @@ export class AdminModalsComponent {
 
   confirmarExcluir(): void {
     if (this.carregandoExcluir) return;
+
     this.carregandoExcluir = true;
+
     if (this.onConfirmarExcluir) {
       this.onConfirmarExcluir();
     }
+
     this.displayExcluirModal = false;
     this.carregandoExcluir = false;
   }
 
   formatarPreco(event: any): void {
     let valor = event.target.value.replace(/\D/g, '');
+
     if (valor === '') {
       this.livroEditando.precoCusto = null;
       event.target.value = '';
       return;
     }
+
     const valorNumerico = parseFloat(valor) / 100;
+
     this.livroEditando.precoCusto = valorNumerico;
     event.target.value = valorNumerico.toFixed(2).replace('.', ',');
   }
@@ -385,15 +432,24 @@ export class AdminModalsComponent {
 
   confirmarStatus(): void {
     if (this.carregandoStatus) return;
+
     this.carregandoStatus = true;
+
     if (!this.motivoStatus.trim()) {
-      this.messageService.add({severity:'error', summary:'Erro', detail:'Informe o motivo'});
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro',
+        detail: 'Informe o motivo'
+      });
+
       this.carregandoStatus = false;
       return;
     }
+
     if (this.onConfirmarStatus) {
       this.onConfirmarStatus();
     }
+
     this.displayStatusModal = false;
     this.carregandoStatus = false;
   }
@@ -405,18 +461,22 @@ export class AdminModalsComponent {
   }
 
   abrirPedidoDetalhes(pedido: any): void {
-    console.log('Pedido selecionado:', pedido);
+    let cartoesAdicionais = pedido.cartoesAdicionais;
 
-    if (pedido.cartoesAdicionais && typeof pedido.cartoesAdicionais === 'string') {
+    if (typeof cartoesAdicionais === 'string') {
       try {
-        pedido.cartoesAdicionais = JSON.parse(pedido.cartoesAdicionais);
-      } catch (e) {
-        console.error('Erro ao parsear cartoesAdicionais:', e);
-        pedido.cartoesAdicionais = [];
+        cartoesAdicionais = JSON.parse(cartoesAdicionais);
+      } catch {
+        cartoesAdicionais = [];
       }
     }
 
-    this.pedidoSelecionado = pedido;
+    this.pedidoSelecionado = {
+      ...pedido,
+      pagamentos: Array.isArray(pedido.pagamentos) ? pedido.pagamentos : [],
+      cartoesAdicionais: Array.isArray(cartoesAdicionais) ? cartoesAdicionais : []
+    };
+
     this.displayPedidoDetalhesModal = true;
   }
 
@@ -428,6 +488,7 @@ export class AdminModalsComponent {
 
   confirmarPedidoStatus(): void {
     if (this.carregandoPedidoStatus) return;
+
     this.carregandoPedidoStatus = true;
 
     if (this.onConfirmarPedidoStatus) {
@@ -439,8 +500,14 @@ export class AdminModalsComponent {
         ? this.codigoRastreamentoAdmin
         : null;
 
-      this.onConfirmarPedidoStatus(this.pedidoStatus, this.pedidoNovoStatus, dadosCupom, codigoRastreamentoEnvio || undefined);
+      this.onConfirmarPedidoStatus(
+        this.pedidoStatus,
+        this.pedidoNovoStatus,
+        dadosCupom,
+        codigoRastreamentoEnvio || undefined
+      );
     }
+
     this.displayPedidoStatusModal = false;
     this.gerarCupom = false;
     this.porcentagemCupom = 15;
@@ -457,16 +524,20 @@ export class AdminModalsComponent {
 
   confirmarPedidoExcluir(): void {
     if (this.carregandoPedidoExcluir) return;
+
     this.carregandoPedidoExcluir = true;
+
     if (this.onConfirmarPedidoExcluir) {
       this.onConfirmarPedidoExcluir(this.pedidoExcluir);
     }
+
     this.displayPedidoExcluirModal = false;
     this.carregandoPedidoExcluir = false;
   }
 
   getStatusLabel(status: string): string {
     if (!status) return 'Status desconhecido';
+
     const labels: any = {
       'EM_PROCESSAMENTO': 'Em Processamento',
       'EM_TRANSITO': 'Em Trânsito',
@@ -477,6 +548,7 @@ export class AdminModalsComponent {
       'DEVOLVIDO': 'Devolvido',
       'CANCELADO': 'Cancelado'
     };
+
     return labels[status] || status;
   }
 
@@ -491,6 +563,7 @@ export class AdminModalsComponent {
       'DEVOLVIDO': 'status-devolvido',
       'CANCELADO': 'status-cancelado'
     };
+
     return classes[status] || 'status-pendente';
   }
 }
