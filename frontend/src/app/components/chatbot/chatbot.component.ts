@@ -22,8 +22,8 @@ import { environment } from '../../../environments/environment';
         [attr.aria-expanded]="!minimized"
         aria-label="Abrir ou fechar assistente da livraria"
       >
-        <i class="pi pi-book"></i>
-        <span>Assistente da livraria</span>
+        <i class="pi pi-android"></i>
+        <span>Robô Bibliotecário</span>
         <i
           class="pi chatbot-toggle-icon"
           [class.pi-chevron-up]="minimized"
@@ -47,7 +47,7 @@ import { environment } from '../../../environments/environment';
             <div class="message-avatar">
               <i
                 class="pi"
-                [class.pi-book]="!msg.user"
+                [class.pi-android]="!msg.user"
                 [class.pi-user]="msg.user"
               ></i>
             </div>
@@ -56,7 +56,7 @@ import { environment } from '../../../environments/environment';
 
           <div *ngIf="carregando" class="message bot">
             <div class="message-avatar">
-              <i class="pi pi-book"></i>
+              <i class="pi pi-android"></i>
             </div>
             <div class="message-content">
               <span class="loading-dots">
@@ -163,6 +163,18 @@ import { environment } from '../../../environments/environment';
       transition: background-color 0.2s ease;
     }
 
+    @keyframes floating {
+      0% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-6px);
+      }
+      100% {
+        transform: translateY(0);
+      }
+    }
+
     .chatbot-header:hover {
       background: var(--chat-navy-hover);
     }
@@ -184,6 +196,8 @@ import { environment } from '../../../environments/environment';
     .chatbot-container.minimized {
       width: 58px;
       height: 58px;
+      animation: floating 4s ease-in-out infinite;
+
     }
 
     .chatbot-container.minimized .chatbot-header {

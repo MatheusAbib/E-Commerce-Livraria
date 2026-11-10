@@ -536,7 +536,6 @@ async favoritar(livroId: number): Promise<void> {
         this.authService.adicionarNotificacao('Favoritado', `${nomeLivro} adicionado aos favoritos`, 'success');
         await this.atualizarContadorFavoritos();
         this.authService.notificarFavoritosAtualizados();
-        // ✅ REMOVIDO: this.displayDialog = false;
       }
     }
   } catch (error) {

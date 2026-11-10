@@ -199,7 +199,6 @@
   }
 
   .footer-bottom {
-    align-items: flex-start;
     flex-direction: column;
     gap: 0.5rem;
   }
@@ -223,11 +222,6 @@
   .footer-contato span {
     font-size: 0.8rem;
     overflow-wrap: anywhere;
-  }
-
-  .footer-faixa {
-    justify-content: center;
-    text-align: center;
   }
 
   .footer-faixa > span:last-child {

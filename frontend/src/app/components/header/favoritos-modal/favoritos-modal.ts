@@ -25,6 +25,7 @@ export class FavoritosModalComponent implements OnInit {
   favoritos: any[] = [];
   loading: boolean = false;
   usuario: any = null;
+  livro: any = null;
 
   carregandoRemover: { [key: number]: boolean } = {};
   carregandoCarrinho: { [key: number]: boolean } = {};
@@ -122,9 +123,16 @@ export class FavoritosModalComponent implements OnInit {
       });
 
       if (response.ok) {
+        const livro = this.favoritos.find(l => l.id === livroId);
+
         this.favoritos = this.favoritos.filter(l => l.id !== livroId);
         this.cdr.detectChanges();
-        this.messageService.add({severity:'success', summary:'Removido', detail:'Livro removido dos favoritos'});
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Removido',
+          detail: `${livro?.titulo || 'Livro'} removido dos favoritos`
+        });
 
         const user = JSON.parse(localStorage.getItem('clienteLogado') || 'null');
         if (user) {

@@ -9,6 +9,10 @@
   --campo-foco: #2a5298;
 }
 
+body{
+  margin: 0;
+}
+
 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]),
 select,
 textarea,
@@ -152,8 +156,7 @@ textarea::placeholder,
 
 .p-password,
 .p-inputnumber,
-.p-datepicker,
-.p-inputwrapper {
+.p-datepicker{
   max-width: 100%;
 }
 
@@ -254,6 +257,10 @@ textarea:disabled,
     max-width: none !important;
     right: 12px !important;
     top: 12px !important;
+  }
+
+  .p-inputwrapper{
+    display: none !important;
   }
 
   .p-toast-message-content {

@@ -568,7 +568,6 @@
   height: 38px;
   padding: 0;
   border: 1px solid #d9dde2;
-  border-radius: 4px;
   background: #fff;
   color: #64748b;
   font-size: 1.1rem;
@@ -1608,7 +1607,7 @@
   }
 
   .detalhes-corpo {
-    padding: 26px;
+    padding: 22px;
   }
 
   .detalhes-grid {
@@ -1654,7 +1653,7 @@
   }
 
   .detalhes-corpo {
-    padding: 20px;
+    padding: 10px;
   }
 
   .detalhes-grid {
@@ -1706,7 +1705,7 @@
   }
 
   .detalhes-corpo {
-    padding: 16px;
+    padding: 0;
   }
 
   .detalhes-imagem {
@@ -1782,7 +1781,7 @@
 
 @media (max-width: 760px) {
   .abertura-livraria {
-    padding: 0;
+    padding: 0 12px;
     margin-bottom: 60px;
   }
 
@@ -1835,7 +1834,7 @@
   }
 
   .catalogo-livraria {
-    padding: 75px 0px 75px;
+    padding: 75px 12px 75px;
   }
 
   .catalogo-acoes-superiores {
@@ -2380,7 +2379,7 @@ font-family: Arial, Helvetica, sans-serif;
 
 @media (max-width: 600px) {
   .mais-vendidos-livraria {
-    padding: 65px 18px;
+    padding: 65px 12px;
   }
 
   .mais-vendidos-cabecalho {
@@ -2450,7 +2449,7 @@ font-family: Arial, Helvetica, sans-serif;
 
 @media (max-width: 600px) {
   .exploracao-livraria {
-    width: calc(100% - 36px);
+    width: calc(100% - 24px);
     padding: 0;
     margin-bottom: 65px;
   }
@@ -3150,7 +3149,6 @@ font-family: Arial, Helvetica, sans-serif;
 @media (max-width: 480px) {
   .exploracao-busca {
     gap: 8px;
-    padding: 0;
   }
 
   .exploracao-busca-total {

@@ -1001,7 +1001,7 @@ fieldset legend {
   }
 
   .custom-modal-content {
-    width: 95% !important;
+    width: 98% !important;
     max-width: 95%;
     box-sizing: border-box;
   }
@@ -1084,11 +1084,11 @@ fieldset legend {
   }
 
   .page-title {
-    font-size: 1.1rem;
+    display: none;
   }
 
   .page-description {
-    font-size: 0.8rem;
+    display: none;
   }
 
   .filtros-container {
