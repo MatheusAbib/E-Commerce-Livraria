@@ -1,6 +1,8 @@
+
 package com.biblioteca.biblioteca_online.config;
 
 import com.biblioteca.biblioteca_online.service.JwtService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,20 +41,38 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        final String token = authHeader.substring(7);
-        final String username = jwtService.extractUsername(token);
+        final String token = authHeader.substring(7).trim();
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            
-            if (jwtService.validateToken(token, username)) {
-                Authentication authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (token.isEmpty()) {
+            SecurityContextHolder.clearContext();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token de autenticação inválido");
+            return;
+        }
+
+        try {
+            final String username = jwtService.extractUsername(token);
+
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+                if (jwtService.validateToken(token, username)) {
+                    Authentication authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    SecurityContextHolder.clearContext();
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token de autenticação inválido");
+                    return;
+                }
             }
+        } catch (JwtException | IllegalArgumentException e) {
+            SecurityContextHolder.clearContext();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token de autenticação inválido ou expirado");
+            return;
         }
 
         filterChain.doFilter(request, response);
