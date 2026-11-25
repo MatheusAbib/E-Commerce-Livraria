@@ -210,6 +210,10 @@ textarea:disabled,
   font-size: var(--campo-tamanho) !important;
 }
 
+.livro-dialog .p-dialog-header {
+  display: none !important;
+}
+
 @media (max-width: 768px) {
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]),
   select,

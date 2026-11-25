@@ -41,17 +41,20 @@
         <a class="forgot-password">Esqueceu a senha?</a>
       </div>
     </div>
-    <div class="custom-modal-footer">
-      <button class="btn-primary" (click)="fazerLogin()" [disabled]="loading || !formValido()">
-        <i class="pi" [class.pi-spin]="loading" [class.pi-spinner]="loading" [class.pi-sign-in]="!loading"></i>
-        {{ loading ? 'Entrando...' : 'Entrar' }}
-      </button>
-      <div class="auth-divider"><span>ou</span></div>
-      <button class="btn-secondary" (click)="abrirCadastro()" [disabled]="loading">
-        <i class="pi pi-user-plus"></i> Criar conta
-      </button>
-    </div>
+<div class="custom-modal-footer">
+  <button class="btn-primary" (click)="fazerLogin()" [disabled]="loading || !formValido()">
+    <i class="pi" [class.pi-spin]="loading" [class.pi-spinner]="loading" [class.pi-sign-in]="!loading"></i>
+    {{ loading ? 'Entrando...' : 'Entrar' }}
+  </button>
+
+  <div class="auth-register">
+    <span>Não tem uma conta?</span>
+    <button type="button" class="auth-register-link" (click)="abrirCadastro()" [disabled]="loading">
+      Cadastre-se
+    </button>
+  </div>
+</div>
   </div>
 </div>
 
-<p-toast position="top-right"></p-toast>
+<p-toast position="top-right" [life]="2000"></p-toast>

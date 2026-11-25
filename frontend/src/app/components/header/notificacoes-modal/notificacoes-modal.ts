@@ -119,7 +119,7 @@ export class NotificacoesModalComponent implements OnInit, OnChanges, OnDestroy 
           severity: 'error',
           summary: 'Erro ao carregar notificações',
           detail: 'Não foi possível consultar suas notificações.',
-          life: 3000
+          life: 2000
         });
 
         this.cdr.detectChanges();
@@ -146,7 +146,7 @@ export class NotificacoesModalComponent implements OnInit, OnChanges, OnDestroy 
           severity: 'error',
           summary: 'Erro',
           detail: 'Não foi possível marcar a notificação como lida.',
-          life: 3000
+          life: 2000
         });
       }
     });
@@ -168,7 +168,7 @@ export class NotificacoesModalComponent implements OnInit, OnChanges, OnDestroy 
           severity: 'success',
           summary: 'Notificações limpas',
           detail: 'Todas as notificações foram removidas com sucesso!',
-          life: 3000
+          life: 2000
         });
 
         this.cdr.detectChanges();
@@ -180,7 +180,7 @@ export class NotificacoesModalComponent implements OnInit, OnChanges, OnDestroy 
           severity: 'error',
           summary: 'Erro',
           detail: 'Não foi possível excluir as notificações.',
-          life: 3000
+          life: 2000
         });
 
         this.cdr.detectChanges();

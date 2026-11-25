@@ -621,7 +621,7 @@ async favoritar(livroId: number): Promise<void> {
             severity: 'warn',
             summary: 'Dados incompletos',
             detail: mensagem,
-            life: 4000
+            life: 2000
           });
           this.authService.adicionarNotificacao('Dados incompletos', mensagem, 'warning');
           this.carregandoCarrinhoModal = false;
@@ -750,7 +750,7 @@ async favoritar(livroId: number): Promise<void> {
             severity: 'warn',
             summary: 'Dados incompletos',
             detail: mensagem,
-            life: 4000
+            life: 2000
           });
           this.authService.adicionarNotificacao('Dados incompletos', mensagem, 'warning');
           this.carregandoCarrinho[id] = false;

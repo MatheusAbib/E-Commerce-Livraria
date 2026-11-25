@@ -273,7 +273,7 @@ export class AppComponent implements OnInit, OnDestroy {
           severity: this.getSeveridadeNotificacao(notificacao.tipo),
           summary: notificacao.titulo,
           detail: notificacao.mensagem,
-          life: 5000
+          life: 2000
         });
       });
   }

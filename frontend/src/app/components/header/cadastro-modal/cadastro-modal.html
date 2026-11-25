@@ -18,12 +18,14 @@
       </div>
       <div class="field">
         <label>E-mail *</label>
-        <input type="email" [(ngModel)]="email" placeholder="seu@email.com" class="auth-input" [disabled]="loading">
+        <input type="email" [(ngModel)]="email" placeholder="seu@email.com" class="auth-input" [disabled]="loading" (blur)="verificarEmail()" [class.input-invalido]="emailTocado && !validarEmail(email)">
+        <small
+        class="mensagem-erro"
+        *ngIf="emailTocado && !validarEmail(email)">
+        {{ email.trim() ? 'Informe um endereço de e-mail válido.' : 'O e-mail é obrigatório.' }}
+      </small>
       </div>
-      <div class="field">
-        <label>CPF</label>
-        <input type="text" [(ngModel)]="cpf" (input)="formatarCPF($event)" placeholder="000.000.000-00" class="auth-input" maxlength="14" [disabled]="loading">
-      </div>
+
       <div class="field">
         <label>Senha *</label>
         <input
@@ -78,17 +80,20 @@
           [disabled]="loading">
       </div>
     </div>
-    <div class="custom-modal-footer">
-      <button class="btn-primary" (click)="fazerCadastro()" [disabled]="loading || !formValido()">
-        <i class="pi" [class.pi-spin]="loading" [class.pi-spinner]="loading" [class.pi-user-plus]="!loading"></i>
-        {{ loading ? 'Cadastrando...' : 'Cadastrar' }}
-      </button>
-      <div class="auth-divider"><span>ou</span></div>
-      <button class="btn-secondary" (click)="abrirLogin()" [disabled]="loading">
-        <i class="pi pi-sign-in"></i> Já tenho conta
-      </button>
-    </div>
+<div class="custom-modal-footer">
+  <button class="btn-primary" (click)="fazerCadastro()" [disabled]="loading || !formValido()">
+    <i class="pi" [class.pi-spin]="loading" [class.pi-spinner]="loading" [class.pi-user-plus]="!loading"></i>
+    {{ loading ? 'Cadastrando...' : 'Cadastrar' }}
+  </button>
+
+  <div class="auth-register">
+    <span>Já tem uma conta?</span>
+    <button type="button" class="auth-register-link" (click)="abrirLogin()" [disabled]="loading">
+      Entre
+    </button>
+  </div>
+</div>
   </div>
 </div>
 
-<p-toast position="top-right"></p-toast>
+<p-toast position="top-right" [life]="2000"></p-toast>

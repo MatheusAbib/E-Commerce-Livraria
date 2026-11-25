@@ -671,7 +671,7 @@
   [modal]="true"
   [draggable]="false"
   [resizable]="false"
-  [closable]="false"
+  [closable]="true"
   [dismissableMask]="true"
   [closeOnEscape]="true"
   [appendTo]="'body'"
@@ -1113,5 +1113,5 @@
 </p-dialog>
 
 
-  <p-toast position="top-right"></p-toast>
+  <p-toast position="top-right" [life]="2000"></p-toast>
 </main>

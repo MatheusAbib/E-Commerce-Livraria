@@ -3,6 +3,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "java",
+      "name": "BibliotecaOnlineApplication",
+      "request": "launch",
+      "mainClass": "com.biblioteca.biblioteca_online.BibliotecaOnlineApplication",
+      "projectName": "biblioteca-online"
+    },
+    {
       "name": "ng serve",
       "type": "chrome",
       "request": "launch",

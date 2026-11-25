@@ -286,6 +286,7 @@
   border: 1px solid var(--auth-line);
 }
 
+
 .btn-secondary:hover:not(:disabled) {
   background: var(--auth-soft);
   color: var(--auth-ink);
@@ -304,33 +305,57 @@
   border-color: #8d96a3;
 }
 
-.auth-divider {
-  position: relative;
+.input-invalido {
+  border-color: #dc2626 !important;
+}
+
+.input-invalido:focus {
+  border-color: #dc2626 !important;
+}
+
+.mensagem-erro {
+  display: block;
+  color: #dc2626;
+  font-size: 11px;
+  font-weight: 400;
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+.auth-register {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 20px 0;
-}
-
-.auth-divider::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--auth-line);
-}
-
-.auth-divider span {
-  position: relative;
-  z-index: 1;
-  padding: 0 13px;
-  background: #fff;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 22px;
   color: var(--auth-muted);
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.auth-register-link {
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--auth-ink);
+  font-family: inherit;
+  font-size: inherit;
   font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .2s ease;
+}
+
+.auth-register-link:hover:not(:disabled) {
+  color: #52647b;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.auth-register-link:disabled {
+  opacity: .45;
+  cursor: not-allowed;
 }
 
 @media (max-width: 768px) {

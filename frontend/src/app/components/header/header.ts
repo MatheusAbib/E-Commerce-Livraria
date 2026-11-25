@@ -1,4 +1,4 @@
-﻿
+
 import {
   Component,
   OnInit,
@@ -748,7 +748,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
           severity: 'warn',
           summary: 'Dados incompletos',
           detail: mensagem,
-          life: 4000
+          life: 2000
         });
 
         this.abrirPerfil();
