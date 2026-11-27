@@ -1,0 +1,22 @@
+:host {
+  display: block;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.modal-rodape {
+  display: flex;
+  flex-direction: column;
+  padding: var(--modal-rodape-padding);
+  border-top: var(--modal-rodape-borda);
+  background: var(--cor-superficie);
+  box-sizing: border-box;
+}
+
+.modal-rodape.com-separador {
+  border-top: 1px solid var(--cor-borda-suave);
+}
+
+.modal-rodape.sem-espacamento {
+  padding: 0;
+}

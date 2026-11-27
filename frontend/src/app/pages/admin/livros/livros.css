@@ -1,6 +1,6 @@
-﻿.livros-table {
+.livros-table {
   width: 100%;
-  min-width: 1050px;
+  min-width: 1250px;
   border-collapse: collapse;
   border-spacing: 0;
   background: #ffffff;
@@ -103,113 +103,20 @@
   color: #b93d43;
 }
 
-.livros-table .actions-cell {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  flex-wrap: nowrap;
-  gap: 6px;
-}
-
-.livros-table .btn-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  background: #ffffff;
-  border: 1px solid #dfe2e6;
-  border-radius: 0;
-  color: #6f7680;
-  font-size: 0.85rem;
-  box-shadow: none;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
-}
-
-.livros-table .btn-icon:hover:not(:disabled) {
-  background: #f6f7f8;
-  border-color: #b8c0ca;
-  color: #1a2332;
-}
-
-.livros-table .btn-icon.btn-danger-icon {
-  background: #ffffff;
-  border-color: #e9c7ca;
-  color: #b93d43;
-}
-
-.livros-table .btn-icon.btn-danger-icon:hover:not(:disabled) {
-  background: #fcebec;
-  border-color: #b93d43;
-  color: #b93d43;
-}
-
 .livros-table .pi-check-circle,
 .livros-table .pi-times-circle {
   font-size: 1rem;
-}
-
-.livros-table .btn-icon:hover .pi-check-circle {
-  color: #247447;
-}
-
-.livros-table .btn-icon:hover .pi-times-circle {
-  color: #b93d43;
 }
 
 .w-full {
   width: 100% !important;
 }
 
-.price-wrapper {
-  position: relative;
-  width: 100%;
-}
 
-.price-symbol {
-  position: absolute;
-  top: 50%;
-  left: 12px;
-  z-index: 1;
-  transform: translateY(-50%);
-  color: #4a5565;
-  font-size: 0.85rem;
-  font-weight: 600;
-  pointer-events: none;
-}
 
-.price-input {
-  padding-left: 34px !important;
-}
 
-.modal-actions.single {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
 
-.modal-actions.single button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  gap: 8px;
-  min-width: 0;
-  min-height: 44px;
-  padding: 0.7rem 1rem;
-  border-radius: 0;
-  font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 700;
-  line-height: 1.4;
-  text-align: center;
-  cursor: pointer;
-  box-shadow: none;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
-}
+
 
 .livros-paginator {
   padding: 0.75rem 1rem;
@@ -235,7 +142,7 @@
 
 @media (max-width: 992px) {
   .livros-table {
-    min-width: 1000px;
+    min-width: 1200px;
   }
 
   .livros-table th,
@@ -246,7 +153,7 @@
 
 @media (max-width: 768px) {
   .livros-table {
-    min-width: 950px;
+    min-width: 1150px;
   }
 
   .livros-table th {
@@ -259,16 +166,6 @@
     font-size: 0.8rem;
   }
 
-  .livros-table .actions-cell {
-    gap: 4px;
-  }
-
-  .livros-table .btn-icon {
-    width: 32px;
-    height: 32px;
-    font-size: 0.8rem;
-  }
-
   .livros-table .status-badge {
     padding: 4px 8px;
     font-size: 0.7rem;
@@ -278,25 +175,12 @@
     padding: 0.5rem;
   }
 
-  .modal-actions.single {
-    flex-direction: column;
-  }
-
-  .modal-actions.single button {
-    width: 100%;
-  }
 }
 
 @media (max-width: 480px) {
   .livros-table th,
   .livros-table td {
     padding: 0.65rem 0.75rem;
-  }
-
-  .livros-table .btn-icon {
-    width: 30px;
-    height: 30px;
-    font-size: 0.75rem;
   }
 
   .livros-table .imagem-thumb {
@@ -307,4 +191,75 @@
   .livros-table .status-badge {
     font-size: 0.7rem;
   }
+}
+
+.livros-table .estoque-numero {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.livros-table .estoque-reservado {
+  color: #956b24;
+  font-weight: 600;
+}
+
+.livros-table .estoque-disponivel {
+  color: #247447;
+  font-weight: 600;
+}
+
+.livros-table .estoque-indisponivel {
+  color: #b93d43;
+  font-weight: 600;
+}
+
+.livros-table .actions-cell {
+  --livros-acoes-gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.livros-table .acao-status-livro.livro-ativo {
+  color: #22c55e;
+  font-size: 1rem;
+}
+
+.livros-table .acao-status-livro.livro-inativo {
+  color: #94a3b8;
+  font-size: 1rem;
+}
+
+.livros-table .acao-status-livro.livro-ativo:hover {
+  color: var(--cor-sucesso);
+}
+
+.livros-table .acao-status-livro.livro-inativo:hover {
+  color: var(--cor-perigo);
+}
+
+@media (max-width: 768px) {
+  .livros-table .actions-cell {
+    --livros-acoes-gap: 4px;
+  }
+
+  .livros-table button.acao-admin-tabela:not(.acao-status-livro) {
+    font-size: .8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .livros-table button.acao-admin-tabela:not(.acao-status-livro) {
+    font-size: .75rem;
+  }
+}
+
+.filtro-item app-campo-selecao,
+.filtro-item app-campo-monetario {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.filtro-item input[appCampo] {
+  width: 100%;
+  min-width: 0;
 }

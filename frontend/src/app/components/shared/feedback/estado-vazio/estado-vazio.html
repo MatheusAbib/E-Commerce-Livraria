@@ -1,0 +1,17 @@
+<div
+  class="estado-vazio"
+  [attr.data-tamanho]="tamanho"
+  [class.compacto]="compacto">
+  @if (icone) {
+    <i [class]="icone + ' estado-vazio-icone'" aria-hidden="true"></i>
+  }
+  @if (titulo) {
+    <h3>{{ titulo }}</h3>
+  }
+  @if (descricao) {
+    <p>{{ descricao }}</p>
+  }
+  <div class="estado-vazio-acoes">
+    <ng-content></ng-content>
+  </div>
+</div>

@@ -1,4 +1,4 @@
-﻿.stats-grid {
+.stats-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
@@ -78,25 +78,6 @@
 
 .lucro-value {
   color: #247447;
-}
-
-.export-buttons {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.export-buttons button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 0.6rem 1rem;
-  border-radius: 0;
-  font-size: 0.8rem;
-  font-weight: 600;
 }
 
 .chart-wrapper {
@@ -205,15 +186,7 @@
   min-width: 180px;
 }
 
-.dashboard-card-header .filter-group .auth-input {
-  width: 100%;
-  height: 40px;
-  min-height: 40px;
-  padding: 0.5rem 0.75rem;
-  box-sizing: border-box;
-  border-radius: 0;
-  font-size: 13px;
-}
+
 
 .dashboard-card-body {
   position: relative;
@@ -893,5 +866,32 @@
 
   .loader-overlay-transacoes .spinner-ring {
     animation-duration: 2s;
+  }
+}
+
+.chart-state > button[appBotao] {
+  flex-shrink: 0;
+}
+
+.filtro-item app-campo-selecao,
+.filter-group app-campo-selecao {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.filtro-item input[appCampo] {
+  width: 100%;
+  min-width: 0;
+}
+
+.dashboard-card-header .filter-group {
+  min-width: 180px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-card-header .filter-group {
+    width: 100%;
+    min-width: 0;
   }
 }

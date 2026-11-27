@@ -16,75 +16,107 @@
     <div class="filtros-container">
       <div class="filtro-header">
         <h3><i class="pi pi-filter"></i> Filtrar Livros</h3>
-        <button class="btn-primary btn-novo" (click)="abrirFormulario()">
-          <i class="pi pi-plus"></i> Novo Livro
+        <button
+          appBotao
+          class="acao-admin acao-admin-novo"
+          variante="primario"
+          icone="pi pi-plus"
+          (click)="abrirFormulario()">
+          Novo Livro
         </button>
       </div>
 <div class="filtros-grid">
   <div class="filtro-item">
-    <label>Título</label>
-    <input type="text" [(ngModel)]="filtros.titulo" placeholder="Digite o título" class="auth-input">
+    <label for="livros-filtro-titulo">Título</label>
+    <input appCampo aparencia="administrativo" id="livros-filtro-titulo" type="text" [(ngModel)]="filtros.titulo" (ngModelChange)="onFiltroTextoChange()" placeholder="Digite o título">
   </div>
   <div class="filtro-item">
-    <label>Autor</label>
-    <input type="text" [(ngModel)]="filtros.autor" placeholder="Digite o autor" class="auth-input">
+    <label for="livros-filtro-autor">Autor</label>
+    <input appCampo aparencia="administrativo" id="livros-filtro-autor" type="text" [(ngModel)]="filtros.autor" (ngModelChange)="onFiltroTextoChange()" placeholder="Digite o autor">
   </div>
   <div class="filtro-item">
-    <label>Editora</label>
-    <input type="text" [(ngModel)]="filtros.editora" placeholder="Digite a editora" class="auth-input">
+    <label for="livros-filtro-editora">Editora</label>
+    <input appCampo aparencia="administrativo" id="livros-filtro-editora" type="text" [(ngModel)]="filtros.editora" (ngModelChange)="onFiltroTextoChange()" placeholder="Digite a editora">
   </div>
   <div class="filtro-item">
-    <label>ISBN</label>
-    <input type="text" [(ngModel)]="filtros.isbn" placeholder="Digite o ISBN" class="auth-input">
+    <label for="livros-filtro-isbn">ISBN</label>
+    <input appCampo aparencia="administrativo" id="livros-filtro-isbn" type="text" [(ngModel)]="filtros.isbn" (ngModelChange)="onFiltroTextoChange()" placeholder="Digite o ISBN">
   </div>
   <div class="filtro-item">
-    <label>Categoria</label>
-    <select [(ngModel)]="filtros.categoria" class="auth-input">
-      <option value="">Todas</option>
-      <option *ngFor="let cat of categorias" [value]="cat">{{ cat }}</option>
-    </select>
+    <label for="livros-filtro-categoria">Categoria</label>
+    <app-campo-selecao
+      campoId="livros-filtro-categoria"
+      rotulo="Categoria"
+      aparencia="administrativo"
+      [opcoes]="opcoesCategoriasFiltro"
+      [valorVazio]="''"
+      [exibirPlaceholder]="false"
+      [(ngModel)]="filtros.categoria" (ngModelChange)="aplicarFiltros()">
+    </app-campo-selecao>
   </div>
   <div class="filtro-item">
-    <label>Preço Mínimo</label>
-    <input type="number" [(ngModel)]="filtros.precoMin" placeholder="R$ mínimo" class="auth-input" step="0.01">
+    <label for="livros-filtro-precoMin">Preço Mínimo</label>
+    <app-campo-monetario
+      campoId="livros-filtro-precoMin"
+      rotulo="Preço Mínimo"
+      aparencia="administrativo"
+      placeholder="Mínimo"
+      [(ngModel)]="filtros.precoMin" (ngModelChange)="onFiltroTextoChange()"
+      exibirSimbolo>
+    </app-campo-monetario>
   </div>
   <div class="filtro-item">
-    <label>Preço Máximo</label>
-    <input type="number" [(ngModel)]="filtros.precoMax" placeholder="R$ máximo" class="auth-input" step="0.01">
+    <label for="livros-filtro-precoMax">Preço Máximo</label>
+    <app-campo-monetario
+      campoId="livros-filtro-precoMax"
+      rotulo="Preço Máximo"
+      aparencia="administrativo"
+      placeholder="Máximo"
+      [(ngModel)]="filtros.precoMax" (ngModelChange)="onFiltroTextoChange()"
+      exibirSimbolo>
+    </app-campo-monetario>
   </div>
   <div class="filtro-item">
-    <label>Estoque Mínimo</label>
-    <input type="number" [(ngModel)]="filtros.estoqueMin" placeholder="Mínimo" class="auth-input">
+    <label for="livros-filtro-estoqueMin">Estoque Físico Mínimo</label>
+    <input appCampo aparencia="administrativo" id="livros-filtro-estoqueMin" type="number" [(ngModel)]="filtros.estoqueMin" (ngModelChange)="onFiltroTextoChange()" placeholder="Mínimo">
   </div>
   <div class="filtro-item">
-    <label>Estoque Máximo</label>
-    <input type="number" [(ngModel)]="filtros.estoqueMax" placeholder="Máximo" class="auth-input">
+    <label for="livros-filtro-estoqueMax">Estoque Físico Máximo</label>
+    <input appCampo aparencia="administrativo" id="livros-filtro-estoqueMax" type="number" [(ngModel)]="filtros.estoqueMax" (ngModelChange)="onFiltroTextoChange()" placeholder="Máximo">
   </div>
   <div class="filtro-item">
-    <label>Status</label>
-    <select [(ngModel)]="filtros.status" class="auth-input">
-      <option value="">Todos</option>
-      <option value="ativo">Ativo</option>
-      <option value="inativo">Inativo</option>
-    </select>
+    <label for="livros-filtro-status">Status</label>
+    <app-campo-selecao
+      campoId="livros-filtro-status"
+      rotulo="Status"
+      aparencia="administrativo"
+      [opcoes]="opcoesStatusFiltro"
+      [valorVazio]="''"
+      [exibirPlaceholder]="false"
+      [(ngModel)]="filtros.status" (ngModelChange)="aplicarFiltros()">
+    </app-campo-selecao>
   </div>
   <div class="filtro-item full-width">
-<div class="filtro-actions">
-  <button class="btn-filtrar" (click)="aplicarFiltros()" [disabled]="filtrando">
-    <i class="pi"
-       [class.pi-search]="!filtrando"
-       [class.pi-spin]="filtrando"
-       [class.pi-spinner]="filtrando">
-    </i>
-    {{ filtrando ? 'Filtrando...' : 'Filtrar' }}
+<div appGrupoAcoes class="filtro-actions" alinhamento="inicio" espacamento="10px">
+  <button
+    appBotao
+    class="acao-admin acao-admin-filtro"
+    variante="primario"
+    icone="pi pi-search"
+    [carregando]="filtrando"
+    textoCarregando="Filtrando..."
+    (click)="aplicarFiltros()">
+    Filtrar
   </button>
-  <button class="btn-limpar" (click)="limparFiltros()" [disabled]="filtrando">
-    <i class="pi"
-       [class.pi-times]="!filtrando"
-       [class.pi-spin]="filtrando"
-       [class.pi-spinner]="filtrando">
-    </i>
-    {{ filtrando ? 'Limpando...' : 'Limpar' }}
+  <button
+    appBotao
+    class="acao-admin acao-admin-filtro"
+    variante="secundario"
+    icone="pi pi-times"
+    [carregando]="filtrando"
+    textoCarregando="Limpando..."
+    (click)="limparFiltros()">
+    Limpar
   </button>
 </div>
   </div>
@@ -104,16 +136,9 @@
       </div>
 
 <div class="table-container">
-  <div *ngIf="loading" class="loading-state">
-    <i class="pi pi-spin pi-spinner"></i>
-    <p>Carregando livros...</p>
-  </div>
+  <div *ngIf="loading" class="loading-state"><app-carregamento modelo="simples" texto="Carregando livros..."></app-carregamento></div>
 
-  <div *ngIf="!loading && livros.length === 0" class="empty-state">
-    <i class="pi pi-inbox"></i>
-    <h3>Nenhum livro encontrado</h3>
-    <p>Não há livros cadastrados para os filtros selecionados</p>
-  </div>
+  <div *ngIf="!loading && livros.length === 0" class="empty-state"><app-estado-vazio icone="pi pi-inbox" titulo="Nenhum livro encontrado" descricao="Não há livros cadastrados para os filtros selecionados"></app-estado-vazio></div>
 
   <div *ngIf="!loading && livros.length > 0">
     <table class="livros-table">
@@ -126,7 +151,9 @@
                 <th>Editora</th>
                 <th>Categoria</th>
                 <th>Preço Venda</th>
-                <th>Estoque</th>
+                <th>Físico</th>
+                <th>Reservado</th>
+                <th>Disponível</th>
                 <th>Status</th>
                 <th>Ações</th>
               </tr>
@@ -140,7 +167,9 @@
                 <td>{{ livro.editora || '-' }}</td>
                 <td>{{ livro.categoria || '-' }}</td>
                 <td>R$ {{ (livro.precoVenda || 0) | number:'1.2-2' }}</td>
-                <td>{{ livro.estoque || 0 }}</td>
+                <td class="estoque-numero">{{ livro.estoque ?? 0 }}</td>
+                <td class="estoque-numero" [class.estoque-reservado]="livro.estoqueReservado > 0">{{ livro.estoqueReservado ?? '—' }}</td>
+                <td class="estoque-numero" [class.estoque-disponivel]="livro.estoqueDisponivel > 0" [class.estoque-indisponivel]="livro.estoqueDisponivel === 0">{{ livro.estoqueDisponivel ?? '—' }}</td>
                 <td>
                   <span class="status-badge" [class.status-ativo]="livro.ativo" [class.status-inativo]="!livro.ativo">
                     <i [class]="livro.ativo ? 'pi pi-check-circle' : 'pi pi-times-circle'"></i>
@@ -148,18 +177,37 @@
                   </span>
                 </td>
                 <td>
-                  <div class="actions-cell">
-                    <button class="btn-icon" (click)="abrirStatus(livro, !livro.ativo)" [title]="livro.ativo ? 'Inativar' : 'Ativar'">
-                      <i class="pi" [class.pi-check-circle]="livro.ativo" [class.pi-times-circle]="!livro.ativo" [style.color]="livro.ativo ? '#22c55e' : '#94a3b8'"></i>
+                  <div appGrupoAcoes class="actions-cell" alinhamento="inicio" espacamento="var(--livros-acoes-gap)">
+                    <button
+                      appBotaoIcone
+                      class="acao-admin-tabela acao-status-livro"
+                      [class.livro-ativo]="livro.ativo"
+                      [class.livro-inativo]="!livro.ativo"
+                      [icone]="livro.ativo ? 'pi pi-check-circle' : 'pi pi-times-circle'"
+                      [rotulo]="livro.ativo ? 'Inativar' : 'Ativar'"
+                      (click)="abrirStatus(livro, !livro.ativo)">
                     </button>
-                    <button class="btn-icon" (click)="abrirDetalhes(livro)" title="Visualizar">
-                      <i class="pi pi-eye"></i>
+                    <button
+                      appBotaoIcone
+                      class="acao-admin-tabela"
+                      icone="pi pi-eye"
+                      rotulo="Visualizar"
+                      (click)="abrirDetalhes(livro)">
                     </button>
-                    <button class="btn-icon" (click)="abrirFormulario(livro)" title="Editar">
-                      <i class="pi pi-pencil"></i>
+                    <button
+                      appBotaoIcone
+                      class="acao-admin-tabela"
+                      icone="pi pi-pencil"
+                      rotulo="Editar"
+                      (click)="abrirFormulario(livro)">
                     </button>
-                    <button class="btn-icon btn-danger-icon" (click)="abrirExcluir(livro)" title="Excluir">
-                      <i class="pi pi-trash"></i>
+                    <button
+                      appBotaoIcone
+                      class="acao-admin-tabela"
+                      variante="perigo"
+                      icone="pi pi-trash"
+                      rotulo="Excluir"
+                      (click)="abrirExcluir(livro)">
                     </button>
                   </div>
                 </td>
@@ -183,4 +231,7 @@
 
 <app-admin-modals [categorias]="categorias"></app-admin-modals>
 
-<p-toast position="top-right" [life]="2000"></p-toast>
+<app-notificacao></app-notificacao>
+
+
+

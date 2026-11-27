@@ -1,0 +1,8 @@
+<div
+  class="modal-corpo"
+  [class.sem-espacamento]="semEspacamento"
+  [class.rolagem-interna]="rolagemInterna"
+  [style.padding]="espacamento || null"
+  [style.max-height]="alturaMaxima || null">
+  <ng-content></ng-content>
+</div>

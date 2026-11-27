@@ -1,0 +1,186 @@
+:host {
+  display: contents;
+}
+
+.modal-compartilhado {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--modal-z-index, 9999) + var(--modal-indice, 0) * 2);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  color: var(--cor-texto);
+  --modal-cabecalho-padding: 38px 38px 28px;
+  --modal-corpo-padding: 30px 38px 10px;
+  --modal-rodape-padding: 25px 38px 38px;
+  --modal-titulo-tamanho: clamp(30px, 4vw, 39px);
+  --modal-titulo-entrelinha: 1.05;
+  --modal-titulo-espacamento: -.06em;
+  --modal-cabecalho-borda: 1px solid var(--cor-borda-suave);
+  --modal-rodape-borda: none;
+  --modal-icone-margem: 23px;
+  --modal-icone-tamanho: 46px;
+}
+
+.modal-compartilhado.visivel {
+  display: flex;
+  z-index: 4;
+}
+
+.modal-compartilhado-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--modal-overlay);
+  backdrop-filter: blur(var(--modal-overlay-blur));
+}
+
+.modal-compartilhado-painel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  max-height: var(--modal-altura-maxima, min(90vh, 850px));
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda-suave);
+  border-radius: 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  overflow: hidden;
+  outline: none;
+}
+
+.modal-compartilhado-conteudo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd1d9 transparent;
+}
+.modal-compartilhado-carregamento {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, .96);
+}
+
+.modal-compartilhado[data-aparencia="confirmacao"] {
+  --modal-cabecalho-padding: 34px 32px 20px;
+  --modal-corpo-padding: 0 32px 28px;
+  --modal-rodape-padding: 22px 32px 32px;
+  --modal-titulo-tamanho: 32px;
+  --modal-titulo-entrelinha: 1.1;
+  --modal-titulo-espacamento: -.055em;
+  --modal-cabecalho-borda: none;
+  --modal-rodape-borda: 1px solid var(--cor-borda-suave);
+  --modal-icone-margem: 22px;
+}
+
+@media (max-width: 768px) {
+  .modal-compartilhado {
+    padding: 15px;
+    --modal-cabecalho-padding: 30px 25px 23px;
+    --modal-corpo-padding: 25px 25px 5px;
+    --modal-rodape-padding: 25px 25px 30px;
+    --modal-titulo-tamanho: 35px;
+  }
+
+  .modal-compartilhado-painel {
+    max-height: var(--modal-altura-maxima, 92dvh);
+  }
+
+  .modal-compartilhado[data-aparencia="confirmacao"] {
+    --modal-cabecalho-padding: 30px 25px 18px;
+    --modal-corpo-padding: 0 25px 25px;
+    --modal-rodape-padding: 20px 25px 25px;
+    --modal-titulo-tamanho: 30px;
+  }
+}
+
+@media (max-width: 420px) {
+  .modal-compartilhado {
+    padding: 10px;
+    --modal-cabecalho-padding: 25px 20px 20px;
+    --modal-corpo-padding: 22px 20px 5px;
+    --modal-rodape-padding: 22px 20px 25px;
+    --modal-titulo-tamanho: 30px;
+  }
+
+  .modal-compartilhado[data-aparencia="confirmacao"] {
+    --modal-cabecalho-padding: 25px 20px 18px;
+    --modal-corpo-padding: 0 20px 22px;
+    --modal-rodape-padding: 18px 20px 22px;
+  }
+}
+
+@media (max-width: 640px) {
+  .modal-compartilhado.tela-inteira-mobile {
+    padding: 0;
+  }
+
+  .modal-compartilhado.tela-inteira-mobile .modal-compartilhado-painel {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    margin: 0;
+    border: 0;
+  }
+}
+
+.modal-compartilhado.modal-lateral {
+  justify-content: flex-end;
+  align-items: stretch;
+  padding: 0;
+}
+
+.modal-compartilhado.modal-lateral .modal-compartilhado-painel {
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  border: 0;
+  border-left: 1px solid var(--cor-borda);
+  animation: modalLateralEntrada .3s ease;
+}
+
+.modal-compartilhado.modal-lateral .modal-compartilhado-conteudo {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@keyframes modalLateralEntrada {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-compartilhado.modal-lateral .modal-compartilhado-painel {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-compartilhado.modal-lateral .modal-compartilhado-painel {
+    animation: none;
+  }
+}

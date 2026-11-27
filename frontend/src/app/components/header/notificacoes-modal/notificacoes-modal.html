@@ -1,82 +1,72 @@
+<app-modal-base
+  [visivel]="visible"
+  largura="600px"
+  alturaMaxima="85vh"
+  rotulo="Notificações"
+  (fechar)="fechar()">
 
-<div class="custom-modal" [class.active]="visible">
-  <div class="custom-modal-overlay" (click)="fechar()"></div>
+  <app-modal-cabecalho
+    titulo="Notificações"
+    subtitulo="Fique por dentro de tudo que acontece"
+    icone="pi pi-bell"
+    (fechar)="fechar()">
+  </app-modal-cabecalho>
 
-  <div class="custom-modal-content" style="width: 600px; max-width: 95%; max-height: 85vh;">
-    <button
-      type="button"
-      class="custom-modal-close"
-      (click)="fechar()"
-      aria-label="Fechar notificações"
-    >
-      <i class="pi pi-times"></i>
-    </button>
+  <app-modal-corpo rolagemInterna>
+    <div class="notificacoes-conteudo">
 
-    <div class="custom-modal-header">
-      <div class="auth-icon">
-        <i class="pi pi-bell"></i>
-      </div>
-
-      <h2>Notificações</h2>
-      <p>Fique por dentro de tudo que acontece</p>
-    </div>
-
-    <div class="custom-modal-body" style="max-height: 60vh; overflow-y: auto;">
-      <div *ngIf="loading" class="loading-state">
-        <i class="pi pi-spin pi-spinner"></i>
-        <p>Carregando notificações...</p>
+      <div *ngIf="loading" class="notificacoes-carregamento">
+        <app-carregamento
+          modelo="simples"
+          texto="Carregando notificações...">
+        </app-carregamento>
       </div>
 
       <div
         *ngIf="!loading && notificacoes.length === 0"
-        class="empty-state"
-      >
-        <i
-          class="pi pi-bell"
-          style="font-size: 3rem; color: #cbd5e1;"
-        ></i>
-
-        <h3>Nenhuma notificação</h3>
-        <p>Você não tem notificações no momento</p>
+        class="notificacoes-vazio">
+        <app-estado-vazio
+          icone="pi pi-bell"
+          titulo="Nenhuma notificação"
+          descricao="Você não tem notificações no momento">
+        </app-estado-vazio>
       </div>
 
       <div
         *ngIf="!loading && notificacoes.length > 0"
-        class="notificacoes-list"
-      >
+        class="notificacoes-list">
+
         <div
           *ngFor="let notificacao of notificacoes"
           class="notificacao-item"
           [class.lida]="notificacao.lida"
           [ngClass]="'notificacao-' + (notificacao.tipo || 'info')"
-        >
+          (click)="marcarComoLida(notificacao.id)">
+
           <div class="notificacao-icon">
             <i
               *ngIf="notificacao.tipo === 'success'"
               class="pi pi-check-circle"
-              style="color: #22c55e;"
-            ></i>
+              style="color: #22c55e;">
+            </i>
 
             <i
               *ngIf="notificacao.tipo === 'error'"
               class="pi pi-times-circle"
-              style="color: #dc2626;"
-            ></i>
+              style="color: #dc2626;">
+            </i>
 
             <i
               *ngIf="notificacao.tipo === 'warning'"
               class="pi pi-exclamation-triangle"
-              style="color: #eab308;"
-            ></i>
+              style="color: #eab308;">
+            </i>
 
             <i
-              *ngIf="
-                !notificacao.tipo ||
-                !['success', 'error', 'warning'].includes(notificacao.tipo)
-              "
+              *ngIf="!notificacao.tipo || !['success', 'error', 'warning'].includes(notificacao.tipo)"
               class="pi pi-info-circle"
-              style="color: #3b82f6;"
-            ></i>
+              style="color: #3b82f6;">
+            </i>
           </div>
 
           <div class="notificacao-content">
@@ -93,43 +83,36 @@
 
           <button
             *ngIf="!notificacao.lida"
-            type="button"
-            class="btn-marcar-lida"
-            (click)="marcarComoLida(notificacao.id)"
-            [disabled]="loading"
+            appBotao
+            class="acao-leitura notificacao-acao"
+            variante="secundario"
+            icone="pi pi-check-circle"
+            [desabilitado]="loading"
             title="Marcar como lida"
             aria-label="Marcar notificação como lida"
-          >
-            <i class="pi pi-check-circle"></i>
-            <span>Lida</span>
+            (click)="$event.stopPropagation(); marcarComoLida(notificacao.id)">
+            Ler
           </button>
         </div>
       </div>
     </div>
+  </app-modal-corpo>
 
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button
-          type="button"
-          class="p-button-outlined"
-          (click)="fechar()"
-        >
-          <i class="pi pi-times"></i>
-          Fechar
-        </button>
+  <app-modal-rodape
+    *ngIf="notificacoes.length > 0 && !loading"
+    separador>
 
-        <button
-          *ngIf="notificacoes.length > 0 && !loading"
-          type="button"
-          class="btn-danger"
-          (click)="limparTodas()"
-        >
-          <i class="pi pi-trash"></i>
-          Limpar todas
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+    <button
+      appBotao
+      class="acao-perigo-contorno"
+      variante="perigo"
+      icone="pi pi-trash"
+      larguraTotal
+      (click)="limparTodas()">
+      Limpar todas
+    </button>
 
-<p-toast position="top-right" [life]="2000"></p-toast>
+  </app-modal-rodape>
+</app-modal-base>
+
+<app-notificacao></app-notificacao>

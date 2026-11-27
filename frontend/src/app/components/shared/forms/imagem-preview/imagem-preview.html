@@ -1,0 +1,29 @@
+@if (url) {
+  <div class="imagem-preview">
+    @if (!falha) {
+      <img
+        [src]="url"
+        [alt]="descricao"
+        [style.object-fit]="ajuste"
+        (error)="falha = true">
+    } @else {
+      <div class="imagem-preview-indisponivel">
+        <i class="pi pi-image" aria-hidden="true"></i>
+        <span>Imagem indisponível</span>
+      </div>
+    }
+
+    @if (removivel) {
+      <button
+        appBotaoIcone
+        class="imagem-preview-remover"
+        variante="perigo"
+        tamanho="pequeno"
+        icone="pi pi-times"
+        rotulo="Remover imagem"
+        [desabilitado]="desabilitado"
+        (click)="solicitarRemocao()">
+      </button>
+    }
+  </div>
+}

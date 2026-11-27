@@ -1,30 +1,76 @@
+import { LogService } from '../../../services/log.service';
+import { ClienteService } from '../../../services/cliente.service';
+import { inject } from '@angular/core';
+import { ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent, ModalRodapeComponent } from '../../../components/shared/modals';
+import { NotificacaoComponent } from '../../../components/shared/feedback';
+import { EstadoVazioComponent } from '../../../components/shared/feedback';
+import { CarregamentoComponent } from '../../../components/shared/feedback';
+import { CampoSelecaoComponent } from '../../../components/shared/forms';
+import { CampoDirective } from '../../../components/shared/forms';
+import { BotaoComponent } from '../../../components/shared/buttons/botao/botao';
+import { BotaoIconeComponent } from '../../../components/shared/buttons/botao-icone/botao-icone';
+import { GrupoAcoesComponent } from '../../../components/shared/buttons/grupo-acoes/grupo-acoes';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaginatorModule } from 'primeng/paginator';
-import { DialogModule } from 'primeng/dialog';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { AdminSidebarComponent } from '../../../components/admin-sidebar/admin-sidebar';
-import { AdminService } from '../../../services/admin.service';
-import { environment } from '../../../../environments/environment';
+
 
 @Component({
   selector: 'app-log-completo',
   standalone: true,
-  imports: [
+  imports: [ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent, ModalRodapeComponent, NotificacaoComponent, EstadoVazioComponent, CarregamentoComponent, CampoSelecaoComponent, CampoDirective, 
     CommonModule,
     FormsModule,
     PaginatorModule,
-    DialogModule,
-    ToastModule,
-    AdminSidebarComponent
+    AdminSidebarComponent,
+    BotaoComponent,
+    BotaoIconeComponent,
+    GrupoAcoesComponent
   ],
   providers: [MessageService],
   templateUrl: './logCompleto.html',
   styleUrls: ['./logCompleto.css', '../admin-common.css']
 })
 export class LogCompletoComponent implements OnInit {
+  private readonly logService = inject(LogService);
+  private readonly clienteService = inject(ClienteService);
+
+  private usuariosFiltroReferencia: unknown = null;
+
+  private usuariosFiltroCache: { rotulo: string; valor: string }[] = [];
+
+  get opcoesUsuariosFiltro() {
+    if (this.usuariosFiltroReferencia !== this.usuarios) {
+      this.usuariosFiltroReferencia = this.usuarios;
+      this.usuariosFiltroCache = [
+        { rotulo: 'Todos os usuários', valor: '' },
+        ...this.usuarios.map(u => ({
+          rotulo: u.nome,
+          valor: String(u.id)
+        }))
+      ];
+    }
+
+    return this.usuariosFiltroCache;
+  }
+
+  get opcoesAcoesFiltro() {
+    return this.acoesOptions.map(op => ({
+      rotulo: op.label,
+      valor: String(op.value ?? '')
+    }));
+  }
+
+  get opcoesNiveisFiltro() {
+    return this.niveisOptions.map(op => ({
+      rotulo: op.label,
+      valor: String(op.value ?? '')
+    }));
+  }
+
   logs: any[] = [];
   logsFiltrados: any[] = [];
   logsPaginados: any[] = [];
@@ -77,7 +123,7 @@ export class LogCompletoComponent implements OnInit {
   displayDetalhesModal: boolean = false;
   logSelecionado: any = null;
 
-  constructor(private adminService: AdminService) {}
+  
 
   ngOnInit(): void {
     this.carregarUsuarios();
@@ -86,7 +132,7 @@ export class LogCompletoComponent implements OnInit {
 
   async carregarUsuarios(): Promise<void> {
     try {
-     const data = await this.adminService.getClientes().toPromise();
+     const data = await this.clienteService.listarAdministrativo().toPromise();
       this.usuarios = data || [];
       this.usuariosMap = {};
       this.usuarios.forEach((u: any) => {
@@ -100,7 +146,7 @@ export class LogCompletoComponent implements OnInit {
   async carregarLogs(): Promise<void> {
     this.loading = true;
     try {
-      const data = await this.adminService.getLogs().toPromise();
+      const data = await this.logService.listarAdministrativo().toPromise();
       this.logs = data || [];
       this.logs.sort((a: any, b: any) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()

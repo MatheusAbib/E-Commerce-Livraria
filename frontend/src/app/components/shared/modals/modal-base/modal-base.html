@@ -1,0 +1,45 @@
+<div
+  class="modal-compartilhado" [class.modal-lateral]="lateral" [class.tela-inteira-mobile]="telaInteiraMobile"
+  [class.visivel]="visivel"
+  [attr.data-aparencia]="aparencia"
+  [style.--modal-indice]="indice"
+  [attr.aria-hidden]="!visivel || !superior ? 'true' : null"
+  [attr.inert]="!visivel || !superior ? '' : null">
+
+  <div
+    class="modal-compartilhado-overlay"
+    aria-hidden="true"
+    (click)="solicitarFechamento('overlay')">
+  </div>
+
+  <section
+    #painel
+    class="modal-compartilhado-painel"
+    role="dialog"
+    tabindex="-1"
+    [attr.aria-modal]="superior ? 'true' : null"
+    [attr.aria-label]="tituloId ? null : rotulo"
+    [attr.aria-labelledby]="tituloId || null"
+    [attr.aria-describedby]="descricaoId || null"
+    [attr.aria-busy]="carregando ? 'true' : null"
+    [style.width]="larguraEfetiva"
+    [style.height]="altura || null"
+    [style.max-width]="larguraMaxima"
+    [style.--modal-altura-maxima]="alturaMaxima || null">
+
+    <div
+      class="modal-compartilhado-conteudo"
+      [attr.inert]="carregando ? '' : null">
+      <ng-content></ng-content>
+    </div>
+
+    @if (carregando) {
+      <div class="modal-compartilhado-carregamento">
+        <app-carregamento
+          [texto]="textoCarregamento"
+          modelo="simples">
+        </app-carregamento>
+      </div>
+    }
+  </section>
+</div>

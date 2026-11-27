@@ -1,3 +1,8 @@
+import { ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent, ModalRodapeComponent } from '../../shared/modals';
+import { NotificacaoComponent } from '../../../components/shared/feedback';
+import { EstadoVazioComponent } from '../../../components/shared/feedback';
+import { CarregamentoComponent } from '../../../components/shared/feedback';
+import { BotaoComponent } from '../../shared/buttons/botao/botao';
 
 import {
   Component,
@@ -11,16 +16,15 @@ import {
   ChangeDetectorRef
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ButtonModule } from 'primeng/button';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { Subscription } from 'rxjs';
-import { AuthService, Notificacao } from '../../../services/auth';
+import { AuthService } from '../../../services/auth';
+import type { Notificacao } from '../../../models/notificacao.model';
 
 @Component({
   selector: 'app-notificacoes-modal',
   standalone: true,
-  imports: [CommonModule, ButtonModule, ToastModule],
+  imports: [NotificacaoComponent, EstadoVazioComponent, CarregamentoComponent, CommonModule, BotaoComponent, ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent, ModalRodapeComponent],
   providers: [MessageService],
   templateUrl: './notificacoes-modal.html',
   styleUrls: ['./notificacoes-modal.css']

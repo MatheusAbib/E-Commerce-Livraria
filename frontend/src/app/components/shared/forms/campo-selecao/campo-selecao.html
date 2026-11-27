@@ -1,0 +1,33 @@
+<div class="campo-selecao-wrapper">
+  <select
+    appCampo
+    [aparencia]="aparencia"
+    [attr.id]="campoId || null"
+    [attr.aria-label]="rotulo"
+    [descricaoId]="descricaoId"
+    [invalido]="invalido"
+    [required]="obrigatorio"
+    [disabled]="desabilitado"
+    [ngModel]="valor"
+    [ngModelOptions]="{ standalone: true }"
+    [compareWith]="comparar"
+    (ngModelChange)="atualizarValor($event)"
+    (blur)="marcarTocado()">
+
+    @if (exibirPlaceholder) {
+      <option [ngValue]="valorVazio" [disabled]="obrigatorio">
+        {{ placeholder }}
+      </option>
+    }
+
+    @for (opcao of opcoes; track $index) {
+      <option
+        [ngValue]="opcao.valor"
+        [disabled]="opcao.desabilitado ?? false">
+        {{ opcao.rotulo }}
+      </option>
+    }
+  </select>
+
+  <i class="pi pi-chevron-down campo-selecao-icone" aria-hidden="true"></i>
+</div>

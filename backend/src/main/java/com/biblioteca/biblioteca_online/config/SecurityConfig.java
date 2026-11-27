@@ -25,29 +25,68 @@ public class SecurityConfig {
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http)
+        throws Exception {
+
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .cors(cors -> cors.configurationSource(
+                corsConfigurationSource()
+            ))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
+                    HttpMethod.OPTIONS,
+                    "/**"
+                ).permitAll()
+                .requestMatchers(
+                    HttpMethod.POST,
                     "/api/clientes/login",
-                    "/api/clientes",
+                    "/api/clientes"
+                ).permitAll()
+                .requestMatchers(
+                    HttpMethod.GET,
                     "/api/livros",
                     "/api/livros/**",
+                    "/api/avaliacoes/livro/**"
+                ).permitAll()
+                .requestMatchers(
                     "/api/icones/**",
                     "/uploads/**",
                     "/error"
                 ).permitAll()
                 .requestMatchers(
+                    "/api/carrinho",
+                    "/api/carrinho/**"
+                ).authenticated()
+                .requestMatchers(
+                    HttpMethod.POST,
+                    "/api/livros/processar-pedido"
+                ).denyAll()
+                .requestMatchers(
+                    "/api/livros",
+                    "/api/livros/**"
+                ).hasAnyAuthority("ADMIN", "ROLE_ADMIN")
+                .requestMatchers(
+                    "/api/notificacoes/**"
+                ).authenticated()
+                .requestMatchers(
                     HttpMethod.GET,
-                    "/api/avaliacoes/livro/**"
+                    "/api/autores/*/imagem"
                 ).permitAll()
-                .requestMatchers("/api/notificacoes/**").authenticated()
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/autores/publicos"
+                ).permitAll()
+                .requestMatchers(
+                    "/api/autores",
+                    "/api/autores/**"
+                ).hasAnyAuthority("ADMIN", "ROLE_ADMIN")
                 .anyRequest().authenticated()
             )
             .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                session.sessionCreationPolicy(
+                    SessionCreationPolicy.STATELESS
+                )
             )
             .addFilterBefore(
                 jwtAuthenticationFilter,
@@ -77,7 +116,9 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source =
+            new UrlBasedCorsConfigurationSource();
+
         source.registerCorsConfiguration("/**", configuration);
 
         return source;

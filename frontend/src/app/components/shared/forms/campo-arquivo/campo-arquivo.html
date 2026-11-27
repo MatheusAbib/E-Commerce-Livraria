@@ -1,0 +1,37 @@
+<div
+  class="campo-arquivo"
+  [class.arrastando]="arrastando"
+  [class.desabilitado]="bloqueado"
+  (dragover)="arrastar($event)"
+  (dragleave)="sair($event)"
+  (drop)="soltar($event)">
+
+  <input
+    #seletor
+    type="file"
+    class="campo-arquivo-input"
+    [attr.accept]="aceitar"
+    [multiple]="multiplo"
+    [disabled]="bloqueado"
+    [attr.aria-label]="rotulo"
+    (change)="selecionar($event)">
+
+  <i class="pi pi-cloud-upload campo-arquivo-icone" aria-hidden="true"></i>
+
+  <strong>{{ rotulo }}</strong>
+
+  @if (descricao) {
+    <span>{{ descricao }}</span>
+  }
+
+  <small>
+    Até {{ tamanhoMaximoMB }} MB por arquivo
+    @if (multiplo) {
+      · Máximo de {{ maximoArquivos }} arquivos
+    }
+  </small>
+
+  @if (limiteDisponivel === 0) {
+    <small>Limite de arquivos atingido</small>
+  }
+</div>

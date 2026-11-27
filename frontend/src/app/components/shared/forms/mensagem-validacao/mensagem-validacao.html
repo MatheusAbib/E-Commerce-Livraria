@@ -1,0 +1,13 @@
+<div class="mensagem-validacao" aria-live="polite">
+  @if (exibirIcone) {
+    <i [class]="icone" aria-hidden="true"></i>
+  }
+
+  <span>
+    @if (mensagem) {
+      {{ mensagem }}
+    } @else {
+      <ng-content></ng-content>
+    }
+  </span>
+</div>

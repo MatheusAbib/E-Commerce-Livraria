@@ -31,32 +31,42 @@
       </div>
       <div class="filtros-grid">
         <div class="filtro-item">
-          <label>Status</label>
-          <select [(ngModel)]="filtros.status" class="auth-input">
-            <option value="">Todos</option>
-            <option value="EM_PROCESSAMENTO">Em Processamento</option>
-            <option value="EM_TRANSITO">Em Trânsito</option>
-            <option value="ENTREGUE">Entregue</option>
-            <option value="CANCELADO">Cancelado</option>
-            <option value="DEVOLUCAO">Devolução Solicitada</option>
-            <option value="AUTORIZADO_DEVOLUCAO">Devolução Autorizada</option>
-            <option value="ENVIADO_DEVOLUCAO">Devolução Enviada</option>
-            <option value="DEVOLVIDO">Devolvido</option>
-          </select>
+          <label for="pedidos-admin-status">Status</label>
+          <app-campo-selecao
+            campoId="pedidos-admin-status"
+            rotulo="Status"
+            aparencia="administrativo"
+            [opcoes]="opcoesStatusFiltro"
+            [valorVazio]="''"
+            [exibirPlaceholder]="false"
+            [(ngModel)]="filtros.status" (ngModelChange)="aplicarFiltros()">
+          </app-campo-selecao>
         </div>
         <div class="filtro-item">
-          <label>Cliente</label>
-          <input type="text" [(ngModel)]="filtros.cliente" placeholder="Nome do cliente" class="auth-input" (keyup.enter)="aplicarFiltros()">
+          <label for="pedidos-admin-cliente">Cliente</label>
+          <input appCampo aparencia="administrativo" id="pedidos-admin-cliente" type="text" [(ngModel)]="filtros.cliente" (ngModelChange)="onFiltroTextoChange()" placeholder="Nome do cliente">
         </div>
         <div class="filtro-item full-width">
-          <div class="filtro-actions">
-            <button class="btn-filtrar" (click)="aplicarFiltros()" [disabled]="carregandoFiltrar" [class.loading]="carregandoFiltrar">
-              <i class="pi pi-search"></i>
-              {{ carregandoFiltrar ? 'Filtrando...' : 'Filtrar' }}
+          <div appGrupoAcoes class="filtro-actions" alinhamento="inicio" espacamento="10px">
+            <button
+              appBotao
+              class="acao-admin acao-admin-filtro"
+              variante="primario"
+              icone="pi pi-search"
+              [carregando]="carregandoFiltrar"
+              textoCarregando="Filtrando..."
+              (click)="aplicarFiltros()">
+              Filtrar
             </button>
-            <button class="btn-limpar" (click)="limparFiltros()" [disabled]="carregandoLimpar" [class.loading]="carregandoLimpar">
-              <i class="pi pi-times"></i>
-              {{ carregandoLimpar ? 'Limpando...' : 'Limpar' }}
+            <button
+              appBotao
+              class="acao-admin acao-admin-filtro"
+              variante="secundario"
+              icone="pi pi-times"
+              [carregando]="carregandoLimpar"
+              textoCarregando="Limpando..."
+              (click)="limparFiltros()">
+              Limpar
             </button>
           </div>
         </div>
@@ -76,16 +86,9 @@
       </div>
 
       <div class="table-container">
-        <div *ngIf="loading" class="loading-state">
-          <i class="pi pi-spin pi-spinner"></i>
-          <p>Carregando pedidos...</p>
-        </div>
+        <div *ngIf="loading" class="loading-state"><app-carregamento modelo="simples" texto="Carregando pedidos..."></app-carregamento></div>
 
-        <div *ngIf="!loading && pedidosFiltrados.length === 0" class="empty-state">
-          <i class="pi pi-inbox"></i>
-          <h3>Nenhum pedido encontrado</h3>
-          <p>Não há pedidos para os filtros selecionados</p>
-        </div>
+        <div *ngIf="!loading && pedidosFiltrados.length === 0" class="empty-state"><app-estado-vazio icone="pi pi-inbox" titulo="Nenhum pedido encontrado" descricao="Não há pedidos para os filtros selecionados"></app-estado-vazio></div>
 
         <div *ngIf="!loading && pedidosFiltrados.length > 0">
           <table class="pedidos-table">
@@ -118,34 +121,19 @@
                   </td>
                   <td><strong style="color: #2a5298;">R$ {{ (pedido.valorTotal || 0) | number:'1.2-2' }}</strong></td>
                   <td>
-                    <div class="acoes-cell">
-                      <button class="btn-icon" (click)="abrirDetalhes(pedido)" title="Ver detalhes">
-                        <i class="pi pi-eye"></i>
-                      </button>
+                    <div appGrupoAcoes class="acoes-cell" alinhamento="centro" espacamento="var(--pedidos-acoes-gap)">
+                      <button appBotaoIcone class="acao-admin-tabela" variante="neutro" icone="pi pi-eye" rotulo="Ver detalhes" (click)="abrirDetalhes(pedido)"></button>
 
-                      <button *ngIf="pedido.status === 'EM_PROCESSAMENTO'" class="btn-icon btn-success-icon" (click)="abrirStatus(pedido, 'EM_TRANSITO')" title="Aprovar" [disabled]="carregandoStatus" [class.loading]="carregandoStatus">
-                        <i class="pi pi-check"></i>
-                      </button>
+                      <button appBotaoIcone class="acao-admin-tabela" variante="sucesso" icone="pi pi-check" rotulo="Aprovar" *ngIf="pedido.status === 'EM_PROCESSAMENTO'" (click)="abrirStatus(pedido, 'EM_TRANSITO')" [carregando]="carregandoStatus"></button>
 
-                      <button *ngIf="pedido.status === 'DEVOLUCAO'" class="btn-icon btn-success-icon" (click)="abrirStatus(pedido, 'AUTORIZADO_DEVOLUCAO')" title="Autorizar Devolução" [disabled]="carregandoStatus" [class.loading]="carregandoStatus">
-                        <i class="pi pi-check"></i>
-                      </button>
+                      <button appBotaoIcone class="acao-admin-tabela" variante="sucesso" icone="pi pi-check" rotulo="Autorizar Devolução" *ngIf="pedido.status === 'DEVOLUCAO'" (click)="abrirStatus(pedido, 'AUTORIZADO_DEVOLUCAO')" [carregando]="carregandoStatus"></button>
 
-                      <button *ngIf="pedido.status === 'ENVIADO_DEVOLUCAO'" class="btn-icon btn-success-icon" (click)="abrirStatus(pedido, 'DEVOLVIDO')" title="Confirmar Recebimento" [disabled]="carregandoStatus" [class.loading]="carregandoStatus">
-                        <i class="pi pi-check"></i>
-                      </button>
+                      <button appBotaoIcone class="acao-admin-tabela" variante="sucesso" icone="pi pi-check" rotulo="Confirmar Recebimento" *ngIf="pedido.status === 'ENVIADO_DEVOLUCAO'" (click)="abrirStatus(pedido, 'DEVOLVIDO')" [carregando]="carregandoStatus"></button>
 
-                      <button *ngIf="pedido.status === 'CANCELADO'" class="btn-icon btn-danger-icon" (click)="abrirExcluir(pedido)" title="Excluir" [disabled]="carregandoExcluir" [class.loading]="carregandoExcluir">
-                        <i class="pi pi-trash"></i>
-                      </button>
-                      <button
+                      <button appBotaoIcone class="acao-admin-tabela" variante="perigo" icone="pi pi-trash" rotulo="Excluir" *ngIf="pedido.status === 'CANCELADO'" (click)="abrirExcluir(pedido)" [carregando]="carregandoExcluir"></button>
+                      <button appBotaoIcone class="acao-admin-tabela acao-admin-chat" variante="neutro" icone="pi pi-comment" rotulo="Abrir chat"
                         *ngIf="pedido.temConversa"
-                        class="btn-icon btn-chat-icon"
-                        (click)="abrirChatAdmin(pedido)"
-                        title="Abrir chat">
-                        <i class="pi pi-comment"></i>
-                        <span *ngIf="pedido.chatNaoLidas > 0" class="chat-badge-admin">{{ pedido.chatNaoLidas }}</span>
-                      </button>
+                        (click)="abrirChatAdmin(pedido)"><span *ngIf="pedido.chatNaoLidas > 0" class="chat-badge-admin">{{ pedido.chatNaoLidas }}</span></button>
                     </div>
                   </td>
                 </tr>
@@ -177,4 +165,7 @@
 
 <app-admin-modals></app-admin-modals>
 
-<p-toast position="top-right" [life]="2000"></p-toast>
+<app-notificacao></app-notificacao>
+
+
+

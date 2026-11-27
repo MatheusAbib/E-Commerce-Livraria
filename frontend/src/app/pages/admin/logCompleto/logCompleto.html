@@ -17,45 +17,66 @@
       </div>
       <div class="filtros-grid">
         <div class="filtro-item">
-          <label>Usuário</label>
-          <select [(ngModel)]="filtros.usuario" class="auth-input">
-            <option value="">Todos os usuários</option>
-            <option *ngFor="let u of usuarios" [value]="u.id">{{ u.nome }}</option>
-          </select>
+          <label for="logcompleto-filtros-usuario">Usuário</label>
+          <app-campo-selecao
+            campoId="logcompleto-filtros-usuario"
+            rotulo="Usuário"
+            aparencia="administrativo"
+            [opcoes]="opcoesUsuariosFiltro"
+            [valorVazio]="''"
+            [exibirPlaceholder]="false"
+            [(ngModel)]="filtros.usuario">
+          </app-campo-selecao>
         </div>
         <div class="filtro-item">
-          <label>Ação</label>
-          <select [(ngModel)]="filtros.acao" class="auth-input">
-            <option *ngFor="let op of acoesOptions" [value]="op.value">{{ op.label }}</option>
-          </select>
+          <label for="logcompleto-filtros-acao">Ação</label>
+          <app-campo-selecao
+            campoId="logcompleto-filtros-acao"
+            rotulo="Ação"
+            aparencia="administrativo"
+            [opcoes]="opcoesAcoesFiltro"
+            [valorVazio]="''"
+            [exibirPlaceholder]="false"
+            [(ngModel)]="filtros.acao">
+          </app-campo-selecao>
         </div>
         <div class="filtro-item">
-          <label>Data</label>
-          <input type="date" [(ngModel)]="filtros.data" class="auth-input">
+          <label for="logcompleto-filtros-data">Data</label>
+          <input appCampo aparencia="administrativo" type="date" [(ngModel)]="filtros.data" id="logcompleto-filtros-data">
         </div>
         <div class="filtro-item">
-          <label>Nível</label>
-          <select [(ngModel)]="filtros.nivel" class="auth-input">
-            <option *ngFor="let op of niveisOptions" [value]="op.value">{{ op.label }}</option>
-          </select>
+          <label for="logcompleto-filtros-nivel">Nível</label>
+          <app-campo-selecao
+            campoId="logcompleto-filtros-nivel"
+            rotulo="Nível"
+            aparencia="administrativo"
+            [opcoes]="opcoesNiveisFiltro"
+            [valorVazio]="''"
+            [exibirPlaceholder]="false"
+            [(ngModel)]="filtros.nivel">
+          </app-campo-selecao>
         </div>
         <div class="filtro-item full-width">
-          <div class="filtro-actions">
-            <button class="btn-filtrar" (click)="aplicarFiltros()" [disabled]="filtrando">
-              <i class="pi"
-                [class.pi-search]="!filtrando"
-                [class.pi-spin]="filtrando"
-                [class.pi-spinner]="filtrando">
-              </i>
-              {{ filtrando ? 'Filtrando...' : 'Filtrar' }}
+          <div appGrupoAcoes class="filtro-actions" alinhamento="inicio" espacamento="10px">
+            <button
+              appBotao
+              class="acao-admin acao-admin-filtro"
+              variante="primario"
+              icone="pi pi-search"
+              [carregando]="filtrando"
+              textoCarregando="Filtrando..."
+              (click)="aplicarFiltros()">
+              Filtrar
             </button>
-            <button class="btn-limpar" (click)="limparFiltros()" [disabled]="filtrando">
-              <i class="pi"
-                [class.pi-times]="!filtrando"
-                [class.pi-spin]="filtrando"
-                [class.pi-spinner]="filtrando">
-              </i>
-              {{ filtrando ? 'Limpando...' : 'Limpar' }}
+            <button
+              appBotao
+              class="acao-admin acao-admin-filtro"
+              variante="secundario"
+              icone="pi pi-times"
+              [carregando]="filtrando"
+              textoCarregando="Limpando..."
+              (click)="limparFiltros()">
+              Limpar
             </button>
           </div>
         </div>
@@ -75,16 +96,9 @@
       </div>
 
       <div class="table-container">
-        <div *ngIf="loading" class="loading-state">
-          <i class="pi pi-spin pi-spinner"></i>
-          <p>Carregando logs...</p>
-        </div>
+        <div *ngIf="loading" class="loading-state"><app-carregamento modelo="simples" texto="Carregando logs..."></app-carregamento></div>
 
-        <div *ngIf="!loading && logsFiltrados.length === 0" class="empty-state">
-          <i class="pi pi-inbox"></i>
-          <h3>Nenhum registro encontrado</h3>
-          <p>Não há logs para os filtros selecionados</p>
-        </div>
+        <div *ngIf="!loading && logsFiltrados.length === 0" class="empty-state"><app-estado-vazio icone="pi pi-inbox" titulo="Nenhum registro encontrado" descricao="Não há logs para os filtros selecionados"></app-estado-vazio></div>
 
         <div *ngIf="!loading && logsFiltrados.length > 0">
           <table class="log-table">
@@ -124,8 +138,13 @@
                   </span>
                 </td>
                 <td class="text-center">
-                  <button class="btn-icon" (click)="abrirDetalhes(log)" title="Ver detalhes">
-                    <i class="pi pi-eye"></i>
+                  <button
+                    appBotaoIcone
+                    class="acao-admin-tabela"
+                    variante="neutro"
+                    icone="pi pi-eye"
+                    rotulo="Ver detalhes"
+                    (click)="abrirDetalhes(log)">
                   </button>
                 </td>
               </tr>
@@ -146,41 +165,116 @@
   </main>
 </div>
 
-<div class="custom-modal" [class.active]="displayDetalhesModal">
-  <div class="custom-modal-overlay" (click)="displayDetalhesModal = false"></div>
-  <div class="custom-modal-content" style="width: 600px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
-    <button class="custom-modal-close" (click)="displayDetalhesModal = false">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon" [class]="'detalhes-' + logSelecionado?.level">
-        <i [class]="getIconClass(logSelecionado?.level)"></i>
-      </div>
-      <h2>{{ getActionLabel(logSelecionado?.action) }}</h2>
-      <p>{{ logSelecionado?.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}</p>
-    </div>
-    <div class="custom-modal-body" *ngIf="logSelecionado">
-      <div class="detalhes-item">
-        <strong>Usuário:</strong>
-        <span>{{ getNomeUsuario(logSelecionado.userId) }}</span>
-      </div>
-      <div class="detalhes-item">
-        <strong>Ação:</strong>
-        <span>{{ getActionLabel(logSelecionado.action) }}</span>
-      </div>
-      <div class="detalhes-item" *ngIf="logSelecionado.details">
-        <strong>Detalhes:</strong>
-        <div class="detalhes-details">{{ logSelecionado.details }}</div>
-      </div>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions single">
-        <button class="btn-secondary" (click)="displayDetalhesModal = false">
-          <i class="pi pi-times"></i> Fechar
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+<app-modal-base
+  [visivel]="displayDetalhesModal"
+  largura="600px"
+  alturaMaxima="90vh"
+  rotulo="Detalhes do registro"
+  (fechar)="displayDetalhesModal = false">
 
-<p-toast position="top-right" [life]="2000"></p-toast>
+  <app-modal-cabecalho
+    [titulo]="getActionLabel(logSelecionado?.action) || 'Detalhes do registro'"
+    subtitulo="Informações da atividade registrada no sistema"
+    [icone]="getIconClass(logSelecionado?.level)"
+    [variante]="logSelecionado?.level === 'error' ? 'perigo' : logSelecionado?.level === 'warning' ? 'aviso' : logSelecionado?.level === 'success' ? 'sucesso' : 'neutro'"
+    (fechar)="displayDetalhesModal = false">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo rolagemInterna>
+    <div *ngIf="logSelecionado" class="registro-modal-conteudo">
+
+      <div class="registro-resumo">
+        <div class="registro-acao">
+          <div class="registro-acao-icone">
+            <i [class]="getActionIcon(logSelecionado.action)"></i>
+          </div>
+
+          <div class="registro-acao-dados">
+            <span class="registro-rotulo">Atividade registrada</span>
+            <strong>{{ getActionLabel(logSelecionado.action) }}</strong>
+          </div>
+        </div>
+
+        <span class="log-level registro-nivel" [ngClass]="getNivelClass(logSelecionado.level)">
+          <i [class]="getIconClass(logSelecionado.level)"></i>
+          {{ getNivelLabel(logSelecionado.level) }}
+        </span>
+      </div>
+
+      <section class="registro-secao">
+        <h3 class="registro-secao-titulo">
+          <i class="pi pi-list"></i>
+          Informações do registro
+        </h3>
+
+        <div class="registro-informacoes">
+          <div class="registro-informacao registro-usuario">
+            <div class="registro-informacao-icone">
+              <i class="pi pi-user"></i>
+            </div>
+
+            <div class="registro-informacao-dados">
+              <span class="registro-rotulo">Usuário responsável</span>
+              <strong>{{ getNomeUsuario(logSelecionado.userId) }}</strong>
+            </div>
+          </div>
+
+          <div class="registro-informacao">
+            <div class="registro-informacao-icone">
+              <i class="pi pi-calendar"></i>
+            </div>
+
+            <div class="registro-informacao-dados">
+              <span class="registro-rotulo">Data</span>
+              <strong>{{ logSelecionado.timestamp | date:'dd/MM/yyyy' }}</strong>
+            </div>
+          </div>
+
+          <div class="registro-informacao">
+            <div class="registro-informacao-icone">
+              <i class="pi pi-clock"></i>
+            </div>
+
+            <div class="registro-informacao-dados">
+              <span class="registro-rotulo">Horário</span>
+              <strong>{{ logSelecionado.timestamp | date:'HH:mm:ss' }}</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="registro-secao">
+        <h3 class="registro-secao-titulo">
+          <i class="pi pi-align-left"></i>
+          Detalhes da atividade
+        </h3>
+
+        <div class="registro-detalhes" *ngIf="logSelecionado.details; else semDetalhes">
+          {{ logSelecionado.details }}
+        </div>
+
+        <ng-template #semDetalhes>
+          <div class="registro-sem-detalhes">
+            <i class="pi pi-info-circle"></i>
+            Nenhuma informação adicional registrada.
+          </div>
+        </ng-template>
+      </section>
+
+    </div>
+  </app-modal-corpo>
+
+  <app-modal-rodape separador>
+    <button
+      appBotao
+      variante="secundario"
+      aparencia="confirmacao"
+      icone="pi pi-times"
+      larguraTotal
+      (click)="displayDetalhesModal = false">
+      Fechar
+    </button>
+  </app-modal-rodape>
+</app-modal-base>
+
+<app-notificacao></app-notificacao>

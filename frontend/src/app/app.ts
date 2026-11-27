@@ -1,3 +1,6 @@
+import { inject } from '@angular/core';
+import { PedidoService } from './services/pedido.service';
+import { NotificacaoComponent } from './components/shared/feedback';
 
 import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -13,19 +16,20 @@ import {
 import { HeaderComponent } from './components/header/header';
 import { FooterComponent } from './components/footer/footer';
 import { AdminModalsComponent } from './components/admin-modals/admin-modals';
-import { AuthService, Notificacao } from './services/auth';
+import { AuthService } from './services/auth';
+import type { Notificacao } from './models/notificacao.model';
 import { ChatService } from './services/chat.service';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { GlobalChatComponent } from './app/global-chat.component';
 import { ChatbotComponent } from './components/chatbot/chatbot.component';
-import { environment } from '../environments/environment';
+
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [
+  imports: [NotificacaoComponent, 
     CommonModule,
     RouterModule,
     HeaderComponent,
@@ -40,6 +44,8 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./app.css']
 })
 export class AppComponent implements OnInit, OnDestroy {
+  private readonly pedidoService = inject(PedidoService);
+
   loading: boolean = false;
   isLoggedIn: boolean = false;
   isAdmin: boolean = false;
@@ -85,6 +91,27 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.subscriptions.add(
+      this.authService.sessaoExpirada$.subscribe(() => {
+        this.isLoggedIn = false;
+        this.isAdmin = false;
+        this.pararPolling();
+        this.limparMonitoramento();
+        this.chatService.limparUltimoPedido();
+
+        this.router.navigate(['/'], { replaceUrl: true });
+
+        setTimeout(() => {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Sessão expirada',
+            detail: 'Sua sessão expirou. Entre novamente para continuar.',
+            life: 5000
+          });
+        }, 0);
+      })
+    );
+
     const user = this.authService.getUser();
 
     if (user) {
@@ -111,7 +138,9 @@ export class AppComponent implements OnInit, OnDestroy {
             this.loading = true;
 
             setTimeout(() => {
-              this.router.navigate(['/admin/dashboard']);
+              if (this.authService.isAuthenticated() && this.authService.isAdmin()) {
+                this.router.navigate(['/admin/dashboard']);
+              }
               this.loading = false;
             }, 300);
           }
@@ -142,6 +171,18 @@ export class AppComponent implements OnInit, OnDestroy {
         }, 50);
       })
     );
+  }
+
+  @HostListener('window:focus')
+  verificarSessaoAoRetornar(): void {
+    this.authService.isAuthenticated();
+  }
+
+  @HostListener('document:visibilitychange')
+  verificarSessaoAoExibir(): void {
+    if (document.visibilityState === 'visible') {
+      this.authService.isAuthenticated();
+    }
   }
 
   ngOnDestroy(): void {
@@ -199,15 +240,17 @@ export class AppComponent implements OnInit, OnDestroy {
       const usuarioId = usuario.id;
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `${environment.apiUrl}/pedidos?clienteId=${usuarioId}`,
-        {
+      const response = await this.pedidoService.listarPorCliente(usuarioId, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + token
           }
-        }
-      );
+        });
+
+      if (response.status === 401 && token) {
+        this.authService.encerrarSessaoExpirada(token);
+        return;
+      }
 
       if (response.ok) {
         const pedidos = await response.json();

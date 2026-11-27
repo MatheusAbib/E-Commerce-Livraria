@@ -1,0 +1,107 @@
+<section
+  class="mais-vendidos-livraria principal-secao"
+  id="mais-vendidos"
+  aria-labelledby="mais-vendidos-titulo"
+  *ngIf="carregandoMaisVendidos || maisVendidos.length > 0">
+
+  <div class="principal-secao-conteudo">
+
+    <ng-template #complementoSecao>
+      <div class="mais-vendidos-contador" *ngIf="!carregandoMaisVendidos">
+        <i class="pi pi-chart-bar" aria-hidden="true"></i>
+        <div>
+          <small>CLASSIFICAÇÃO</small>
+          <strong>TOP {{ maisVendidos.length.toString().padStart(2, '0') }}</strong>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-container
+      *ngTemplateOutlet="cabecalhoSecao; context: {
+        indice: '03 / RANKING LITERÁRIO',
+        titulo: 'Os mais',
+        destaque: 'vendidos.',
+        id: 'mais-vendidos-titulo',
+        complemento: complementoSecao
+      }">
+    </ng-container>
+
+    <div
+      class="mais-vendidos-grid"
+      [attr.data-total]="maisVendidos.length"
+      *ngIf="!carregandoMaisVendidos">
+
+      <button
+        type="button"
+        class="mais-vendidos-card"
+        [class.mais-vendidos-lider]="i === 0"
+        *ngFor="let livro of maisVendidos | slice:0:5; let i = index"
+        (click)="verDetalhes(livro)"
+        [attr.aria-label]="(i + 1) + 'º lugar: Ver detalhes de ' + livro.titulo">
+
+        <div class="mais-vendidos-card-topo">
+          <span class="mais-vendidos-colocacao">
+            <i *ngIf="i === 0" class="pi pi-trophy" aria-hidden="true"></i>
+            {{ i === 0 ? 'PRIMEIRO LUGAR' : (i + 1) + 'º LUGAR' }}
+          </span>
+
+          <span class="mais-vendidos-abrir" aria-hidden="true">
+            <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+          </span>
+        </div>
+
+        <div class="mais-vendidos-palco">
+          <span class="mais-vendidos-posicao" aria-hidden="true">
+            {{ (i + 1).toString().padStart(2, '0') }}
+          </span>
+
+          <div class="mais-vendidos-geometria" aria-hidden="true"></div>
+
+          <div class="mais-vendidos-imagem">
+            <img
+              [src]="livro.imagemUrl ? '/uploads/' + livro.imagemUrl : '/images/livro.png'"
+              [alt]="'Capa do livro ' + livro.titulo"
+              loading="lazy">
+          </div>
+
+          <div class="mais-vendidos-vendas">
+            <i class="pi pi-shopping-cart" aria-hidden="true"></i>
+            <strong>{{ livro.quantidadeVendida || 0 }}</strong>
+            <span>{{ livro.quantidadeVendida === 1 ? 'unidade vendida' : 'unidades vendidas' }}</span>
+          </div>
+        </div>
+
+        <div class="mais-vendidos-card-informacoes">
+          <span class="mais-vendidos-categoria">
+            {{ livro.categoria || 'Literatura' }}
+          </span>
+
+          <h3>{{ livro.titulo }}</h3>
+          <p>{{ livro.autor || 'Autor desconhecido' }}</p>
+
+          <div class="mais-vendidos-card-rodape">
+            <span class="mais-vendidos-preco">
+              {{ livro.precoVenda | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}
+            </span>
+
+            <span class="mais-vendidos-detalhes" aria-hidden="true">
+              Ver livro
+              <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            </span>
+          </div>
+        </div>
+      </button>
+    </div>
+
+    <div class="mais-vendidos-carregamento" *ngIf="carregandoMaisVendidos">
+      <app-carregamento
+        modelo="simples"
+        compacto
+        tamanho="pequeno"
+        direcao="horizontal"
+        texto="Carregando destaques...">
+      </app-carregamento>
+    </div>
+
+  </div>
+</section>

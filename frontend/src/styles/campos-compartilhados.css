@@ -1,0 +1,123 @@
+.campo-compartilhado {
+  --campo-altura-local: var(--campo-altura);
+  --campo-padding-local: 12px 14px;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: var(--campo-altura-local);
+  padding: var(--campo-padding-local);
+  border: 1px solid var(--campo-borda);
+  border-radius: var(--borda-raio);
+  background: var(--cor-superficie);
+  color: var(--campo-texto);
+  font-family: var(--campo-fonte);
+  font-size: var(--campo-tamanho);
+  font-weight: 400;
+  line-height: 1.4;
+  box-shadow: none;
+  transition: border-color var(--transicao-padrao), background-color var(--transicao-padrao);
+}
+
+.campo-compartilhado.campo-largura-total {
+  width: 100%;
+}
+
+.campo-compartilhado[data-campo-tamanho="pequeno"] {
+  --campo-altura-local: 36px;
+  --campo-padding-local: 8px 12px;
+}
+
+.campo-compartilhado[data-campo-tamanho="grande"] {
+  --campo-altura-local: 49px;
+  --campo-padding-local: 13px 16px;
+}
+
+.campo-compartilhado[data-campo-aparencia="autenticacao"] {
+  --campo-altura-local: 47px;
+  --campo-padding-local: 12px 14px;
+}
+
+.campo-compartilhado[data-campo-aparencia="administrativo"] {
+  --campo-altura-local: 44px;
+  --campo-padding-local: 11px 14px;
+}
+
+.campo-compartilhado[data-campo-aparencia="compacto"] {
+  --campo-altura-local: 36px;
+  --campo-padding-local: 8px 10px;
+}
+
+.campo-compartilhado::placeholder {
+  color: var(--campo-placeholder);
+  opacity: 1;
+}
+
+.campo-compartilhado:hover:not(:disabled):not(:read-only) {
+  border-color: var(--cor-borda-hover);
+}
+
+.campo-compartilhado:focus {
+  border-color: var(--campo-foco);
+}
+
+.campo-compartilhado:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+  background: var(--cor-superficie-suave);
+}
+
+.campo-compartilhado[readonly] {
+  background: var(--cor-superficie-suave);
+}
+
+.campo-compartilhado.campo-invalido,
+.campo-compartilhado.ng-invalid.ng-touched {
+  border-color: var(--cor-perigo) !important;
+}
+
+.campo-compartilhado.campo-invalido:focus,
+.campo-compartilhado.ng-invalid.ng-touched:focus {
+  border-color: var(--cor-perigo) !important;
+}
+
+textarea.campo-compartilhado {
+  min-height: 100px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+select.campo-compartilhado {
+  cursor: pointer;
+}
+
+select.campo-compartilhado:disabled {
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .campo-compartilhado {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .campo-compartilhado {
+    transition: none;
+  }
+}
+
+input[type="checkbox"].controle-selecao-compartilhado,
+input[type="radio"].controle-selecao-compartilhado {
+  accent-color: var(--cor-primaria);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+input.controle-selecao-compartilhado:focus-visible {
+  outline: 2px solid var(--cor-destaque);
+  outline-offset: 3px;
+}
+
+input.controle-selecao-compartilhado:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}

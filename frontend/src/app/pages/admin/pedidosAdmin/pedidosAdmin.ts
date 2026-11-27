@@ -1,3 +1,14 @@
+import { ChatApiService } from '../../../services/chat-api.service';
+import { inject } from '@angular/core';
+import { PedidoService } from '../../../services/pedido.service';
+import { NotificacaoComponent } from '../../../components/shared/feedback';
+import { EstadoVazioComponent } from '../../../components/shared/feedback';
+import { CarregamentoComponent } from '../../../components/shared/feedback';
+import { CampoSelecaoComponent } from '../../../components/shared/forms';
+import { CampoDirective } from '../../../components/shared/forms';
+import { BotaoComponent } from '../../../components/shared/buttons/botao/botao';
+import { BotaoIconeComponent } from '../../../components/shared/buttons/botao-icone/botao-icone';
+import { GrupoAcoesComponent } from '../../../components/shared/buttons/grupo-acoes/grupo-acoes';
 import { Component, OnInit, ViewChild, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -5,38 +16,40 @@ import { RouterModule } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
+
 import { PaginatorModule } from 'primeng/paginator';
 import { AdminSidebarComponent } from '../../../components/admin-sidebar/admin-sidebar';
 import { AdminModalsComponent } from '../../../components/admin-modals/admin-modals';
-import { AdminService } from '../../../services/admin.service';
 import { AuthService } from '../../../services/auth';
 import { Router } from '@angular/router';
-import { environment } from '../../../../environments/environment';
+
 
 @Component({
   selector: 'app-pedidos-admin',
   standalone: true,
-  imports: [
+  imports: [NotificacaoComponent, EstadoVazioComponent, CarregamentoComponent, CampoSelecaoComponent, CampoDirective, 
     CommonModule,
     FormsModule,
     RouterModule,
     ToastModule,
     DialogModule,
-    ButtonModule,
-    InputTextModule,
-    DropdownModule,
+
     PaginatorModule,
     AdminSidebarComponent,
-    AdminModalsComponent
+    AdminModalsComponent,
+    BotaoComponent,
+    BotaoIconeComponent,
+    GrupoAcoesComponent
   ],
   providers: [MessageService],
   templateUrl: './pedidosAdmin.html',
   styleUrls: ['./pedidosAdmin.css', '../admin-common.css']
 })
 export class PedidosAdminComponent implements OnInit, OnDestroy {
+  private readonly chatApiService = inject(ChatApiService);
+
+  private readonly pedidoService = inject(PedidoService);
+
   @ViewChild(AdminModalsComponent) adminModals!: AdminModalsComponent;
 
   pedidos: any[] = [];
@@ -61,6 +74,18 @@ export class PedidosAdminComponent implements OnInit, OnDestroy {
 
   tabAtivo: string = 'todos';
 
+
+  readonly opcoesStatusFiltro = [
+    { rotulo: 'Todos', valor: '' },
+    { rotulo: 'Em Processamento', valor: 'EM_PROCESSAMENTO' },
+    { rotulo: 'Em Trânsito', valor: 'EM_TRANSITO' },
+    { rotulo: 'Entregue', valor: 'ENTREGUE' },
+    { rotulo: 'Cancelado', valor: 'CANCELADO' },
+    { rotulo: 'Devolução Solicitada', valor: 'DEVOLUCAO' },
+    { rotulo: 'Devolução Autorizada', valor: 'AUTORIZADO_DEVOLUCAO' },
+    { rotulo: 'Devolução Enviada', valor: 'ENVIADO_DEVOLUCAO' },
+    { rotulo: 'Devolvido', valor: 'DEVOLVIDO' }
+  ];
   filtros = {
     status: '',
     cliente: ''
@@ -83,7 +108,6 @@ export class PedidosAdminComponent implements OnInit, OnDestroy {
 
   constructor(
     private messageService: MessageService,
-    private adminService: AdminService,
     private authService: AuthService,
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -104,6 +128,7 @@ export class PedidosAdminComponent implements OnInit, OnDestroy {
       clearInterval(this.chatAdminInterval);
       this.chatAdminInterval = null;
     }
+    if (this.debounceTimer) clearTimeout(this.debounceTimer);
   }
 
   abrirChatAdmin(pedido: any): void {
@@ -123,7 +148,7 @@ export class PedidosAdminComponent implements OnInit, OnDestroy {
   async carregarMensagensChatAdmin(pedidoId: number): Promise<void> {
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/chat/admin/${pedidoId}`, {
+      const response = await this.chatApiService.listarMensagensAdmin(pedidoId, {
         headers: {
           'Authorization': 'Bearer ' + token
         }
@@ -133,7 +158,7 @@ export class PedidosAdminComponent implements OnInit, OnDestroy {
         this.mensagensChatAdmin = await response.json();
         this.scrollChatAdminParaBaixo();
 
-        await fetch(`${environment.apiUrl}/chat/admin/${pedidoId}/ler`, {
+        await this.chatApiService.marcarLidasAdmin(pedidoId, {
           method: 'PUT',
           headers: {
             'Authorization': 'Bearer ' + token
@@ -148,7 +173,7 @@ export class PedidosAdminComponent implements OnInit, OnDestroy {
   async carregarMensagensChatAdminSilenciosamente(pedidoId: number): Promise<void> {
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/chat/admin/${pedidoId}`, {
+      const response = await this.chatApiService.listarMensagensAdmin(pedidoId, {
         headers: {
           'Authorization': 'Bearer ' + token
         }
@@ -160,7 +185,7 @@ export class PedidosAdminComponent implements OnInit, OnDestroy {
           this.mensagensChatAdmin = novasMensagens;
           this.scrollChatAdminParaBaixo();
 
-          await fetch(`${environment.apiUrl}/chat/admin/${pedidoId}/ler`, {
+          await this.chatApiService.marcarLidasAdmin(pedidoId, {
             method: 'PUT',
             headers: {
               'Authorization': 'Bearer ' + token
@@ -187,7 +212,7 @@ export class PedidosAdminComponent implements OnInit, OnDestroy {
 
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/chat/admin?pedidoId=${this.chatAdminPedido.id}`, {
+      const response = await this.chatApiService.enviarMensagemAdmin(this.chatAdminPedido.id, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -215,7 +240,7 @@ export class PedidosAdminComponent implements OnInit, OnDestroy {
   async verificarAtendimentoAdmin(pedidoId: number): Promise<void> {
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/chat/admin/${pedidoId}/atendimento-ativo`, {
+      const response = await this.chatApiService.consultarAtendimento(pedidoId, {
         headers: {
           'Authorization': 'Bearer ' + token
         }
@@ -235,7 +260,7 @@ export class PedidosAdminComponent implements OnInit, OnDestroy {
 
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/chat/admin/${this.chatAdminPedido.id}/encerrar`, {
+      const response = await this.chatApiService.encerrarAdmin(this.chatAdminPedido.id, {
         method: 'PUT',
         headers: {
           'Authorization': 'Bearer ' + token
@@ -263,12 +288,10 @@ export class PedidosAdminComponent implements OnInit, OnDestroy {
     }
   }
 
-
-
   async carregarPedidosSilenciosamente(): Promise<void> {
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/pedidos/todos`, {
+      const response = await this.pedidoService.listarTodos({
         headers: {
           'Authorization': 'Bearer ' + token
         }
@@ -277,7 +300,7 @@ export class PedidosAdminComponent implements OnInit, OnDestroy {
         const novosPedidos = await response.json();
 
         for (const pedido of novosPedidos) {
-          const mensagensResponse = await fetch(`/api/chat/admin/${pedido.id}`, {
+          const mensagensResponse = await this.chatApiService.listarMensagensAdminRelativo(pedido.id, {
             headers: {
               'Authorization': 'Bearer ' + token
             }
@@ -287,7 +310,7 @@ export class PedidosAdminComponent implements OnInit, OnDestroy {
             pedido.temConversa = mensagens.length > 0;
           }
 
-          const naoLidasResponse = await fetch(`/api/chat/admin/${pedido.id}/nao-lidas`, {
+          const naoLidasResponse = await this.chatApiService.contarNaoLidasAdminRelativo(pedido.id, {
             headers: {
               'Authorization': 'Bearer ' + token
             }
@@ -352,7 +375,19 @@ export class PedidosAdminComponent implements OnInit, OnDestroy {
     this.aplicarFiltros();
   }
 
-  filtrando: boolean = false;
+  
+  private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly DEBOUNCE_MS = 600;
+
+  onFiltroTextoChange(): void {
+    if (this.debounceTimer) clearTimeout(this.debounceTimer);
+    if (!this.filtros.cliente && !this.filtros.status) {
+      this.aplicarFiltros();
+      return;
+    }
+    this.debounceTimer = setTimeout(() => this.aplicarFiltros(), this.DEBOUNCE_MS);
+  }
+filtrando: boolean = false;
 
 aplicarFiltros(): void {
   if (this.carregandoFiltrar) return;
@@ -416,7 +451,7 @@ async carregarPedidos(): Promise<void> {
   this.cdr.detectChanges();
   try {
     const token = this.authService.getToken();
-    const response = await fetch(`${environment.apiUrl}/pedidos/todos`, {
+    const response = await this.pedidoService.listarTodos({
       headers: {
         'Authorization': 'Bearer ' + token
       }
@@ -427,10 +462,10 @@ async carregarPedidos(): Promise<void> {
 
       await Promise.all(this.pedidos.map(async (pedido) => {
         const [mensagensResponse, naoLidasResponse] = await Promise.all([
-          fetch(`/api/chat/admin/${pedido.id}`, {
+          this.chatApiService.listarMensagensAdminRelativo(pedido.id, {
             headers: { 'Authorization': 'Bearer ' + token }
           }),
-          fetch(`/api/chat/admin/${pedido.id}/nao-lidas`, {
+          this.chatApiService.contarNaoLidasAdminRelativo(pedido.id, {
             headers: { 'Authorization': 'Bearer ' + token }
           })
         ]);
@@ -492,7 +527,7 @@ async carregarPedidos(): Promise<void> {
       body.codigoRastreamentoEnvio = codigoRastreamento;
     }
 
-    const response = await fetch(`${environment.apiUrl}/pedidos/${pedido.id}/status`, {
+    const response = await this.pedidoService.alterarStatus(pedido.id, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -542,7 +577,6 @@ async carregarPedidos(): Promise<void> {
   }
 }
 
-
   abrirExcluir(pedido: any): void {
     this.adminModals.onConfirmarPedidoExcluir = (pedidoParam: any) => {
       this.confirmarExcluir(pedidoParam);
@@ -561,7 +595,7 @@ async confirmarExcluir(pedido: any): Promise<void> {
 
   try {
     const token = this.authService.getToken();
-    const response = await fetch(`${environment.apiUrl}/pedidos/${pedido.id}`, {
+    const response = await this.pedidoService.excluir(pedido.id, {
       method: 'DELETE',
       headers: {
         'Authorization': 'Bearer ' + token
@@ -611,3 +645,8 @@ async confirmarExcluir(pedido: any): Promise<void> {
     return classes[status] || 'status-pendente';
   }
 }
+
+
+
+
+

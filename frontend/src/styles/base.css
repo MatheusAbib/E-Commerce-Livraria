@@ -1,0 +1,17 @@
+body {
+  margin: 0;
+}
+
+app-grupo-acoes.acoes-iguais > *,
+[appGrupoAcoes].acoes-iguais > * {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+@media (max-width: 480px) {
+  app-grupo-acoes.acoes-empilhadas > *,
+  [appGrupoAcoes].acoes-empilhadas > * {
+    width: 100%;
+    flex: 0 0 auto;
+  }
+}

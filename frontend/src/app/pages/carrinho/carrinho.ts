@@ -1,4 +1,20 @@
-﻿import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { EnderecoService } from '../../services/endereco.service';
+import { ClienteService } from '../../services/cliente.service';
+import { PedidoService } from '../../services/pedido.service';
+import { inject } from '@angular/core';
+import { CupomService } from '../../services/cupom.service';
+import { ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent, ModalRodapeComponent, ModalConfirmacaoComponent } from '../../components/shared/modals';
+import { NotificacaoComponent, CarregamentoComponent } from '../../components/shared/feedback';
+import { CampoMonetarioComponent } from '../../components/shared/forms';
+import { CampoQuantidadeComponent } from '../../components/shared/forms';
+import { CampoDirective } from '../../components/shared/forms';
+import { GrupoFormularioComponent } from '../../components/shared/forms';
+import { MascaraDirective } from '../../components/shared/forms';
+import { CampoSelecaoComponent } from '../../components/shared/forms';
+import { BotaoComponent } from '../../components/shared/buttons/botao/botao';
+import { BotaoIconeComponent } from '../../components/shared/buttons/botao-icone/botao-icone';
+import { GrupoAcoesComponent } from '../../components/shared/buttons/grupo-acoes/grupo-acoes';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 
@@ -6,23 +22,15 @@ import { FormsModule } from '@angular/forms';
 
 import { RouterModule, Router } from '@angular/router';
 
-import { ToastModule } from 'primeng/toast';
-
 import { MessageService } from 'primeng/api';
 
-import { DialogModule } from 'primeng/dialog';
-
-import { ButtonModule } from 'primeng/button';
-
-import { InputTextModule } from 'primeng/inputtext';
-
-import { DropdownModule } from 'primeng/dropdown';
-
+import { Subscription } from 'rxjs';
 import { CarrinhoService } from '../../services/carrinho';
+import type { CarrinhoResponse } from '../../models/carrinho.model';
 
 import { AuthService } from '../../services/auth';
 
-import { environment } from '../../../environments/environment';
+
 
 @Component({
 
@@ -30,7 +38,7 @@ import { environment } from '../../../environments/environment';
 
   standalone: true,
 
-  imports: [
+  imports: [ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent, ModalRodapeComponent, ModalConfirmacaoComponent, CarregamentoComponent, NotificacaoComponent, CampoMonetarioComponent, CampoQuantidadeComponent, CampoDirective, GrupoFormularioComponent, MascaraDirective, CampoSelecaoComponent, 
 
     CommonModule,
 
@@ -38,15 +46,9 @@ import { environment } from '../../../environments/environment';
 
     RouterModule,
 
-    ToastModule,
-
-    DialogModule,
-
-    ButtonModule,
-
-    InputTextModule,
-
-    DropdownModule
+    BotaoComponent,
+    BotaoIconeComponent,
+    GrupoAcoesComponent
 
   ],
 
@@ -59,7 +61,39 @@ import { environment } from '../../../environments/environment';
 })
 
 export class CarrinhoComponent implements OnInit, OnDestroy {
+  private readonly enderecoService = inject(EnderecoService);
+  private readonly clienteService = inject(ClienteService);
+  private readonly pedidoService = inject(PedidoService);
 
+  private readonly cupomService = inject(CupomService);
+
+  get opcoesEnderecosCheckout() {
+    return this.enderecos.map(endereco => ({
+      rotulo: `${endereco.nomeEndereco} - ${endereco.cidade}, ${endereco.estado}`,
+      valor: endereco
+    }));
+  }
+
+  get opcoesCartoesCheckout() {
+    return this.cartoesNaoSelecionados.map(cartao => ({
+      rotulo: `${cartao.bandeira} •••• ${cartao.numero.slice(-4)}`,
+      valor: cartao
+    }));
+  }
+
+  get opcoesEstadosCheckout() {
+    return this.estadosBrasil.map(estado => ({
+      rotulo: estado.nome,
+      valor: estado.sigla
+    }));
+  }
+
+  readonly opcoesBandeirasCheckout = [
+    { rotulo: 'Visa', valor: 'Visa' },
+    { rotulo: 'Mastercard', valor: 'Mastercard' },
+    { rotulo: 'Elo', valor: 'Elo' },
+    { rotulo: 'American Express', valor: 'American Express' }
+  ];
 
   carrinho: any[] = [];
 
@@ -91,8 +125,6 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
   tempoRestante: number = 0;
 
-  timerInterval: any = null;
-
   displayEnderecoModal: boolean = false;
 
   displayCartaoModal: boolean = false;
@@ -114,16 +146,27 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
   notificacoes: any[] = [];
 
   estadosBrasil = [
+
     { sigla: 'AC', nome: 'Acre' }, { sigla: 'AL', nome: 'Alagoas' }, { sigla: 'AP', nome: 'Amapá' },
+
     { sigla: 'AM', nome: 'Amazonas' }, { sigla: 'BA', nome: 'Bahia' }, { sigla: 'CE', nome: 'Ceará' },
+
     { sigla: 'DF', nome: 'Distrito Federal' }, { sigla: 'ES', nome: 'Espírito Santo' },
+
     { sigla: 'GO', nome: 'Goiás' }, { sigla: 'MA', nome: 'Maranhão' }, { sigla: 'MT', nome: 'Mato Grosso' },
+
     { sigla: 'MS', nome: 'Mato Grosso do Sul' }, { sigla: 'MG', nome: 'Minas Gerais' },
+
     { sigla: 'PA', nome: 'Pará' }, { sigla: 'PB', nome: 'Paraíba' }, { sigla: 'PR', nome: 'Paraná' },
+
     { sigla: 'PE', nome: 'Pernambuco' }, { sigla: 'PI', nome: 'Piauí' }, { sigla: 'RJ', nome: 'Rio de Janeiro' },
+
     { sigla: 'RN', nome: 'Rio Grande do Norte' }, { sigla: 'RS', nome: 'Rio Grande do Sul' },
+
     { sigla: 'RO', nome: 'Rondônia' }, { sigla: 'RR', nome: 'Roraima' }, { sigla: 'SC', nome: 'Santa Catarina' },
+
     { sigla: 'SP', nome: 'São Paulo' }, { sigla: 'SE', nome: 'Sergipe' }, { sigla: 'TO', nome: 'Tocantins' }
+
   ];
 
   novoEndereco: any = {};
@@ -136,10 +179,6 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
   adicionalEstado: number = 0;
 
-  TEMPO_LIMITE_CARRINHO: number = 600;
-
-  private TIMER_KEY = 'carrinhoTimer';
-
   carregandoLimpar: boolean = false;
 
   carregandoFinalizar: boolean = false;
@@ -151,6 +190,12 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
   carregandoSalvarCartao: boolean = false;
 
   carregandoRemoverItem: { [key: number]: boolean } = {};
+
+  private subscriptions = new Subscription();
+  private estado: CarrinhoResponse | null = null;
+  private destruido = false;
+  mutacaoPendente = false;
+  erroCarrinho = '';
 
   constructor(
 
@@ -167,191 +212,76 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-
     this.usuario = this.authService.getUser();
-
     if (!this.usuario) {
-
-      this.router.navigate(['/principal']);
-
+      void this.router.navigate(['/principal']);
       return;
-
     }
-
-    this.carregarTimerLocalStorage();
-
-    this.carregarCarrinho();
-
-    this.carregarEnderecos();
-
-    this.carregarCartoes();
-
+    this.subscriptions.add(this.carrinhoService.carrinho$.subscribe(estado => {
+      const anterior = this.estado;
+      this.estado = estado;
+      if (anterior?.id !== estado?.id || anterior?.revisao !== estado?.revisao) {
+        this.displayConfirmacao = false;
+        this.displayConfirmarLimpeza = false;
+      }
+      if (anterior?.id != null && anterior.id !== estado?.id) {
+        this.cuponsAplicados = [];
+        this.codigoCupom = '';
+      }
+      this.carrinho = (estado?.itens || []).map(item => ({
+        id: item.livroId,
+        quantidade: item.quantidade,
+        produto: { ...item, id: item.livroId, estoque: item.quantidadeMaximaPermitida }
+      }));
+      this.calcularTotais();
+    }));
+    this.subscriptions.add(this.carrinhoService.tempoRestante$.subscribe(segundos => {
+      this.tempoRestante = segundos;
+      this.timerDisplay = this.carrinho.length ? this.formatarTempo(segundos) : '';
+      if (!segundos) this.displayConfirmacao = false;
+      this.cdr.markForCheck();
+    }));
+    void this.carregarCarrinho();
+    void this.carregarEnderecos();
+    void this.carregarCartoes();
     this.carregarNotificacoes();
-
-    this.carrinhoService.carrinhoAtualizado$.subscribe(() => {
-
-      this.carregarCarrinho();
-
-    });
-
   }
 
   ngOnDestroy(): void {
-
-    if (this.timerInterval) clearInterval(this.timerInterval);
-
-  }
-
-  obterCarrinhoUsuario(): any[] {
-
-    const carrinhosPorUsuario = JSON.parse(localStorage.getItem('carrinhosPorUsuario') || '{}');
-
-    return carrinhosPorUsuario[this.usuario.id] || [];
-
-  }
-
-  salvarCarrinhoUsuario(carrinho: any[]): void {
-
-    const carrinhosPorUsuario = JSON.parse(localStorage.getItem('carrinhosPorUsuario') || '{}');
-
-    carrinhosPorUsuario[this.usuario.id] = carrinho;
-
-    localStorage.setItem('carrinhosPorUsuario', JSON.stringify(carrinhosPorUsuario));
-
-    this.atualizarContadorGlobal();
-
-  }
-
-  atualizarContadorGlobal(): void {
-
-    const total = this.carrinho.reduce((acc, item) => acc + (item.quantidade || 1), 0);
-
-    const contadores = document.querySelectorAll('.cart-count');
-
-    contadores.forEach(el => {
-
-      el.textContent = total.toString();
-
-      el.classList.toggle('hidden', total === 0);
-
-    });
-
+    this.destruido = true;
+    this.subscriptions.unsubscribe();
   }
 
   async carregarCarrinho(): Promise<void> {
-
     this.loading = true;
-
-    const carrinhoBruto = this.obterCarrinhoUsuario();
-
-    if (carrinhoBruto.length === 0) {
-
-      this.carrinho = [];
-
-      this.loading = false;
-
-      this.cdr.detectChanges();
-
-      this.iniciarTemporizador();
-
-      return;
-
-    }
-
-    const agora = new Date();
-
-    const carrinhoFiltrado = carrinhoBruto.filter((item: any) => {
-
-      if (!item.dataAdicao) {
-
-        item.dataAdicao = new Date().toISOString();
-
-        return true;
-
-      }
-
-      const dataAdicao = new Date(item.dataAdicao);
-
-      const diff = (agora.getTime() - dataAdicao.getTime()) / (1000 * 60);
-
-      return diff < 30;
-
-    });
-
-    if (carrinhoFiltrado.length !== carrinhoBruto.length) {
-
-      this.salvarCarrinhoUsuario(carrinhoFiltrado);
-
-      this.messageService.add({
-
-        severity: 'warn',
-
-        summary: 'Carrinho atualizado',
-
-        detail: 'Itens antigos foram removidos por expiração.'
-
-      });
-
-    }
-
+    this.erroCarrinho = '';
     try {
-
-      const itensDetalhados = await Promise.all(
-
-        carrinhoFiltrado.map(async (item) => {
-
-          try {
-
-            const response = await fetch(`${environment.apiUrl}/livros/${item.id}`);
-
-            if (!response.ok) throw new Error('Erro ao buscar produto ' + item.id);
-
-            const produto = await response.json();
-
-            return { ...item, produto };
-
-          } catch {
-
-            return null;
-
-          }
-
-        })
-
-      );
-
-      this.carrinho = itensDetalhados.filter(item => item !== null);
-
-      if (this.carrinho.length !== carrinhoFiltrado.length) {
-
-        this.salvarCarrinhoUsuario(this.carrinho.map(item => ({
-
-          id: item.id,
-
-          quantidade: item.quantidade,
-
-          dataAdicao: item.dataAdicao || new Date().toISOString()
-
-        })));
-
-      }
-
-      this.calcularTotais();
-
-      this.iniciarTemporizador();
-
-    } catch (error) {
-
-      this.messageService.add({severity:'error', summary:'Erro', detail:'Erro ao carregar produtos'});
-
+      await this.carrinhoService.carregarCarrinho();
+    } catch (erro) {
+      this.erroCarrinho = this.carrinhoService.obterMensagemErro(erro);
     } finally {
-
       this.loading = false;
-
-      this.cdr.detectChanges();
-
+      if (!this.destruido) this.cdr.markForCheck();
     }
+  }
 
+  get operacaoBloqueada(): boolean {
+    return this.loading || this.mutacaoPendente || this.carregandoFinalizar || this.tempoRestante <= 0 || !!this.erroCarrinho;
+  }
+
+  private async modificarCarrinho(operacao: () => Promise<CarrinhoResponse>): Promise<boolean> {
+    if (this.operacaoBloqueada) return false;
+    this.mutacaoPendente = true;
+    try {
+      const resposta = await operacao();
+      return !resposta.expirado;
+    } catch (erro) {
+      this.messageService.add({severity: 'error', summary: 'Carrinho', detail: this.carrinhoService.obterMensagemErro(erro)});
+      return false;
+    } finally {
+      this.mutacaoPendente = false;
+      if (!this.destruido) this.cdr.markForCheck();
+    }
   }
 
   toggleSelectCartao(): void {
@@ -373,23 +303,42 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
   }
 
   adicionarCartaoSelecionado(): void {
+
     if (!this.cartaoParaAdicionar) return;
+
     const cartao = this.cartaoParaAdicionar;
+
     if (this.cartoesSelecionados.some(c => c.id === cartao.id)) return;
+
     this.cartoesSelecionados.push({
+
       id: cartao.id,
+
       bandeira: cartao.bandeira,
+
       ultimosDigitos: String(cartao.numero || '').replace(/\D/g, '').slice(-4),
+
       valor: 0,
+
       valorErro: false
+
     });
+
     this.cartaoParaAdicionar = null;
+
     this.mostrarSelectCartao = false;
+
     this.redistribuirValoresCartoes();
+
   }
 
   calcularTotais(): void {
 
+    if (!this.carrinho.length) {
+      this.subtotal = this.freteBase = this.adicionalEstado = this.frete = this.desconto = this.total = 0;
+      this.redistribuirValoresCartoes();
+      return;
+    }
     this.subtotal = this.carrinho.reduce((sum, item) => sum + (item.produto.precoVenda * item.quantidade), 0);
 
     this.freteBase = this.subtotal >= 300 ? 0 : 15 + Math.floor(this.subtotal / 70) * 7;
@@ -439,19 +388,24 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
     }, 0);
 
     const totalAnterior = this.total;
+
     this.total = Math.round(Math.max(0, this.subtotal + this.frete - this.desconto) * 100) / 100;
+
     if (Math.round(totalAnterior * 100) !== Math.round(this.total * 100)) {
+
       this.redistribuirValoresCartoes();
+
     } else {
+
       this.validarValoresCartoes();
+
     }
+
     this.cdr.detectChanges();
 
   }
 
   onEnderecoChange(): void {
-
-    console.log('Endereço selecionado:', this.enderecoSelecionado);
 
     this.calcularTotais();
 
@@ -461,106 +415,49 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
   }
 
-  alterarQuantidade(id: number, delta: number): void {
-
+  async alterarQuantidade(id: number, delta: number): Promise<void> {
     const item = this.carrinho.find(i => i.id === id);
-
     if (!item) return;
-
-    const novaQtd = item.quantidade + delta;
-
-    if (novaQtd < 1 || novaQtd > 3) return;
-
-    item.quantidade = novaQtd;
-
-    this.atualizarCarrinho();
-
+    const quantidade = item.quantidade + delta;
+    if (quantidade < 1 || quantidade > 3 || (delta > 0 && quantidade > item.produto.estoque)) return;
+    await this.modificarCarrinho(() => this.carrinhoService.atualizarQuantidade(id, quantidade));
   }
 
-  atualizarQuantidade(id: number, valor: string): void {
-
-    const qtd = parseInt(valor);
-
-    if (isNaN(qtd) || qtd < 1 || qtd > 3) return;
-
+  async atualizarQuantidade(id: number, valor: string): Promise<void> {
     const item = this.carrinho.find(i => i.id === id);
-
-    if (item) {
-
-      item.quantidade = qtd;
-
-      this.atualizarCarrinho();
-
-    }
-
+    const quantidade = Number(valor);
+    if (!item || !Number.isInteger(quantidade) || quantidade < 1 || quantidade > 3 || (quantidade > item.quantidade && quantidade > item.produto.estoque)) return;
+    await this.modificarCarrinho(() => this.carrinhoService.atualizarQuantidade(id, quantidade));
   }
 
-  removerItem(id: number): void {
-
-    if (this.carregandoRemoverItem[id]) return;
-
+  async removerItem(id: number): Promise<void> {
+    if (this.operacaoBloqueada) return;
     this.carregandoRemoverItem[id] = true;
-
-    this.carrinho = this.carrinho.filter(i => i.id !== id);
-
-    this.atualizarCarrinho();
-
-    this.messageService.add({severity:'info', summary:'Removido', detail:'Item removido do carrinho'});
-
-    this.carregandoRemoverItem[id] = false;
-
-  }
-
-  atualizarCarrinho(): void {
-
-    const carrinhoSalvar = this.carrinho.map(item => ({
-
-      id: item.id,
-
-      quantidade: item.quantidade
-
-    }));
-
-    this.salvarCarrinhoUsuario(carrinhoSalvar);
-
-    this.calcularTotais();
-
-    this.iniciarTemporizador();
-
-    this.carrinhoService.atualizarContador();
-
-    this.cdr.detectChanges();
-
+    try {
+      if (await this.modificarCarrinho(() => this.carrinhoService.removerDoCarrinho(id))) {
+        this.messageService.add({severity: 'info', summary: 'Removido', detail: 'Item removido do carrinho'});
+      }
+    } finally {
+      this.carregandoRemoverItem[id] = false;
+    }
   }
 
   limparCarrinho(): void {
-
-    this.displayConfirmarLimpeza = true;
-
+    if (!this.operacaoBloqueada) this.displayConfirmarLimpeza = true;
   }
 
-  confirmarLimpeza(): void {
-
-    if (this.carregandoLimpar) return;
-
+  async confirmarLimpeza(): Promise<void> {
+    if (this.operacaoBloqueada || this.carregandoLimpar) return;
     this.carregandoLimpar = true;
-
-    this.carrinho = [];
-
-    this.atualizarCarrinho();
-
-    this.carrinhoService.limparCarrinho();
-
-    this.limparTimerLocalStorage();
-
-    this.displayConfirmarLimpeza = false;
-
-    this.messageService.add({severity:'success', summary:'Carrinho limpo', detail:'Todos os itens foram removidos'});
-
-    this.authService.adicionarNotificacao('Carrinho', 'Carrinho limpo com sucesso', 'success');
-
-    this.carregandoLimpar = false;
-
+    try {
+      if (await this.modificarCarrinho(() => this.carrinhoService.limparCarrinho())) {
+        this.displayConfirmarLimpeza = false;
+        this.messageService.add({severity: 'success', summary: 'Carrinho limpo', detail: 'Todos os itens foram removidos'});
+        this.authService.adicionarNotificacao('Carrinho', 'Carrinho limpo com sucesso', 'success');
+      }
+    } finally {
+      this.carregandoLimpar = false;
+    }
   }
 
   cancelarLimpeza(): void {
@@ -583,7 +480,7 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
       }
 
-      const response = await fetch(`${environment.apiUrl}/clientes/${this.usuario.id}/enderecos`, {
+      const response = await this.enderecoService.listarPorCliente(this.usuario.id, {
 
         headers: headers
 
@@ -619,7 +516,7 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
       }
 
-      const response = await fetch(`${environment.apiUrl}/clientes/${this.usuario.id}/cartoes`, {
+      const response = await this.clienteService.listarCartoes(this.usuario.id, {
 
         headers: headers
 
@@ -651,138 +548,6 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
   }
 
-  salvarTimerLocalStorage(): void {
-
-    const timerData = {
-
-      inicio: new Date().toISOString(),
-
-      tempoRestante: this.tempoRestante,
-
-      tempoLimite: this.TEMPO_LIMITE_CARRINHO
-
-    };
-
-    localStorage.setItem(this.TIMER_KEY, JSON.stringify(timerData));
-
-  }
-
-  carregarTimerLocalStorage(): void {
-
-    const data = localStorage.getItem(this.TIMER_KEY);
-
-    if (!data) return;
-
-    try {
-
-      const timerData = JSON.parse(data);
-
-      const agora = new Date();
-
-      const inicio = new Date(timerData.inicio);
-
-      const segundosPassados = Math.floor((agora.getTime() - inicio.getTime()) / 1000);
-
-      const tempoRestante = timerData.tempoRestante - segundosPassados;
-
-      if (tempoRestante <= 0) {
-
-        this.esvaziarCarrinhoPorTempo();
-
-        localStorage.removeItem(this.TIMER_KEY);
-
-        this.timerDisplay = 'Tempo esgotado!';
-
-        this.messageService.add({
-
-          severity: 'error',
-
-          summary: 'Carrinho expirou',
-
-          detail: 'O tempo para finalizar a compra expirou e o carrinho foi limpo'
-
-        });
-
-        this.authService.adicionarNotificacao('Carrinho', 'Carrinho expirou!', 'error');
-
-        this.cdr.detectChanges();
-
-        return;
-
-      }
-
-      this.tempoRestante = tempoRestante;
-
-      this.timerDisplay = this.formatarTempo(tempoRestante);
-
-      this.iniciarTemporizador();
-
-    } catch (error) {
-
-      console.error('Erro ao carregar timer:', error);
-
-    }
-
-  }
-
-  limparTimerLocalStorage(): void {
-
-    localStorage.removeItem(this.TIMER_KEY);
-
-  }
-
-  iniciarTemporizador(): void {
-
-    if (this.timerInterval) clearInterval(this.timerInterval);
-
-    const carrinho = this.carrinho.filter(item => item.id);
-
-    if (carrinho.length === 0) {
-
-      this.timerDisplay = '';
-
-      this.limparTimerLocalStorage();
-
-      return;
-
-    }
-
-    if (!this.tempoRestante || this.tempoRestante <= 0) {
-
-      this.tempoRestante = this.TEMPO_LIMITE_CARRINHO;
-
-    }
-
-    this.timerDisplay = this.formatarTempo(this.tempoRestante);
-
-    this.salvarTimerLocalStorage();
-
-    this.timerInterval = setInterval(() => {
-
-      this.tempoRestante--;
-
-      this.timerDisplay = this.formatarTempo(this.tempoRestante);
-
-      this.salvarTimerLocalStorage();
-
-      this.cdr.detectChanges();
-
-      if (this.tempoRestante <= 0) {
-
-        clearInterval(this.timerInterval);
-
-        this.timerDisplay = 'Tempo esgotado!';
-
-        this.limparTimerLocalStorage();
-
-        this.esvaziarCarrinhoPorTempo();
-
-      }
-
-    }, 1000);
-
-  }
-
   formatarTempo(segundos: number): string {
 
     const dias = Math.floor(segundos / 86400);
@@ -811,41 +576,40 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
   }
 
-  esvaziarCarrinhoPorTempo(): void {
-
-    this.carrinho = [];
-
-    this.atualizarCarrinho();
-
-    this.carrinhoService.limparCarrinho();
-
-    this.limparTimerLocalStorage();
-
-    this.messageService.add({severity:'error', summary:'Carrinho expirou', detail:'O tempo para finalizar a compra expirou'});
-
-    this.authService.adicionarNotificacao('Carrinho', 'Carrinho expirou!', 'error');
-
-  }
-
   adicionarCartaoPagamento(cartaoNovo?: any): void {
+
     const cartao = cartaoNovo || this.cartoesNaoSelecionados[0];
+
     if (!cartao || this.cartoesSelecionados.some(c => c.id === cartao.id)) return;
+
     this.cartoesSelecionados.push({
+
       id: cartao.id,
+
       bandeira: cartao.bandeira,
+
       ultimosDigitos: String(cartao.numero || '').replace(/\D/g, '').slice(-4),
+
       valor: 0,
+
       valorErro: false
+
     });
+
     this.redistribuirValoresCartoes();
+
   }
 
   removerCartaoPagamento(index: number): void {
+
     this.cartoesSelecionados.splice(index, 1);
+
     this.redistribuirValoresCartoes();
+
   }
 
   abrirConfirmacao(): void {
+    if (this.operacaoBloqueada) return;
 
     if (this.carrinho.length === 0) {
 
@@ -872,14 +636,23 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
     }
 
     this.validarValoresCartoes();
+
     if (this.valoresInvalidos || this.cartoesSelecionados.some(c => c.valorErro)) {
+
       this.messageService.add({ severity: 'error', summary: 'Pagamento inválido', detail: 'A soma dos cartões deve ser igual ao total do pedido.' });
+
       return;
+
     }
+
     if (this.cartoesSelecionados.some(c => Number(c.valor) < 10)) {
+
       this.messageService.add({ severity: 'error', summary: 'Pagamento inválido', detail: 'Cada cartão deve ter pelo menos R$ 10,00.' });
+
       return;
+
     }
+
     this.displayConfirmacao = true;
 
   }
@@ -936,7 +709,7 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
       const token = this.authService.getToken();
 
-      const response = await fetch(`${environment.apiUrl}/cupons/cliente/${user.id}/disponiveis`, {
+      const response = await this.cupomService.listarDisponiveis(user.id, {
 
         headers: {
 
@@ -1054,7 +827,7 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
       const token = this.authService.getToken();
 
-      await fetch(`${environment.apiUrl}/cupons/${codigo}/usar?clienteId=${user.id}`, {
+      await this.cupomService.utilizar(codigo, user?.id, {
 
         method: 'PUT',
 
@@ -1148,7 +921,7 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
       }
 
-      const response = await fetch(`${environment.apiUrl}/enderecos`, {
+      const response = await this.enderecoService.cadastrar({
 
         method: 'POST',
 
@@ -1196,7 +969,7 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
       const token = this.authService.getToken();
 
-      const response = await fetch(`${environment.apiUrl}/clientes/${this.usuario.id}`, {
+      const response = await this.clienteService.buscarPorId(this.usuario.id, {
 
         headers: {
 
@@ -1272,7 +1045,7 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
       }
 
-      const response = await fetch(`${environment.apiUrl}/clientes/${this.usuario.id}/cartoes`, {
+      const response = await this.clienteService.cadastrarCartao(this.usuario.id, {
 
         method: 'POST',
 
@@ -1289,9 +1062,13 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
         this.authService.adicionarNotificacao('Cartão', 'Novo cartão adicionado com sucesso', 'success');
 
         const numeroNovo = String(this.novoCartao.numero || '').replace(/\D/g, '');
+
         this.fecharModalCartao();
+
         await this.carregarCartoes();
+
         const cartaoCriado = this.cartoes.find(c => String(c.numero || '').replace(/\D/g, '') === numeroNovo && !this.cartoesSelecionados.some(sel => sel.id === c.id));
+
         if (cartaoCriado) this.adicionarCartaoPagamento(cartaoCriado);
 
         await this.atualizarUsuario();
@@ -1325,65 +1102,77 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
     valor = valor.replace(/(\d{4})/g, '$1 ').trim();
 
     event.target.value = valor;
+
     this.novoCartao.numero = valor;
+
   }
 
-  formatarValorCartao(event: Event, cartao: any): void {
+  atualizarValorCartao(cartao: any, valor: number | null): void {
     if (this.cartoesSelecionados.length <= 1) return;
-    const input = event.target as HTMLInputElement;
-    const digitos = input.value.replace(/\D/g, '').slice(0, 12);
-    const centavos = digitos ? Number(digitos) : 0;
-    cartao.valor = centavos / 100;
-    input.value = (centavos / 100).toFixed(2).replace('.', ',');
+
+    cartao.valor = valor ?? 0;
     this.validarValoresCartoes();
   }
 
   validarValoresCartoes(): void {
+
     const totalCentavos = Math.round(this.total * 100);
+
     const somaCentavos = this.cartoesSelecionados.reduce((soma, cartao) => soma + Math.round(Number(cartao.valor || 0) * 100), 0);
+
     this.totalCartoes = somaCentavos / 100;
+
     this.valoresInvalidos = this.cartoesSelecionados.length > 0 && somaCentavos !== totalCentavos;
+
     this.cartoesSelecionados.forEach(cartao => {
+
       cartao.valorErro = !Number.isFinite(Number(cartao.valor)) || Number(cartao.valor) < 0;
+
     });
+
   }
 
   redistribuirValoresCartoes(): void {
+
     const quantidade = this.cartoesSelecionados.length;
+
     if (!quantidade) {
+
       this.totalCartoes = 0;
+
       this.valoresInvalidos = false;
+
       return;
+
     }
+
     const centavos = Math.round(this.total * 100);
+
     const base = Math.floor(centavos / quantidade);
+
     const resto = centavos % quantidade;
+
     this.cartoesSelecionados.forEach((cartao, indice) => {
+
       cartao.valor = (base + (indice < resto ? 1 : 0)) / 100;
+
       cartao.valorErro = false;
+
     });
+
     this.validarValoresCartoes();
+
   }
 
   async finalizarCompra(): Promise<void> {
 
-    if (this.carregandoFinalizar) return;
+    if (this.operacaoBloqueada || !this.displayConfirmacao) return;
+    const reserva = this.estado;
+    if (reserva?.id == null || reserva.revisao == null) return;
+    const cuponsCompra = this.cuponsAplicados.map(c => ({ ...c }));
+    const clienteCompra = this.usuario.id;
 
     this.carregandoFinalizar = true;
-
-    console.log('=== DEBUG FINALIZAR COMPRA ===');
-
-    console.log('Subtotal:', this.subtotal);
-
-    console.log('Frete:', this.frete);
-
-    console.log('Desconto:', this.desconto);
-
-    console.log('Total:', this.total);
-
-    console.log('Cartões selecionados:', this.cartoesSelecionados);
-
-    console.log('Soma dos cartões:', this.cartoesSelecionados.reduce((sum, c) => sum + (c.valor || 0), 0));
 
     if (this.carrinho.length === 0) {
 
@@ -1523,8 +1312,9 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
       const body = {
 
-        clienteId: this.usuario.id,
-
+        clienteId: clienteCompra,
+        carrinhoId: reserva.id,
+        carrinhoRevisao: reserva.revisao,
         enderecoId: this.enderecoSelecionado.id,
 
         pagamentos: this.cartoesSelecionados.map(c => ({
@@ -1549,7 +1339,7 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
         valorDesconto: this.desconto,
 
-        cupons: this.cuponsAplicados.map(c => ({
+        cupons: cuponsCompra.map(c => ({
 
           codigo: c.codigo,
 
@@ -1559,9 +1349,7 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
       };
 
-      console.log('BODY ENVIADO:', JSON.stringify(body));
-
-      const response = await fetch(`${environment.apiUrl}/pedidos`, {
+      const response = await this.pedidoService.criar({
 
         method: 'POST',
 
@@ -1573,27 +1361,28 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
       if (!response.ok) {
 
-        const errorData = await response.text();
-
-        throw new Error(errorData || 'Erro ao finalizar pedido');
+        const texto = await response.text();
+        let mensagem = texto;
+        try { const dados = JSON.parse(texto); mensagem = dados.mensagem || dados.message || texto; } catch {}
+        throw new Error(mensagem || 'Erro ao finalizar pedido');
 
       }
 
       const pedidoCriado = await response.json();
 
-      if (this.cuponsAplicados.length > 0) {
+      if (cuponsCompra.length > 0) {
 
         const user = this.authService.getUser();
 
-        if (user) {
+        if (user?.id === clienteCompra) {
 
           const token = this.authService.getToken();
 
-          for (const cupomAplicado of this.cuponsAplicados) {
+          for (const cupomAplicado of cuponsCompra) {
 
             try {
 
-              await fetch(`${environment.apiUrl}/cupons/${cupomAplicado.codigo}/usar?clienteId=${user.id}`, {
+              await this.cupomService.utilizar(cupomAplicado.codigo, user?.id, {
 
                 method: 'PUT',
 
@@ -1625,19 +1414,15 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
       this.authService.adicionarNotificacao('Pedido', 'Seu pedido de numero ' + pedidoCriado.id + ' está em processamento!', 'success');
 
-      this.carrinho = [];
-
-      this.salvarCarrinhoUsuario([]);
-
-      this.carrinhoService.limparCarrinho();
-
-      this.calcularTotais();
-
       this.displayConfirmacao = false;
-
-      this.limparTimerLocalStorage();
-
-      setTimeout(() => this.router.navigate(['/pedidos']), 1200);
+      try {
+        await this.carrinhoService.sincronizarAposCompra();
+      } catch {
+        this.carrinhoService.atualizarContador();
+      }
+      if (!this.destruido && this.authService.getUser()?.id === clienteCompra) {
+        void this.router.navigate(['/pedidos']);
+      }
 
     } catch (error: any) {
 
@@ -1646,6 +1431,8 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
       this.messageService.add({severity:'error', summary:'Erro', detail: error.message || 'Falha ao finalizar compra'});
 
       this.authService.adicionarNotificacao('Erro', 'Falha ao finalizar compra', 'error');
+      this.displayConfirmacao = false;
+      await this.carregarCarrinho();
 
     } finally {
 
@@ -1653,19 +1440,24 @@ export class CarrinhoComponent implements OnInit, OnDestroy {
 
       this.carregandoFinalizar = false;
 
-      this.cdr.detectChanges();
+      if (!this.destruido) this.cdr.markForCheck();
 
     }
 
   }
 
 verDetalhes(livro: any): void {
+
   if (!livro?.id) return;
 
   this.router.navigate(['/principal'], {
+
     queryParams: { livroId: livro.id }
+
   });
+
 }
+
   voltar(): void {
 
     this.router.navigate(['/principal']);

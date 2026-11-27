@@ -1,0 +1,205 @@
+<section class="descoberta-literaria principal-secao" id="descoberta-literaria" aria-labelledby="descoberta-titulo">
+  <div class="principal-secao-conteudo">
+  <ng-template #complementoSecao>
+      <div class="descoberta-indice">
+      <span>01 — PREFERÊNCIAS</span>
+      <span>02 — DESCOBERTA</span>
+    </div>
+    </ng-template>
+
+    <ng-container
+      *ngTemplateOutlet="cabecalhoSecao; context: {
+        indice: '04 / DESCOBERTA LITERÁRIA',
+        titulo: 'Sua próxima',
+        destaque: 'leitura.',
+        id: 'descoberta-titulo',
+        complemento: complementoSecao
+      }">
+    </ng-container>
+
+  <div class="descoberta-painel">
+    <aside class="descoberta-lateral">
+      <div class="descoberta-lateral-topo">
+        <span>GUIA DE LEITURA</span>
+        <i class="pi pi-compass" aria-hidden="true"></i>
+      </div>
+
+      <div class="descoberta-ilustracao" aria-hidden="true">
+        <svg viewBox="0 0 320 300" fill="none">
+          <circle cx="160" cy="150" r="132" stroke="currentColor" opacity=".18"/>
+          <circle cx="160" cy="150" r="105" stroke="currentColor" stroke-dasharray="3 7" opacity=".4"/>
+          <circle cx="160" cy="150" r="76" stroke="currentColor" opacity=".18"/>
+          <path d="M160 8V292M18 150H302" stroke="currentColor" opacity=".18"/>
+          <path d="M67 57L253 243M253 57L67 243" stroke="currentColor" opacity=".18"/>
+          <path d="M160 30L181 128L280 150L181 172L160 270L139 172L40 150L139 128Z" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M160 30L160 150L181 128Z" fill="currentColor" opacity=".5"/>
+          <path d="M280 150L160 150L181 172Z" fill="currentColor" opacity=".5"/>
+          <path d="M160 270L160 150L139 172Z" fill="currentColor" opacity=".5"/>
+          <path d="M40 150L160 150L139 128Z" fill="currentColor" opacity=".5"/>
+          <circle cx="160" cy="150" r="23" fill="#1a2332" stroke="currentColor"/>
+          <circle cx="160" cy="150" r="6" fill="currentColor"/>
+          <path d="M83 88H97M90 81V95M225 212H239M232 205V219" stroke="currentColor"/>
+          <text x="160" y="19" text-anchor="middle" fill="currentColor" font-size="9">N</text>
+          <text x="160" y="289" text-anchor="middle" fill="currentColor" font-size="9">S</text>
+        </svg>
+      </div>
+
+      <div class="descoberta-lateral-texto">
+        <span class="descoberta-lateral-numero">03</span>
+        <div>
+          <strong>Perguntas</strong>
+          <span>Uma seleção personalizada.</span>
+        </div>
+      </div>
+
+      <div class="descoberta-lateral-rodape">
+        <span>FIG. 04</span>
+        <span>ORIENTAÇÃO LITERÁRIA</span>
+      </div>
+    </aside>
+
+    <div class="descoberta-conteudo" #painelPergunta tabindex="-1">
+      <div class="descoberta-inicio" *ngIf="etapa === 0">
+        <div class="descoberta-etiqueta">
+          <i class="pi pi-compass" aria-hidden="true"></i>
+          RECOMENDAÇÃO PERSONALIZADA
+        </div>
+
+        <h3>O que vamos<br>ler hoje?</h3>
+
+        <p>Escolha suas preferências e encontre livros do nosso acervo que correspondam ao que você procura.</p>
+
+        <div class="descoberta-resumo">
+          <div>
+            <span>01</span>
+            <strong>Gênero</strong>
+          </div>
+          <div>
+            <span>02</span>
+            <strong>Extensão</strong>
+          </div>
+          <div>
+            <span>03</span>
+            <strong>Orçamento</strong>
+          </div>
+        </div>
+
+        <button type="button" appBotao variante="primario" tamanho="grande" icone="pi pi-arrow-right" posicaoIcone="fim" (click)="iniciar()"> Encontrar minha próxima leitura
+        </button>
+      </div>
+
+      <div class="descoberta-questionario" *ngIf="etapa >= 1 && etapa <= 3">
+        <div class="descoberta-progresso">
+          <div class="descoberta-progresso-texto">
+            <span>PERGUNTA 0{{ etapa }} / 03</span>
+            <button type="button" appBotaoIcone icone="pi pi-times" rotulo="Encerrar questionário" variante="neutro" tamanho="medio" (click)="encerrar()"></button>
+          </div>
+
+          <div class="descoberta-progresso-barras" role="progressbar" [attr.aria-valuenow]="etapa" aria-valuemin="0" aria-valuemax="3" aria-label="Progresso do questionário">
+            <span *ngFor="let numero of [1, 2, 3]" [class.ativo]="numero <= etapa"></span>
+          </div>
+        </div>
+
+        <h3>{{ tituloPergunta }}</h3>
+        <p>{{ descricaoPergunta }}</p>
+
+        <div class="descoberta-opcoes" [class.descoberta-opcoes-generos]="etapa === 1" role="group" [attr.aria-label]="tituloPergunta">
+          <button
+            type="button"
+            class="descoberta-opcao"
+            *ngFor="let opcao of opcoes; trackBy: identificarOpcao"
+            [class.selecionada]="respostaAtual === opcao.valor"
+            [attr.aria-pressed]="respostaAtual === opcao.valor"
+            (click)="selecionar(opcao.valor)">
+
+            <span class="descoberta-opcao-icone">
+              <i [class]="opcao.icone" aria-hidden="true"></i>
+            </span>
+
+            <span class="descoberta-opcao-texto">
+              <strong>{{ opcao.titulo }}</strong>
+              <small *ngIf="opcao.descricao">{{ opcao.descricao }}</small>
+            </span>
+
+            <span class="descoberta-opcao-marcador">
+              <i *ngIf="respostaAtual === opcao.valor" class="pi pi-check" aria-hidden="true"></i>
+            </span>
+          </button>
+        </div>
+
+        <div appGrupoAcoes alinhamento="distribuido" [largurasIguais]="true" class="descoberta-acoes">
+          <button type="button" appBotao variante="secundario" tamanho="grande" icone="pi pi-arrow-left" (click)="voltar()"> Voltar
+          </button>
+
+          <button type="button" appBotao variante="primario" tamanho="grande" [desabilitado]="!respostaAtual" icone="pi pi-arrow-right" posicaoIcone="fim" (click)="avancar()"> {{ etapa === 3 ? 'Ver recomendações' : 'Continuar' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="descoberta-resultado" *ngIf="etapa === 4">
+        <div class="descoberta-progresso-texto">
+          <span>SELEÇÃO PERSONALIZADA / CONCLUÍDA</span>
+          <button type="button" appBotaoIcone icone="pi pi-times" rotulo="Encerrar recomendações" variante="neutro" tamanho="medio" (click)="encerrar()"></button>
+        </div>
+
+        <h3>Encontre sua história.</h3>
+
+        <div class="descoberta-preferencias">
+          <span><i class="pi pi-book" aria-hidden="true"></i>{{ generoSelecionado }}</span>
+          <span><i class="pi pi-clock" aria-hidden="true"></i>{{ duracaoSelecionada }}</span>
+          <span><i class="pi pi-wallet" aria-hidden="true"></i>{{ orcamentoSelecionado }}</span>
+        </div>
+
+        <div class="descoberta-resultado-contagem" aria-live="polite">
+          {{ recomendacoes.length }} {{ recomendacoes.length === 1 ? 'livro encontrado' : 'livros encontrados' }}
+        </div>
+
+        <div class="descoberta-resultados-grid" *ngIf="recomendacoes.length > 0">
+          <button type="button" class="descoberta-livro" *ngFor="let livro of resultadosVisiveis" (click)="abrirLivro(livro)">
+            <div class="descoberta-livro-palco">
+              <img
+                [src]="livro.imagemUrl ? '/uploads/' + livro.imagemUrl : '/images/livro.png'"
+                [alt]="livro.titulo"
+                loading="lazy"
+                (error)="corrigirImagem($event)">
+            </div>
+
+            <div class="descoberta-livro-info">
+              <span class="descoberta-livro-categoria">{{ livro.categoria || 'Literatura' }}</span>
+              <strong>{{ livro.titulo }}</strong>
+              <span class="descoberta-livro-autor">{{ livro.autor }}</span>
+
+              <div class="descoberta-livro-rodape">
+                <strong>{{ livro.precoVenda | currency:'BRL':'symbol':'1.2-2':'pt-BR' }}</strong>
+                <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+              </div>
+            </div>
+          </button>
+        </div>
+
+        <div class="descoberta-vazio" *ngIf="recomendacoes.length === 0">
+          <i class="pi pi-search" aria-hidden="true"></i>
+          <strong>Nenhum livro corresponde às suas escolhas.</strong>
+          <span>Altere suas preferências para ampliar os resultados.</span>
+        </div>
+
+        <div class="descoberta-paginacao" *ngIf="totalPaginasResultado > 1">
+          <button type="button" appBotaoIcone icone="pi pi-arrow-left" rotulo="Recomendações anteriores" variante="neutro" tamanho="medio" [desabilitado]="paginaResultado === 0" (click)="alterarPagina(-1)"></button>
+
+          <span>{{ paginaResultado + 1 }} / {{ totalPaginasResultado }}</span>
+
+          <button type="button" appBotaoIcone icone="pi pi-arrow-right" rotulo="Próximas recomendações" variante="neutro" tamanho="medio" [desabilitado]="paginaResultado >= totalPaginasResultado - 1" (click)="alterarPagina(1)"></button>
+        </div>
+
+        <div appGrupoAcoes alinhamento="distribuido" [largurasIguais]="true" class="descoberta-acoes">
+          <button type="button" appBotao variante="secundario" tamanho="grande" icone="pi pi-arrow-left" (click)="voltar()"> Voltar
+          </button>
+
+          <button type="button" appBotao variante="primario" tamanho="grande" icone="pi pi-refresh" (click)="reiniciar()"> Refazer questionário
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</section>

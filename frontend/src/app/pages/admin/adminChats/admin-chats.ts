@@ -1,3 +1,12 @@
+import { ChatApiService } from '../../../services/chat-api.service';
+import { inject } from '@angular/core';
+import { PedidoService } from '../../../services/pedido.service';
+import { EstadoVazioComponent } from '../../../components/shared/feedback';
+import { CarregamentoComponent } from '../../../components/shared/feedback';
+import { CampoDirective } from '../../../components/shared/forms';
+import { BotaoComponent } from '../../../components/shared/buttons/botao/botao';
+import { BotaoIconeComponent } from '../../../components/shared/buttons/botao-icone/botao-icone';
+import { GrupoAcoesComponent } from '../../../components/shared/buttons/grupo-acoes/grupo-acoes';
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,17 +16,21 @@ import { MessageService } from 'primeng/api';
 import { AuthService } from '../../../services/auth';
 import { AdminSidebarComponent } from '../../../components/admin-sidebar/admin-sidebar';
 import { ActivatedRoute } from '@angular/router';
-import { environment } from '../../../../environments/environment';
+
 
 @Component({
   selector: 'app-admin-chats',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, ToastModule, AdminSidebarComponent],
+  imports: [EstadoVazioComponent, CarregamentoComponent, CampoDirective, CommonModule, FormsModule, RouterModule, ToastModule, AdminSidebarComponent, BotaoComponent, BotaoIconeComponent, GrupoAcoesComponent],
   providers: [MessageService],
   templateUrl: './admin-chats.html',
   styleUrls: ['./admin-chats.css', '../admin-common.css']
 })
 export class AdminChatsComponent implements OnInit, OnDestroy {
+  private readonly chatApiService = inject(ChatApiService);
+
+  private readonly pedidoService = inject(PedidoService);
+
   @ViewChild('chatAdminMessagesPage') chatAdminMessagesPage!: ElementRef;
 
   conversas: any = {};
@@ -69,7 +82,7 @@ export class AdminChatsComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/chat/admin/conversas`, {
+      const response = await this.chatApiService.listarConversasAdmin({
         headers: {
           'Authorization': 'Bearer ' + token
         }
@@ -152,7 +165,7 @@ export class AdminChatsComponent implements OnInit, OnDestroy {
 
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/chat/admin/${this.chatAdminPedido.id}/reativar`, {
+      const response = await this.chatApiService.reativarAdmin(this.chatAdminPedido.id, {
         method: 'PUT',
         headers: {
           'Authorization': 'Bearer ' + token
@@ -210,7 +223,7 @@ export class AdminChatsComponent implements OnInit, OnDestroy {
   async carregarDetalhesPedido(pedidoId: number): Promise<void> {
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/pedidos/${pedidoId}`, {
+      const response = await this.pedidoService.buscarPorId(pedidoId, {
         headers: {
           'Authorization': 'Bearer ' + token
         }
@@ -255,7 +268,7 @@ export class AdminChatsComponent implements OnInit, OnDestroy {
   async carregarMensagensChatAdmin(pedidoId: number): Promise<void> {
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/chat/admin/${pedidoId}`, {
+      const response = await this.chatApiService.listarMensagensAdmin(pedidoId, {
         headers: {
           'Authorization': 'Bearer ' + token
         }
@@ -266,7 +279,7 @@ export class AdminChatsComponent implements OnInit, OnDestroy {
         this.scrollChatAdminParaBaixo();
         this.cdr.detectChanges();
 
-       await fetch(`${environment.apiUrl}/chat/admin/${pedidoId}/ler`, {
+       await this.chatApiService.marcarLidasAdmin(pedidoId, {
           method: 'PUT',
           headers: {
             'Authorization': 'Bearer ' + token
@@ -285,7 +298,7 @@ export class AdminChatsComponent implements OnInit, OnDestroy {
   async carregarMensagensChatAdminSilenciosamente(pedidoId: number): Promise<void> {
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`/api/chat/admin/${pedidoId}`, {
+      const response = await this.chatApiService.listarMensagensAdminRelativo(pedidoId, {
         headers: {
           'Authorization': 'Bearer ' + token
         }
@@ -298,7 +311,7 @@ export class AdminChatsComponent implements OnInit, OnDestroy {
           this.scrollChatAdminParaBaixo();
           this.cdr.detectChanges();
 
-          await fetch(`/api/chat/admin/${pedidoId}/ler`, {
+          await this.chatApiService.marcarLidasAdminRelativo(pedidoId, {
             method: 'PUT',
             headers: {
               'Authorization': 'Bearer ' + token
@@ -328,7 +341,7 @@ export class AdminChatsComponent implements OnInit, OnDestroy {
 
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/chat/admin?pedidoId=${this.chatAdminPedido.id}`, {
+      const response = await this.chatApiService.enviarMensagemAdmin(this.chatAdminPedido.id, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -356,7 +369,7 @@ export class AdminChatsComponent implements OnInit, OnDestroy {
   async verificarAtendimentoAdmin(pedidoId: number): Promise<void> {
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/chat/admin/${pedidoId}/atendimento-ativo`, {
+      const response = await this.chatApiService.consultarAtendimento(pedidoId, {
         headers: {
           'Authorization': 'Bearer ' + token
         }
@@ -393,7 +406,7 @@ export class AdminChatsComponent implements OnInit, OnDestroy {
 
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/chat/admin/${this.chatAdminPedido.id}/encerrar`, {
+      const response = await this.chatApiService.encerrarAdmin(this.chatAdminPedido.id, {
         method: 'PUT',
         headers: {
           'Authorization': 'Bearer ' + token

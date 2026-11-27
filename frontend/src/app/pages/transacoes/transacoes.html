@@ -15,12 +15,15 @@
     <div class="filtros-grid">
       <div class="filtro-item">
         <label>Ação</label>
-        <p-dropdown
-          [options]="actionOptions"
-          [(ngModel)]="filtros.action"
+        <app-campo-selecao
+          campoId="transacoes-acao"
+          rotulo="Ação"
+          aparencia="padrao"
           placeholder="Todas as ações"
-          [showClear]="true">
-        </p-dropdown>
+          [valorVazio]="''"
+          [opcoes]="opcoesAcoesCompartilhadas"
+          [(ngModel)]="filtros.action">
+        </app-campo-selecao>
       </div>
 
       <div class="filtro-item">
@@ -34,24 +37,21 @@
 
       <div class="filtro-item">
         <label>Nível</label>
-        <p-dropdown
-          [options]="levelOptions"
-          [(ngModel)]="filtros.level"
+        <app-campo-selecao
+          campoId="transacoes-nivel"
+          rotulo="Nível"
+          aparencia="padrao"
           placeholder="Todos os níveis"
-          [showClear]="true">
-        </p-dropdown>
+          [valorVazio]="''"
+          [opcoes]="opcoesNiveisCompartilhados"
+          [(ngModel)]="filtros.level">
+        </app-campo-selecao>
       </div>
 
       <div class="filtro-item full-width">
-        <div class="filtro-actions">
-          <button class="btn-filtrar" (click)="aplicarFiltros()" [disabled]="carregandoFiltrar" [class.loading]="carregandoFiltrar">
-            <i class="pi pi-search"></i>
-            {{ carregandoFiltrar ? 'Filtrando...' : 'Filtrar' }}
-          </button>
-          <button class="btn-limpar" (click)="limparFiltros()" [disabled]="carregandoLimpar" [class.loading]="carregandoLimpar">
-            <i class="pi pi-times"></i>
-            {{ carregandoLimpar ? 'Limpando...' : 'Limpar' }}
-          </button>
+        <div appGrupoAcoes class="filtro-actions" alinhamento="fim" espacamento="10px">
+          <button appBotao class="acao-transacao-filtro" variante="primario" icone="pi pi-search" [carregando]="carregandoFiltrar" textoCarregando="Filtrando..." (click)="aplicarFiltros()">Filtrar</button>
+          <button appBotao class="acao-transacao-filtro" variante="secundario" icone="pi pi-times" [carregando]="carregandoLimpar" textoCarregando="Limpando..." (click)="limparFiltros()">Limpar</button>
         </div>
       </div>
     </div>
@@ -70,16 +70,9 @@
     </div>
 
     <div class="table-container">
-      <div *ngIf="loading" class="loading-state">
-        <i class="pi pi-spin pi-spinner"></i>
-        <p>Carregando transações...</p>
-      </div>
+      <div *ngIf="loading" class="loading-state"><app-carregamento modelo="simples" texto="Carregando transações..."></app-carregamento></div>
 
-      <div *ngIf="!loading && filteredLogs.length === 0" class="empty-state">
-        <i class="pi pi-inbox"></i>
-        <h3>Nenhuma transação encontrada</h3>
-        <p>Não há registros para os filtros selecionados</p>
-      </div>
+      <div *ngIf="!loading && filteredLogs.length === 0" class="empty-state"><app-estado-vazio icone="pi pi-inbox" titulo="Nenhuma transação encontrada" descricao="Não há registros para os filtros selecionados"></app-estado-vazio></div>
 
       <div *ngIf="!loading && filteredLogs.length > 0">
 <p-table
@@ -126,9 +119,7 @@
                 </span>
               </td>
               <td class="text-center">
-                <button class="btn-ver-detalhes" (click)="abrirDetalhes(log)" title="Ver detalhes">
-                  <i class="pi pi-eye"></i>
-                </button>
+                <button appBotaoIcone class="acao-transacao-detalhes" variante="neutro" icone="pi pi-eye" rotulo="Ver detalhes" (click)="$event.stopPropagation(); abrirDetalhes(log)"></button>
               </td>
             </tr>
           </ng-template>
@@ -136,11 +127,7 @@
           <ng-template pTemplate="emptymessage">
             <tr>
               <td colspan="5">
-                <div class="empty-state">
-                  <i class="pi pi-inbox"></i>
-                  <h3>Nenhuma transação encontrada</h3>
-                  <p>Não há registros para os filtros selecionados</p>
-                </div>
+                <div class="empty-state"><app-estado-vazio icone="pi pi-inbox" titulo="Nenhuma transação encontrada" descricao="Não há registros para os filtros selecionados"></app-estado-vazio></div>
               </td>
             </tr>
           </ng-template>
@@ -150,41 +137,117 @@
   </div>
 </div>
 
-<div class="custom-modal" [class.active]="displayDetalhesModal">
-  <div class="custom-modal-overlay" (click)="displayDetalhesModal = false"></div>
-  <div class="custom-modal-content" style="width: 600px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
-    <button class="custom-modal-close" (click)="displayDetalhesModal = false">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon" [class]="'detalhes-' + logSelecionado?.level">
-        <i [class]="getIconClass(logSelecionado?.level)"></i>
-      </div>
-      <h2>{{ getActionLabel(logSelecionado?.action) }}</h2>
-      <p>{{ logSelecionado?.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}</p>
-    </div>
-    <div class="custom-modal-body" *ngIf="logSelecionado">
-      <div class="detalhes-item">
-        <strong>Usuário:</strong>
-        <span>{{ logSelecionado.userName || 'Sistema' }}</span>
-      </div>
-      <div class="detalhes-item">
-        <strong>Ação:</strong>
-        <span>{{ getActionLabel(logSelecionado.action) }}</span>
-      </div>
-      <div class="detalhes-item" *ngIf="logSelecionado.details">
-        <strong>Detalhes:</strong>
-        <div class="detalhes-details">{{ logSelecionado.details }}</div>
-      </div>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions single">
-        <button class="btn-secondary" (click)="displayDetalhesModal = false">
-          <i class="pi pi-times"></i> Fechar
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+<app-modal-base
+  [visivel]="displayDetalhesModal"
+  largura="600px"
+  alturaMaxima="90vh"
+  rotulo="Detalhes da atividade"
+  (fechar)="displayDetalhesModal = false">
 
-<p-toast position="top-right" [life]="2000"></p-toast>
+  <app-modal-cabecalho
+    [titulo]="getActionLabel(logSelecionado?.action) || 'Detalhes da atividade'"
+    subtitulo="Informações da atividade registrada em sua conta"
+    [icone]="getIconClass(logSelecionado?.level)"
+    [variante]="logSelecionado?.level === 'error' ? 'perigo' : logSelecionado?.level === 'warning' ? 'aviso' : logSelecionado?.level === 'success' ? 'sucesso' : 'neutro'"
+    (fechar)="displayDetalhesModal = false">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo rolagemInterna>
+    <div *ngIf="logSelecionado" class="registro-modal-conteudo">
+
+      <div class="registro-resumo">
+        <div class="registro-acao">
+          <div class="registro-acao-icone">
+            <i [class]="getActionIcon(logSelecionado.action)"></i>
+          </div>
+
+          <div class="registro-acao-dados">
+            <span class="registro-rotulo">Atividade registrada</span>
+            <strong>{{ getActionLabel(logSelecionado.action) }}</strong>
+          </div>
+        </div>
+
+        <span class="log-level registro-nivel" [ngClass]="getLevelClass(logSelecionado.level)">
+          <i [class]="getIconClass(logSelecionado.level)"></i>
+          {{ getLevelLabel(logSelecionado.level) }}
+        </span>
+      </div>
+
+      <section class="registro-secao">
+        <h3 class="registro-secao-titulo">
+          <i class="pi pi-list"></i>
+          Informações do registro
+        </h3>
+
+        <div class="registro-informacoes">
+          <div class="registro-informacao registro-usuario">
+            <div class="registro-informacao-icone">
+              <i class="pi pi-user"></i>
+            </div>
+
+            <div class="registro-informacao-dados">
+              <span class="registro-rotulo">Usuário responsável</span>
+              <strong>{{ logSelecionado.userName || 'Sistema' }}</strong>
+            </div>
+          </div>
+
+          <div class="registro-informacao">
+            <div class="registro-informacao-icone">
+              <i class="pi pi-calendar"></i>
+            </div>
+
+            <div class="registro-informacao-dados">
+              <span class="registro-rotulo">Data</span>
+              <strong>{{ logSelecionado.timestamp | date:'dd/MM/yyyy' }}</strong>
+            </div>
+          </div>
+
+          <div class="registro-informacao">
+            <div class="registro-informacao-icone">
+              <i class="pi pi-clock"></i>
+            </div>
+
+            <div class="registro-informacao-dados">
+              <span class="registro-rotulo">Horário</span>
+              <strong>{{ logSelecionado.timestamp | date:'HH:mm:ss' }}</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="registro-secao">
+        <h3 class="registro-secao-titulo">
+          <i class="pi pi-align-left"></i>
+          Detalhes da atividade
+        </h3>
+
+        <div class="registro-detalhes" *ngIf="logSelecionado.details; else semDetalhes">
+          {{ logSelecionado.details }}
+        </div>
+
+        <ng-template #semDetalhes>
+          <div class="registro-sem-detalhes">
+            <i class="pi pi-info-circle"></i>
+            Nenhuma informação adicional registrada.
+          </div>
+        </ng-template>
+      </section>
+
+    </div>
+  </app-modal-corpo>
+
+  <app-modal-rodape separador>
+    <button
+      appBotao
+      variante="secundario"
+      aparencia="confirmacao"
+      icone="pi pi-times"
+      larguraTotal
+      (click)="displayDetalhesModal = false">
+      Fechar
+    </button>
+  </app-modal-rodape>
+
+</app-modal-base>
+
+<app-notificacao></app-notificacao>

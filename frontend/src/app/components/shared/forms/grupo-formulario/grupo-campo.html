@@ -1,0 +1,21 @@
+@if (rotulo) {
+  <label
+    class="grupo-campo-rotulo"
+    [attr.for]="campoId || null">
+    {{ rotulo }}
+
+    @if (obrigatorio) {
+      <span class="grupo-campo-obrigatorio" aria-hidden="true">*</span>
+    }
+  </label>
+}
+
+<ng-content></ng-content>
+
+@if (descricao) {
+  <small
+    class="grupo-campo-descricao"
+    [attr.id]="descricaoId || null">
+    {{ descricao }}
+  </small>
+}

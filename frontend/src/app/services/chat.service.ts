@@ -5,37 +5,26 @@ import { Subject } from 'rxjs';
   providedIn: 'root'
 })
 export class ChatService {
-  private abrirChatSubject = new Subject<{pedidoId: number, pedido: any}>();
-  abrirChat$ = this.abrirChatSubject.asObservable();
+  private abrirChatSubject = new Subject<{ pedidoId: number; pedido: any }>();
+  readonly abrirChat$ = this.abrirChatSubject.asObservable();
 
-  private ultimoPedidoId: number | null = null;
-  private timeoutId: any = null;
+  private timeoutId: ReturnType<typeof setTimeout> | null = null;
 
   abrirChat(pedidoId: number, pedido: any = null): void {
-    if (this.ultimoPedidoId === pedidoId) {
-      this.ultimoPedidoId = null;
-      if (this.timeoutId) {
-        clearTimeout(this.timeoutId);
-        this.timeoutId = null;
-      }
-    }
-
-    if (this.timeoutId) {
-      clearTimeout(this.timeoutId);
-      this.timeoutId = null;
-    }
-
-    this.ultimoPedidoId = pedidoId;
+    this.cancelarAberturaPendente();
 
     this.timeoutId = setTimeout(() => {
-      this.abrirChatSubject.next({ pedidoId, pedido });
       this.timeoutId = null;
+      this.abrirChatSubject.next({ pedidoId, pedido });
     }, 50);
   }
 
   limparUltimoPedido(): void {
-    this.ultimoPedidoId = null;
-    if (this.timeoutId) {
+    this.cancelarAberturaPendente();
+  }
+
+  private cancelarAberturaPendente(): void {
+    if (this.timeoutId !== null) {
       clearTimeout(this.timeoutId);
       this.timeoutId = null;
     }

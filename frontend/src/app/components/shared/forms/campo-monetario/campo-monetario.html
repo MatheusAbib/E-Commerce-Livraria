@@ -1,0 +1,26 @@
+<div
+  class="campo-monetario-wrapper"
+  [class.com-simbolo]="exibirSimbolo">
+
+  @if (exibirSimbolo) {
+    <span class="campo-monetario-simbolo" aria-hidden="true">R$</span>
+  }
+
+  <input
+    appCampo
+    type="text"
+    inputmode="decimal"
+    autocomplete="off"
+    [aparencia]="aparencia"
+    [attr.id]="campoId || null"
+    [attr.aria-label]="rotulo"
+    [descricaoId]="descricaoId"
+    [invalido]="invalido"
+    [required]="obrigatorio"
+    [disabled]="desabilitado"
+    [readOnly]="somenteLeitura"
+    [placeholder]="placeholder"
+    [value]="texto"
+    (input)="atualizarValor($event)"
+    (blur)="marcarTocado()">
+</div>

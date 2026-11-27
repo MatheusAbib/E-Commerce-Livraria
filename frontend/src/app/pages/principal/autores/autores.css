@@ -1,0 +1,267 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.autores-livraria {
+  position: relative;
+
+background: #eeece5;
+  border-top: 1px solid #d8d6ce;
+  border-bottom: 1px solid #d8d6ce;
+  color: var(--cor-primaria);
+}
+
+.autores-navegacao {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.autores-contagem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-right: 16px;
+}
+
+.autores-contagem strong {
+  font-family: Georgia, serif;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.autores-contagem span {
+  font-size: 9px;
+  letter-spacing: .14em;
+  font-weight: 700;
+}
+
+.autores-galeria {
+  border-top: 1px solid #bcbfb6;
+  border-bottom: 1px solid #bcbfb6;
+}
+
+.autores-trilho {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc(100% / 5);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: #a6afa4 transparent;
+}
+
+.autor-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: clamp(16px, 2vw, 30px);
+  border-right: 1px solid #c9cbc2;
+  color: inherit;
+  text-decoration: none;
+  scroll-snap-align: start;
+  transition: background .25s ease;
+}
+
+.autor-card:hover {
+  background: #e1e5db;
+}
+
+.autor-card:focus-visible {
+  outline: 2px solid var(--cor-destaque);
+  outline-offset: -3px;
+}
+
+.autor-card-indice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #69766b;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.autor-card-indice i {
+  font-size: 14px;
+}
+
+.autor-card-moldura {
+  width: 100%;
+  max-width: 210px;
+  aspect-ratio: 1;
+  margin: 28px auto 24px;
+  padding: 7px;
+  box-sizing: border-box;
+  border: 1px solid #a9b2a5;
+  border-radius: 50%;
+}
+
+.autor-card-retrato {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #d3dacf;
+  color: #566659;
+}
+
+.autor-card-retrato > span {
+  font-family: Georgia, serif;
+  font-size: clamp(28px, 4vw, 58px);
+}
+
+.autor-card-retrato img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  filter: grayscale(100%);
+  transition: filter .35s ease, transform .35s ease;
+}
+
+.autor-card:hover img,
+.autor-card:focus-visible img {
+  filter: grayscale(0);
+  transform: scale(1.05);
+}
+
+.autor-card-informacoes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  text-align: center;
+}
+
+.autor-card-informacoes h3 {
+  margin: 0;
+  font-family: Georgia, serif;
+  font-size: clamp(20px, 1.8vw, 28px);
+  font-weight: 400;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.autor-card-acervo {
+  color: #69766b;
+  font-size: 12px;
+}
+
+.autor-card-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid #c9cbc2;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.autor-card-rodape i {
+  font-size: 12px;
+}
+
+.autores-rodape {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 24px;
+  color: #69766b;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.autores-rodape-linha {
+  flex: 1;
+  height: 1px;
+  background: #c9cbc2;
+}
+
+@media (max-width: 1200px) {
+  .autores-trilho {
+    grid-auto-columns: calc(100% / 4);
+  }
+}
+
+@media (max-width: 900px) {
+  .autores-trilho {
+    grid-auto-columns: calc(100% / 3);
+  }
+}
+
+@media (max-width: 640px) {
+
+.autores-navegacao {
+    width: 100%;
+  }
+
+  .autores-contagem {
+    margin-right: auto;
+  }
+
+  .autores-trilho {
+    grid-auto-columns: 50%;
+  }
+
+  .autor-card-moldura {
+    margin: 20px auto;
+    padding: 4px;
+  }
+
+  .autor-card-rodape {
+    margin-top: 20px;
+  }
+
+  .autores-rodape {
+    gap: 10px;
+    font-size: 8px;
+    letter-spacing: .05em;
+  }
+}
+
+@media (max-width: 380px) {
+  .autores-trilho {
+    grid-auto-columns: 80%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .autor-card,
+  .autor-card-retrato img {
+    transition: none;
+  }
+}
+
+.autores-trilho.autores-trilho-loop {
+  scroll-snap-type: none;
+  scrollbar-width: none;
+  scroll-behavior: auto;
+}
+
+.autores-trilho.autores-trilho-loop::-webkit-scrollbar {
+  display: none;
+}
+
+.autores-trilho.autores-trilho-loop .autor-card {
+  scroll-snap-align: none;
+}
+
+@media (max-width: 640px) {
+  .autores-navegacao {
+    flex-wrap: wrap;
+  }
+}

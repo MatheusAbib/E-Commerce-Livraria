@@ -1,42 +1,57 @@
+import { inject } from '@angular/core';
+import { LogService } from '../../services/log.service';
+import { ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent, ModalRodapeComponent } from '../../components/shared/modals';
+import { NotificacaoComponent } from '../../components/shared/feedback';
+import { EstadoVazioComponent } from '../../components/shared/feedback';
+import { CarregamentoComponent } from '../../components/shared/feedback';
+import { CampoSelecaoComponent } from '../../components/shared/forms';
+import { BotaoComponent } from '../../components/shared/buttons/botao/botao';
+import { BotaoIconeComponent } from '../../components/shared/buttons/botao-icone/botao-icone';
+import { GrupoAcoesComponent } from '../../components/shared/buttons/grupo-acoes/grupo-acoes';
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
 import { CalendarModule } from 'primeng/calendar';
 import { TableModule } from 'primeng/table';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { DialogModule } from 'primeng/dialog';
-import { PaginatorModule } from 'primeng/paginator';
 import { AuthService } from '../../services/auth';
-import { environment } from '../../../environments/environment';
+
 
 @Component({
   selector: 'app-transacoes',
   standalone: true,
-  imports: [
+  imports: [ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent, ModalRodapeComponent, NotificacaoComponent, EstadoVazioComponent, CarregamentoComponent, CampoSelecaoComponent, 
     CommonModule,
     FormsModule,
     RouterModule,
-    ButtonModule,
-    InputTextModule,
-    DropdownModule,
     CalendarModule,
     TableModule,
-    ToastModule,
-    ProgressSpinnerModule,
-    DialogModule,
-    PaginatorModule
+    BotaoComponent,
+    BotaoIconeComponent,
+    GrupoAcoesComponent
   ],
   providers: [MessageService],
   templateUrl: './transacoes.html',
   styleUrls: ['./transacoes.css']
 })
 export class TransacoesComponent implements OnInit {
+  private readonly logService = inject(LogService);
+
+  get opcoesAcoesCompartilhadas() {
+    return this.actionOptions.map(opcao => ({
+      rotulo: opcao.label,
+      valor: opcao.value
+    }));
+  }
+
+  get opcoesNiveisCompartilhados() {
+    return this.levelOptions.map(opcao => ({
+      rotulo: opcao.label,
+      valor: opcao.value
+    }));
+  }
+
   logs: any[] = [];
   filteredLogs: any[] = [];
   logsPaginados: any[] = [];
@@ -119,7 +134,7 @@ export class TransacoesComponent implements OnInit {
       }
 
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/logs`, {
+      const response = await this.logService.listar({
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + token

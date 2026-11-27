@@ -1,24 +1,34 @@
+import { RelatorioService } from '../../../services/relatorio.service';
+import { inject } from '@angular/core';
+import { EstadoVazioComponent } from '../../../components/shared/feedback';
+import { CarregamentoComponent } from '../../../components/shared/feedback';
+import { CampoDirective } from '../../../components/shared/forms';
+import { BotaoComponent } from '../../../components/shared/buttons/botao/botao';
+import { GrupoAcoesComponent } from '../../../components/shared/buttons/grupo-acoes/grupo-acoes';
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaginatorModule } from 'primeng/paginator';
 import { AdminSidebarComponent } from '../../../components/admin-sidebar/admin-sidebar';
-import { AdminService } from '../../../services/admin.service';
-import { environment } from '../../../../environments/environment';
+
 
 @Component({
   selector: 'app-ranking-admin',
   standalone: true,
-  imports: [
+  imports: [EstadoVazioComponent, CarregamentoComponent, CampoDirective, 
     CommonModule,
     FormsModule,
     PaginatorModule,
-    AdminSidebarComponent
+    AdminSidebarComponent,
+    BotaoComponent,
+    GrupoAcoesComponent
   ],
   templateUrl: './ranking.html',
   styleUrls: ['./ranking.css', '../admin-common.css']
 })
 export class RankingAdminComponent implements OnInit {
+  private readonly relatorioService = inject(RelatorioService);
+
   ranking: any[] = [];
   rankingFiltrado: any[] = [];
   rankingPaginado: any[] = [];
@@ -31,7 +41,6 @@ export class RankingAdminComponent implements OnInit {
   totalRecords: number = 0;
 
   constructor(
-    private adminService: AdminService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -43,7 +52,7 @@ export class RankingAdminComponent implements OnInit {
     this.loading = true;
     this.cdr.detectChanges();
     try {
-      const data = await this.adminService.getRanking().toPromise();
+      const data = await this.relatorioService.consultarRanking().toPromise();
       this.ranking = data || [];
       this.rankingFiltrado = [...this.ranking];
       this.totalRecords = this.rankingFiltrado.length;

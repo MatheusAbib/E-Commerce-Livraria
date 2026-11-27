@@ -1,20 +1,25 @@
-<div class="custom-modal" [class.active]="visible">
-  <div class="custom-modal-overlay" (click)="fechar()"></div>
-  <div class="custom-modal-content">
-    <button class="custom-modal-close" (click)="fechar()" [disabled]="loading">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon">
-        <i class="pi pi-user"></i>
-      </div>
-      <h2>Bem-vindo de volta</h2>
-      <p>Acesse sua conta para continuar</p>
-    </div>
-    <div class="custom-modal-body">
-      <div class="field">
-        <label>E-mail</label>
+﻿<app-modal-base
+  [visivel]="visible"
+  largura="480px"
+  [fecharAoClicarFora]="!loading"
+  [fecharComEscape]="!loading"
+  (fechar)="fechar()">
+
+  <app-modal-cabecalho
+    titulo="Bem-vindo de volta"
+    subtitulo="Acesse sua conta para continuar"
+    icone="pi pi-user"
+    (fechar)="fechar()"
+    [desabilitarFechar]="loading">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo>
+    <div class="login-modal-body">
+      <div appGrupoCampo class="campo-autenticacao" rotulo="E-mail" campoId="login-modal-email">
         <input
+          appCampo
+          aparencia="autenticacao"
+          id="login-modal-email"
           type="email"
           [(ngModel)]="email"
           placeholder="seu@email.com"
@@ -23,38 +28,65 @@
           [class.preencher]="dadosCarregados"
           [disabled]="loading">
       </div>
-      <div class="field">
-        <label>Senha</label>
-        <input
-          type="password"
+
+      <div appGrupoCampo class="campo-autenticacao" rotulo="Senha" campoId="login-modal-senha">
+        <app-campo-senha
+          campoId="login-modal-senha"
+          rotulo="Senha"
+          aparencia="autenticacao"
+          autocomplete="current-password"
           [(ngModel)]="senha"
           placeholder="Digite sua senha"
-          class="auth-input"
-          autocomplete="off"
           (keyup.enter)="fazerLogin()"
           [disabled]="loading">
+        </app-campo-senha>
       </div>
+
       <div class="auth-options">
         <label class="remember-me">
-          <input type="checkbox" [(ngModel)]="lembrarMe" [disabled]="loading"> Lembrar-me
+          <input
+            type="checkbox"
+            [(ngModel)]="lembrarMe"
+            [disabled]="loading"
+            class="controle-selecao-compartilhado">
+          Lembrar-me
         </label>
+
         <a class="forgot-password">Esqueceu a senha?</a>
       </div>
     </div>
-<div class="custom-modal-footer">
-  <button class="btn-primary" (click)="fazerLogin()" [disabled]="loading || !formValido()">
-    <i class="pi" [class.pi-spin]="loading" [class.pi-spinner]="loading" [class.pi-sign-in]="!loading"></i>
-    {{ loading ? 'Entrando...' : 'Entrar' }}
-  </button>
+  </app-modal-corpo>
 
-  <div class="auth-register">
-    <span>Não tem uma conta?</span>
-    <button type="button" class="auth-register-link" (click)="abrirCadastro()" [disabled]="loading">
-      Cadastre-se
-    </button>
-  </div>
-</div>
-  </div>
-</div>
+  <app-modal-rodape>
+    <div class="login-modal-footer">
+      <button
+        appBotao
+        variante="primario"
+        aparencia="autenticacao"
+        tamanho="grande"
+        icone="pi pi-sign-in"
+        larguraTotal
+        textoCarregando="Entrando..."
+        [carregando]="loading"
+        [desabilitado]="!formValido()"
+        (click)="fazerLogin()">
+        Entrar
+      </button>
 
-<p-toast position="top-right" [life]="2000"></p-toast>
+      <div class="auth-register">
+        <span>Não tem uma conta?</span>
+
+        <button
+          appBotao
+          variante="link"
+          aparencia="autenticacao"
+          [desabilitado]="loading"
+          (click)="abrirCadastro()">
+          Cadastre-se
+        </button>
+      </div>
+    </div>
+  </app-modal-rodape>
+</app-modal-base>
+
+<app-notificacao></app-notificacao>

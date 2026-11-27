@@ -50,11 +50,69 @@ public class ClienteService {
         return clienteRepository.findByEmail(email) != null;
     }
 
-    public boolean cpfJaExiste(String cpf) {
-        if (cpf == null || cpf.isEmpty()) return false;
-        return clienteRepository.findByCpf(cpf) != null;
+        public boolean cpfJaExiste(String cpf) {
+            if (cpf == null || cpf.isBlank()) return false;
+
+            return clienteRepository.contarCpfDuplicado(
+                cpf.replaceAll("\\D", ""), null
+            ) > 0;
+        }
+
+
+        private boolean validarCpf(String cpf) {
+    if (cpf == null || cpf.isBlank()) return true;
+
+    if (!cpf.matches("\\d{11}|\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}")) {
+        return false;
     }
 
+    cpf = cpf.replaceAll("\\D", "");
+
+    if (cpf.matches("(\\d)\\1{10}")) {
+        return false;
+    }
+
+    for (int i = 9; i < 11; i++) {
+        int soma = 0;
+
+        for (int j = 0; j < i; j++) {
+            soma += Character.getNumericValue(cpf.charAt(j)) * (i + 1 - j);
+        }
+
+        int digito = (soma * 10) % 11;
+
+        if (digito == 10) digito = 0;
+
+        if (digito != Character.getNumericValue(cpf.charAt(i))) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+    public String validarCpfCliente(String cpf, Long id) {
+        if (cpf == null || cpf.isBlank()) {
+            return null;
+        }
+
+        cpf = cpf.trim();
+
+        if (!validarCpf(cpf)) {
+            throw new IllegalArgumentException("Informe um CPF válido.");
+        }
+
+        String cpfLimpo = cpf.replaceAll("\\D", "");
+
+        if (clienteRepository.contarCpfDuplicado(cpfLimpo, id) > 0) {
+            throw new IllegalArgumentException("Este CPF já está cadastrado em outra conta.");
+        }
+
+        return cpfLimpo.replaceFirst(
+            "(\\d{3})(\\d{3})(\\d{3})(\\d{2})",
+            "$1.$2.$3-$4"
+        );
+    }
     @Transactional
     public void salvarFavoritos(Cliente cliente) {
         
@@ -128,7 +186,7 @@ public void reativarAtendimento(Long pedidoId) {
             cliente.setEmail(clienteAtualizado.getEmail());
             cliente.setTelefone(clienteAtualizado.getTelefone());
             cliente.setTipotelefone(clienteAtualizado.getTipotelefone());
-            cliente.setCpf(clienteAtualizado.getCpf());
+            cliente.setCpf(validarCpfCliente(clienteAtualizado.getCpf(), id));
             cliente.setNascimento(clienteAtualizado.getNascimento());
             cliente.setGenero(clienteAtualizado.getGenero());
 
@@ -273,6 +331,7 @@ public void reativarAtendimento(Long pedidoId) {
     }
 
     public Cliente salvarCliente(Cliente cliente) {
+        cliente.setCpf(validarCpfCliente(cliente.getCpf(), cliente.getId()));
         if (cliente.getSenha() != null && !cliente.getSenha().isEmpty()) {
             validarSenhaForte(cliente.getSenha());
             String senhaCriptografada = passwordEncoder.encode(cliente.getSenha());
@@ -425,7 +484,7 @@ public void reativarAtendimento(Long pedidoId) {
         clienteAtual.setEmail(clienteAtualizado.getEmail());
         clienteAtual.setTelefone(clienteAtualizado.getTelefone());
         clienteAtual.setTipotelefone(clienteAtualizado.getTipotelefone());
-        clienteAtual.setCpf(clienteAtualizado.getCpf());
+        clienteAtual.setCpf(validarCpfCliente(clienteAtualizado.getCpf(), id));
         clienteAtual.setNascimento(clienteAtualizado.getNascimento());
         clienteAtual.setGenero(clienteAtualizado.getGenero());
 

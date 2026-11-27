@@ -1,4 +1,11 @@
-
+import { inject as injectHeader } from '@angular/core';
+import { Router as HeaderRouter } from '@angular/router';
+import { ChatApiService } from '../../services/chat-api.service';
+import { ClienteService } from '../../services/cliente.service';
+import { inject } from '@angular/core';
+import { CupomService } from '../../services/cupom.service';
+import { FavoritoService } from '../../services/favorito.service';
+import { NotificacaoComponent } from '../../components/shared/feedback';
 import {
   Component,
   OnInit,
@@ -10,7 +17,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AvatarModule } from 'primeng/avatar';
-import { ButtonModule } from 'primeng/button';
+import { BotaoComponent } from '../shared/buttons/botao/botao';
+import { BotaoIconeComponent } from '../shared/buttons/botao-icone/botao-icone';
 import { ToastModule } from 'primeng/toast';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem, MessageService } from 'primeng/api';
@@ -24,20 +32,22 @@ import { FavoritosModalComponent } from './favoritos-modal/favoritos-modal';
 import { CupomModalComponent } from './cupom-modal/cupom-modal';
 import { ChatModalComponent } from './chat-modal/chat-modal';
 import { CarrinhoService } from '../../services/carrinho';
-import { AuthService, Notificacao } from '../../services/auth';
+import { AuthService } from '../../services/auth';
+import type { Notificacao } from '../../models/notificacao.model';
 import { ChatService } from '../../services/chat.service';
-import { environment } from '../../../environments/environment';
+
 import { AppComponent } from '../../app';
 import { Menu } from 'primeng/menu';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [
+  imports: [NotificacaoComponent, 
     CommonModule,
     RouterModule,
     AvatarModule,
-    ButtonModule,
+    BotaoComponent,
+    BotaoIconeComponent,
     ToastModule,
     MenuModule,
     FavoritosModalComponent,
@@ -54,6 +64,20 @@ import { Menu } from 'primeng/menu';
   styleUrls: ['./header.css']
 })
 export class HeaderComponent implements OnInit, OnDestroy {
+  private readonly headerRouter = injectHeader(HeaderRouter);
+
+  headerPaginaInicial(): boolean {
+    const rota = this.headerRouter.url.split(/[?#]/)[0];
+    return rota === '/' || rota === '/principal';
+  }
+
+  private readonly chatApiService = inject(ChatApiService);
+
+  private readonly clienteService = inject(ClienteService);
+
+  private readonly cupomService = inject(CupomService);
+  private readonly favoritoService = inject(FavoritoService);
+
   @ViewChild(FavoritosModalComponent)
   favoritosModal!: FavoritosModalComponent;
 
@@ -111,6 +135,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private ultimosChats: any[] = [];
   private subscriptions = new Subscription();
   private intervaloContadores: ReturnType<typeof setInterval> | null = null;
+  private abrindoCarrinho = false;
   private usuarioNotificacoesId: number | null = null;
 
   constructor(
@@ -124,98 +149,131 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.subscriptions.add(
-      this.carrinhoService.carrinhoItens$.subscribe(total => {
-        this.carrinhoItens = total;
+  this.subscriptions.add(
+    this.carrinhoService.carrinhoItens$.subscribe(total => {
+      this.carrinhoItens = total;
+      this.cdr.detectChanges();
+    })
+  );
+
+  this.subscriptions.add(
+    this.carrinhoService.expiracao$.subscribe(() => {
+      if (!this.authService.isAuthenticated()) return;
+
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Reserva expirada',
+        detail: 'O prazo da reserva terminou. Os livros foram liberados para outros clientes.',
+        life: 2000
+      });
+      this.cdr.markForCheck();
+    })
+  );
+
+  this.subscriptions.add(
+    this.authService.favoritosCount$.subscribe(count => {
+      this.favoritosCount = count;
+      this.cdr.detectChanges();
+    })
+  );
+
+  this.subscriptions.add(
+    this.authService.cuponsCount$.subscribe(count => {
+      this.cuponsDisponiveisCount = count;
+      this.cdr.detectChanges();
+    })
+  );
+
+  this.subscriptions.add(
+    this.authService.usuario$.subscribe(usuario => {
+      if (!usuario) {
+        this.pendenciasPerfil = [];
         this.cdr.detectChanges();
-      })
-    );
-
-    this.subscriptions.add(
-      this.authService.favoritosCount$.subscribe(count => {
-        this.favoritosCount = count;
-        this.cdr.detectChanges();
-      })
-    );
-
-    this.subscriptions.add(
-      this.authService.cuponsCount$.subscribe(count => {
-        this.cuponsDisponiveisCount = count;
-        this.cdr.detectChanges();
-      })
-    );
-
-    this.subscriptions.add(
-      this.authService.usuario$.subscribe(usuario => {
-        if (usuario && this.usuario && usuario.id === this.usuario.id) {
-          this.usuario.nome = usuario.nome;
-          this.cdr.detectChanges();
-        }
-      })
-    );
-
-    this.subscriptions.add(
-      this.authService.notificacoes$.subscribe(notificacoes => {
-        if (this.isLoggedIn && this.usuario) {
-          this.notificacoes = notificacoes;
-          this.notificacoesNaoLidas = notificacoes.filter(
-            notificacao => !notificacao.lida
-          ).length;
-        } else {
-          this.notificacoes = [];
-          this.notificacoesNaoLidas = 0;
-        }
-
-        this.cdr.detectChanges();
-      })
-    );
-
-    this.subscriptions.add(
-      this.authService.loginStatus$.subscribe(logado => {
-        if (!logado) {
-          this.isLoggedIn = false;
-          this.usuario = null;
-          this.usuarioNotificacoesId = null;
-          this.notificacoes = [];
-          this.notificacoesNaoLidas = 0;
-          this.ultimoStatusPorPedido.clear();
-          this.ultimosChats = [];
-          this.totalChatsNaoLidas = 0;
-          this.cdr.detectChanges();
-          return;
-        }
-
-        const usuario = this.authService.getUser();
-
-        if (!usuario) {
-          return;
-        }
-
-        if (
-          this.usuarioNotificacoesId !== usuario.id ||
-          !this.isLoggedIn
-        ) {
-          this.atualizarUI(usuario);
-        }
-      })
-    );
-
-    if (this.authService.isAuthenticated()) {
-      const user = this.authService.getUser();
-
-      if (user && !this.isLoggedIn) {
-        this.atualizarUI(user);
+        return;
       }
-    }
 
+      if (this.usuario && usuario.id === this.usuario.id) {
+        this.usuario.nome = usuario.nome;
+      }
+
+      if (
+        Array.isArray(usuario.enderecos) &&
+        Array.isArray(usuario.cartoes)
+      ) {
+        this.pendenciasPerfil =
+          this.authService.obterPendenciasPerfil(usuario);
+      } else {
+        void this.atualizarPendenciasPerfil();
+      }
+
+      this.cdr.detectChanges();
+    })
+  );
+
+  this.subscriptions.add(
+    this.authService.notificacoes$.subscribe(notificacoes => {
+      if (this.isLoggedIn && this.usuario) {
+        this.notificacoes = notificacoes;
+        this.notificacoesNaoLidas = notificacoes.filter(
+          notificacao => !notificacao.lida
+        ).length;
+      } else {
+        this.notificacoes = [];
+        this.notificacoesNaoLidas = 0;
+      }
+
+      this.cdr.detectChanges();
+    })
+  );
+
+  this.subscriptions.add(
+    this.authService.loginStatus$.subscribe(logado => {
+      if (!logado) {
+        this.isLoggedIn = false;
+        this.carrinhoItens = 0;
+        this.usuario = null;
+        this.usuarioNotificacoesId = null;
+        this.notificacoes = [];
+        this.notificacoesNaoLidas = 0;
+        this.pendenciasPerfil = [];
+        this.ultimoStatusPorPedido.clear();
+        this.ultimosChats = [];
+        this.totalChatsNaoLidas = 0;
+        this.cdr.detectChanges();
+        return;
+      }
+
+      const usuario = this.authService.getUser();
+
+      if (!usuario) {
+        return;
+      }
+
+      if (
+        this.usuarioNotificacoesId !== usuario.id ||
+        !this.isLoggedIn
+      ) {
+        this.atualizarUI(usuario);
+      }
+    })
+  );
+
+  if (this.authService.isAuthenticated()) {
+    const user = this.authService.getUser();
+
+    if (user && !this.isLoggedIn) {
+      this.atualizarUI(user);
+    }
+  }
+
+  this.carregarContadorChats();
+  this.carregarContadorCupons();
+
+  this.intervaloContadores = setInterval(() => {
     this.carregarContadorChats();
     this.carregarContadorCupons();
-
-    this.intervaloContadores = setInterval(() => {
-      this.carregarContadorChats();
-      this.carregarContadorCupons();
-    }, 2000);
-  }
+  }, 2000);
+}
 
   ngOnDestroy(): void {
     if (this.intervaloContadores) {
@@ -226,27 +284,30 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  @HostListener('window:livraria:abrir-atalho', ['$event'])
-  abrirAtalhoDaPrincipal(event: Event): void {
-    if (!this.isLoggedIn) {
-      return;
-    }
-
-    const tipo = (event as CustomEvent<string>).detail;
-
-    if (tipo === 'favoritos') {
-      this.abrirFavoritos();
-    }
-
-    if (tipo === 'carrinho') {
-      void this.abrirCarrinho();
-    }
-
-    if (tipo === 'cupons') {
-      this.abrirCupons();
-    }
+@HostListener('window:livraria:abrir-atalho', ['$event'])
+abrirAtalhoDaPrincipal(event: Event): void {
+  if (!this.isLoggedIn) {
+    return;
   }
 
+  const tipo = (event as CustomEvent<string>).detail;
+
+  if (tipo === 'favoritos') {
+    this.abrirFavoritos();
+  }
+
+  if (tipo === 'carrinho') {
+    void this.abrirCarrinho();
+  }
+
+  if (tipo === 'cupons') {
+    this.abrirCupons();
+  }
+
+  if (tipo === 'perfil') {
+    this.abrirPerfil();
+  }
+}
   toggleMenu(): void {
     this.menuAberto = !this.menuAberto;
   }
@@ -279,14 +340,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
     try {
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `${environment.apiUrl}/chat/cliente/${user.id}/conversas`,
-        {
+      const response = await this.chatApiService.listarConversasCliente(user.id, {
           headers: {
             Authorization: 'Bearer ' + token
           }
-        }
-      );
+        });
 
       if (!response.ok || this.authService.getUser()?.id !== user.id) {
         return;
@@ -386,6 +444,41 @@ export class HeaderComponent implements OnInit, OnDestroy {
       console.error('Erro ao carregar contador de chats:', error);
     }
   }
+
+
+  pendenciasPerfil: string[] = [];
+
+get perfilIncompleto(): boolean {
+  return this.isLoggedIn && this.pendenciasPerfil.length > 0;
+}
+
+async atualizarPendenciasPerfil(): Promise<void> {
+  const usuario = this.authService.getUser();
+
+  if (!usuario || !this.authService.isAuthenticated()) {
+    this.pendenciasPerfil = [];
+    return;
+  }
+
+  try {
+    const response = await this.clienteService.buscarPorId(usuario.id, {
+        headers: {
+          Authorization: 'Bearer ' + this.authService.getToken()
+        }
+      });
+
+    if (!response.ok) return;
+
+    const dados = await response.json();
+
+    if (this.authService.getUser()?.id !== usuario.id) return;
+
+    this.pendenciasPerfil = this.authService.obterPendenciasPerfil(dados);
+    this.cdr.detectChanges();
+  } catch (error) {
+    console.error('Erro ao verificar pendências do perfil:', error);
+  }
+}
 
   abrirChatDrawer(event: {
     pedidoId: number;
@@ -501,14 +594,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
     try {
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `${environment.apiUrl}/cupons/cliente/${user.id}/disponiveis`,
-        {
+      const response = await this.cupomService.listarDisponiveis(user.id, {
           headers: {
             Authorization: 'Bearer ' + token
           }
-        }
-      );
+        });
 
       if (
         response.ok &&
@@ -544,12 +634,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
         headers['Authorization'] = 'Bearer ' + token;
       }
 
-      const response = await fetch(
-        `${environment.apiUrl}/clientes/${usuarioId}/favoritos`,
-        {
+      const response = await this.favoritoService.listar(usuarioId, {
           headers
-        }
-      );
+        });
 
       if (
         response.ok &&
@@ -690,79 +777,60 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   async abrirCarrinho(): Promise<void> {
-    const user = this.authService.getUser();
+    if (this.abrindoCarrinho) return;
 
-    if (!user) {
+    const usuario = this.authService.getUser();
+    const token = this.authService.getToken();
+
+    if (!usuario || !this.authService.isAuthenticated()) {
       this.messageService.add({
         severity: 'error',
         summary: 'Erro',
-        detail: 'Faça login para acessar o carrinho'
+        detail: 'Faça login para acessar o carrinho.'
       });
-
       return;
     }
 
+    this.abrindoCarrinho = true;
+
     try {
-      const token = this.authService.getToken();
+      const resultado = await this.authService.verificarAcessoCarrinho();
 
-      const response = await fetch(
-        `${environment.apiUrl}/clientes/${user.id}`,
-        {
-          headers: {
-            Authorization: 'Bearer ' + token
-          }
-        }
-      );
+      if (this.authService.getUser()?.id !== usuario.id ||
+          this.authService.getToken() !== token ||
+          !this.authService.isAuthenticated()) return;
 
-      if (!response.ok) {
-        throw new Error('Erro ao buscar dados do usuário');
-      }
-
-      const usuarioCompleto = await response.json();
-
-      this.authService.atualizarUsuario(usuarioCompleto);
-
-      const temEndereco =
-        usuarioCompleto.enderecos &&
-        usuarioCompleto.enderecos.length > 0;
-
-      const temCartao =
-        usuarioCompleto.cartoes &&
-        usuarioCompleto.cartoes.length > 0;
-
-      if (!temEndereco || !temCartao) {
-        let mensagem = '';
-
-        if (!temEndereco && !temCartao) {
-          mensagem =
-            'Cadastre um endereço e um cartão antes de acessar o carrinho';
-        } else if (!temEndereco) {
-          mensagem =
-            'Cadastre um endereço antes de acessar o carrinho';
-        } else {
-          mensagem =
-            'Cadastre um cartão antes de acessar o carrinho';
-        }
-
+      if (!resultado.permitido) {
         this.messageService.add({
           severity: 'warn',
           summary: 'Dados incompletos',
-          detail: mensagem,
+          detail: resultado.mensagem,
           life: 2000
         });
-
         this.abrirPerfil();
         return;
       }
 
-      this.router.navigate(['/carrinho']);
-    } catch (error) {
-      console.error(
-        'Erro ao verificar dados do usuário:',
-        error
-      );
+      await this.carrinhoService.carregarCarrinho();
 
-      this.router.navigate(['/carrinho']);
+      if (this.authService.getUser()?.id !== usuario.id ||
+          this.authService.getToken() !== token ||
+          !this.authService.isAuthenticated()) return;
+
+      await this.router.navigate(['/carrinho']);
+    } catch (erro) {
+      if (this.authService.getUser()?.id !== usuario.id ||
+          this.authService.getToken() !== token) return;
+
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Erro ao acessar o carrinho',
+        detail: this.carrinhoService.obterMensagemErro(erro),
+        life: 2000
+      });
+    } finally {
+      this.abrindoCarrinho = false;
+      this.cdr.markForCheck();
     }
   }
 }

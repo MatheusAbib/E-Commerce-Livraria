@@ -1,3 +1,6 @@
+import { inject } from '@angular/core';
+import { PedidoService } from '../services/pedido.service';
+import { ChatApiService } from '../services/chat-api.service';
 
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -6,18 +9,26 @@ import { Subscription } from 'rxjs';
 import { ChatService } from '../services/chat.service';
 import { AuthService } from '../services/auth';
 import { MessageService } from 'primeng/api';
-import { ToastModule } from 'primeng/toast';
+import { ModalBaseComponent, ModalConfirmacaoComponent } from '../components/shared/modals';
+import { BotaoComponent, BotaoIconeComponent } from '../components/shared/buttons';
+import { CampoDirective } from '../components/shared/forms';
+import { NotificacaoComponent } from '../components/shared/feedback';
 
 @Component({
   selector: 'app-global-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToastModule],
+  imports: [CommonModule, FormsModule, ModalBaseComponent, ModalConfirmacaoComponent, BotaoComponent, BotaoIconeComponent, CampoDirective, NotificacaoComponent],
   providers: [MessageService],
   template: `
-    <div class="chat-drawer" *ngIf="pedidoChat" [class.open]="chatAberto">
-      <div class="chat-overlay" (click)="fecharChat()"></div>
-
-      <section class="chat-panel" role="dialog" aria-modal="true" aria-label="Chat do pedido">
+    <app-modal-base
+      [visivel]="chatAberto && !!pedidoChat"
+      largura="580px"
+      altura="100dvh"
+      alturaMaxima="100dvh"
+      rotulo="Chat do pedido"
+      lateral
+      (fechar)="fecharChat()">
+      <div class="chat-panel" *ngIf="pedidoChat">
         <header class="chat-header">
           <div class="chat-header-top">
             <span class="chat-eyebrow">
@@ -25,8 +36,12 @@ import { ToastModule } from 'primeng/toast';
               CENTRAL DE ATENDIMENTO
             </span>
 
-            <button type="button" class="chat-close" (click)="fecharChat()" aria-label="Fechar chat">
-              <i class="pi pi-times"></i>
+            <button
+              appBotaoIcone
+              icone="pi pi-times"
+              rotulo="Fechar chat"
+              aparencia="autenticacao"
+              (click)="fecharChat()">
             </button>
           </div>
 
@@ -96,19 +111,20 @@ import { ToastModule } from 'primeng/toast';
               [(ngModel)]="novaMensagemChat"
               placeholder="Digite sua mensagem..."
               (keyup.enter)="enviarMensagemChat()"
-              class="chat-input"
+              appCampo class="chat-input"
               maxlength="1000"
               aria-label="Digite sua mensagem"
             >
 
             <button
-              type="button"
+              appBotaoIcone
+              icone="pi pi-send"
+              rotulo="Enviar mensagem"
+              variante="primario"
+              tamanho="grande"
               class="chat-send-btn"
-              (click)="enviarMensagemChat()"
-              [disabled]="!novaMensagemChat.trim()"
-              aria-label="Enviar mensagem"
-            >
-              <i class="pi pi-send"></i>
+              [desabilitado]="!novaMensagemChat.trim()"
+              (click)="enviarMensagemChat()">
             </button>
           </div>
 
@@ -120,12 +136,13 @@ import { ToastModule } from 'primeng/toast';
 
             <button
               *ngIf="isAdmin"
-              type="button"
+              appBotao
+              variante="perigo"
+              tamanho="pequeno"
+              icone="pi pi-times-circle"
               class="chat-encerrar-btn"
-              (click)="encerrarAtendimento()"
-            >
-              <i class="pi pi-times-circle"></i>
-              ENCERRAR ATENDIMENTO
+              (click)="encerrarAtendimento()">
+              Encerrar atendimento
             </button>
           </div>
         </footer>
@@ -142,114 +159,68 @@ import { ToastModule } from 'primeng/toast';
           </div>
 
           <button
-            type="button"
-            class="chat-reativar-btn"
-            (click)="reativarAtendimento()"
-          >
-            <i class="pi pi-refresh"></i>
-            INICIAR NOVA CONVERSA
-            <i class="pi pi-arrow-right"></i>
+            appBotao
+            variante="primario"
+            tamanho="grande"
+            icone="pi pi-refresh"
+            larguraTotal
+            (click)="reativarAtendimento()">
+            Iniciar nova conversa
           </button>
         </footer>
-      </section>
-    </div>
+      </div>
+    </app-modal-base>
 
-    <div class="chat-confirm-modal" *ngIf="displayConfirmarEncerrar">
-      <div class="chat-confirm-overlay" (click)="cancelarEncerrar()"></div>
-
-      <section class="chat-confirm-content" role="alertdialog" aria-modal="true" aria-labelledby="chat-confirm-title">
-        <div class="chat-confirm-top">
-          <span>CONFIRMAÇÃO DE ATENDIMENTO</span>
-          <button type="button" (click)="cancelarEncerrar()" aria-label="Fechar confirmação">
-            <i class="pi pi-times"></i>
-          </button>
+    <app-modal-confirmacao
+      [visivel]="displayConfirmarEncerrar"
+      titulo="Encerrar atendimento"
+      mensagem="Tem certeza de que deseja encerrar esta conversa?"
+      icone="pi pi-exclamation-triangle"
+      variante="perigo"
+      largura="500px"
+      textoCancelar="Cancelar"
+      textoConfirmar="Sim, encerrar"
+      iconeConfirmar="pi pi-check"
+      (cancelar)="cancelarEncerrar()"
+      (confirmar)="confirmarEncerrarAtendimento()">
+      <div class="chat-confirm-notice">
+        <i class="pi pi-info-circle"></i>
+        <div>
+          <strong>O que acontece depois?</strong>
+          <p>O envio de mensagens ficará indisponível até que o atendimento seja reativado. O histórico da conversa será preservado.</p>
         </div>
+      </div>
+    </app-modal-confirmacao>
 
-        <div class="chat-confirm-body">
-          <div class="chat-confirm-icon">
-            <i class="pi pi-exclamation-triangle"></i>
-          </div>
-
-          <span class="chat-confirm-eyebrow">ATENÇÃO</span>
-          <h2 id="chat-confirm-title">Encerrar atendimento<span>.</span></h2>
-          <p>Tem certeza de que deseja encerrar esta conversa?</p>
-
-          <div class="chat-confirm-notice">
-            <i class="pi pi-info-circle"></i>
-            <div>
-              <strong>O que acontece depois?</strong>
-              <p>O envio de mensagens ficará indisponível até que o atendimento seja reativado. O histórico da conversa será preservado.</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="chat-confirm-actions">
-          <button type="button" class="chat-btn-secondary" (click)="cancelarEncerrar()">
-            CANCELAR
-          </button>
-          <button type="button" class="chat-btn-danger" (click)="confirmarEncerrarAtendimento()">
-            <i class="pi pi-check"></i>
-            SIM, ENCERRAR
-          </button>
-        </div>
-      </section>
-    </div>
+    <app-notificacao></app-notificacao>
   `,
   styles: [`
     :host {
-      --chat-ink: #1a2332;
-      --chat-muted: #737d8b;
-      --chat-line: #e2e5e9;
-      --chat-soft: #f7f8fa;
-      --chat-white: #ffffff;
-      --chat-danger: #a34b4b;
+      --chat-ink: var(--cor-texto);
+      --chat-muted: var(--cor-texto-secundario);
+      --chat-line: var(--cor-borda-suave);
+      --chat-soft: var(--cor-superficie-suave);
+      --chat-white: var(--cor-superficie);
+      --chat-danger: var(--cor-perigo);
       font-family: inherit;
     }
 
-    .chat-drawer {
-      position: fixed;
-      inset: 0;
-      z-index: 99999;
-      display: none;
-    }
-
-    .chat-drawer.open {
-      display: block;
-    }
-
-    .chat-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(15, 23, 42, .45);
-      animation: chatFadeIn .25s ease;
-    }
-
     .chat-panel {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: min(100%, 580px);
-      height: 100%;
-      height: 100dvh;
       display: flex;
       flex-direction: column;
+      flex: 1 1 auto;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      min-width: 0;
       background: var(--chat-white);
       color: var(--chat-ink);
-      border-left: 1px solid var(--chat-line);
-      box-shadow: none;
-      animation: chatSlideIn .3s ease;
       overflow: hidden;
     }
 
-    @keyframes chatSlideIn {
-      from { transform: translateX(100%); }
-      to { transform: translateX(0); }
-    }
+    
 
-    @keyframes chatFadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
+    
 
     .chat-header {
       flex-shrink: 0;
@@ -281,29 +252,6 @@ import { ToastModule } from 'primeng/toast';
       background: var(--chat-ink);
     }
 
-    .chat-close {
-      display: grid;
-      place-items: center;
-      flex-shrink: 0;
-      width: 38px;
-      height: 38px;
-      background: transparent;
-      border: 1px solid var(--chat-line);
-      border-radius: 0;
-      color: var(--chat-ink);
-      cursor: pointer;
-      transition: background .2s ease, border-color .2s ease;
-    }
-
-    .chat-close:hover {
-      background: var(--chat-soft);
-      border-color: #c4ccd6;
-    }
-
-    .chat-close i {
-      font-size: 13px;
-    }
-
     .chat-heading {
       display: flex;
       justify-content: space-between;
@@ -332,20 +280,6 @@ import { ToastModule } from 'primeng/toast';
       color: var(--chat-muted);
       font-size: 12px;
       line-height: 1.6;
-    }
-
-    .chat-heading-icon {
-      display: grid;
-      place-items: center;
-      flex-shrink: 0;
-      width: 48px;
-      height: 48px;
-      border: 1px solid var(--chat-line);
-      color: var(--chat-ink);
-    }
-
-    .chat-heading-icon i {
-      font-size: 19px;
     }
 
     .chat-order-bar {
@@ -577,11 +511,6 @@ import { ToastModule } from 'primeng/toast';
       letter-spacing: .07em;
     }
 
-    .chat-compose-heading i {
-      font-size: 12px;
-      color: var(--chat-muted);
-    }
-
     .chat-input-wrapper {
       display: flex;
       align-items: stretch;
@@ -612,33 +541,6 @@ import { ToastModule } from 'primeng/toast';
       color: #98a1ad;
     }
 
-    .chat-send-btn {
-      display: grid;
-      place-items: center;
-      flex-shrink: 0;
-      width: 54px;
-      background: var(--chat-ink);
-      border: 0;
-      border-left: 1px solid var(--chat-ink);
-      border-radius: 0;
-      color: white;
-      cursor: pointer;
-      transition: background .2s ease;
-    }
-
-    .chat-send-btn:hover:not(:disabled) {
-      background: #344254;
-    }
-
-    .chat-send-btn:disabled {
-      opacity: .45;
-      cursor: not-allowed;
-    }
-
-    .chat-send-btn i {
-      font-size: 15px;
-    }
-
     .chat-footer-bottom {
       display: flex;
       align-items: center;
@@ -658,28 +560,6 @@ import { ToastModule } from 'primeng/toast';
 
     .chat-footer-hint i {
       font-size: 11px;
-    }
-
-    .chat-encerrar-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px 12px;
-      background: transparent;
-      border: 1px solid #eed7d7;
-      border-radius: 0;
-      color: var(--chat-danger);
-      font-family: inherit;
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: .04em;
-      cursor: pointer;
-      transition: background .2s ease;
-    }
-
-    .chat-encerrar-btn:hover {
-      background: #fbf2f2;
     }
 
     .chat-footer-inactive {
@@ -722,144 +602,7 @@ import { ToastModule } from 'primeng/toast';
       line-height: 1.6;
     }
 
-    .chat-reativar-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 11px;
-      width: 100%;
-      min-height: 49px;
-      padding: 13px 17px;
-      background: var(--chat-ink);
-      border: 1px solid var(--chat-ink);
-      border-radius: 0;
-      color: white;
-      font-family: inherit;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: .055em;
-      cursor: pointer;
-      transition: background .2s ease;
-    }
-
-    .chat-reativar-btn:hover {
-      background: #344254;
-    }
-
-    .chat-reativar-btn i {
-      font-size: 12px;
-    }
-
-    .chat-confirm-modal {
-      position: fixed;
-      inset: 0;
-      z-index: 100000;
-      display: grid;
-      place-items: center;
-      padding: 20px;
-    }
-
-    .chat-confirm-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(15, 23, 42, .55);
-    }
-
-    .chat-confirm-content {
-      position: relative;
-      width: min(100%, 500px);
-      max-height: calc(100dvh - 40px);
-      overflow-y: auto;
-      background: white;
-      border: 1px solid var(--chat-line);
-      border-radius: 0;
-      box-shadow: none;
-      animation: chatModalIn .2s ease;
-    }
-
-    @keyframes chatModalIn {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .chat-confirm-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 15px;
-      padding: 19px 26px;
-      border-bottom: 1px solid var(--chat-line);
-    }
-
-    .chat-confirm-top span {
-      color: var(--chat-muted);
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: .09em;
-    }
-
-    .chat-confirm-top button {
-      display: grid;
-      place-items: center;
-      width: 30px;
-      height: 30px;
-      border: 1px solid var(--chat-line);
-      background: white;
-      color: var(--chat-ink);
-      cursor: pointer;
-    }
-
-    .chat-confirm-top button i {
-      font-size: 11px;
-    }
-
-    .chat-confirm-body {
-      padding: 32px 30px;
-    }
-
-    .chat-confirm-icon {
-      display: grid;
-      place-items: center;
-      width: 52px;
-      height: 52px;
-      margin-bottom: 25px;
-      background: #fbf2f2;
-      border: 1px solid #eed7d7;
-      color: var(--chat-danger);
-    }
-
-    .chat-confirm-icon i {
-      font-size: 21px;
-    }
-
-    .chat-confirm-eyebrow {
-      display: block;
-      margin-bottom: 12px;
-      color: var(--chat-danger);
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: .12em;
-    }
-
-    .chat-confirm-body h2 {
-      margin: 0 0 14px;
-      color: var(--chat-ink);
-      font-size: clamp(28px, 5vw, 39px);
-      font-weight: 800;
-      line-height: 1.1;
-      letter-spacing: -.055em;
-    }
-
-    .chat-confirm-body h2 span {
-      color: var(--chat-danger);
-    }
-
-    .chat-confirm-body > p {
-      margin: 0;
-      color: var(--chat-muted);
-      font-size: 13px;
-      line-height: 1.75;
-    }
+    
 
     .chat-confirm-notice {
       display: flex;
@@ -890,55 +633,6 @@ import { ToastModule } from 'primeng/toast';
       color: var(--chat-muted);
       font-size: 11px;
       line-height: 1.75;
-    }
-
-    .chat-confirm-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      padding: 20px 30px;
-      border-top: 1px solid var(--chat-line);
-    }
-
-    .chat-btn-secondary,
-    .chat-btn-danger {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 9px;
-      min-height: 43px;
-      padding: 12px 18px;
-      border-radius: 0;
-      font-family: inherit;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: .045em;
-      cursor: pointer;
-      transition: background .2s ease;
-    }
-
-    .chat-btn-secondary {
-      background: white;
-      border: 1px solid #cbd2da;
-      color: var(--chat-ink);
-    }
-
-    .chat-btn-secondary:hover {
-      background: var(--chat-soft);
-    }
-
-    .chat-btn-danger {
-      background: var(--chat-ink);
-      border: 1px solid var(--chat-ink);
-      color: white;
-    }
-
-    .chat-btn-danger:hover {
-      background: #344254;
-    }
-
-    .chat-btn-danger i {
-      font-size: 11px;
     }
 
     @media (max-width: 768px) {
@@ -998,11 +692,6 @@ import { ToastModule } from 'primeng/toast';
         font-size: 11px;
       }
 
-      .chat-heading-icon {
-        width: 40px;
-        height: 40px;
-      }
-
       .chat-order-bar {
         padding: 14px 16px;
       }
@@ -1033,43 +722,88 @@ import { ToastModule } from 'primeng/toast';
         align-items: flex-start;
       }
 
+    }
+
+    
+
+    .chat-input-wrapper {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      border: 1px solid var(--cor-borda);
+    }
+
+    .chat-input-wrapper:focus-within {
+      border-color: var(--cor-primaria);
+    }
+
+    .chat-input-wrapper .chat-input {
+      flex: 1 1 auto;
+      width: 0;
+      min-width: 0;
+      height: 51px;
+      border: 0;
+      box-shadow: none;
+    }
+
+    .chat-input-wrapper .chat-send-btn {
+      flex: 0 0 54px;
+      width: 54px;
+      height: 51px;
+      border: 0;
+      border-radius: 0;
+    }
+
+    .chat-confirm-notice {
+      margin-top: 20px;
+      border-left: 3px solid var(--cor-primaria);
+    }
+
+    .chat-empty {
+      box-sizing: border-box;
+    }
+
+    .message-bubble {
+      box-sizing: border-box;
+    }
+
+    @media (max-width: 480px) {
+      .chat-input-wrapper .chat-input {
+        font-size: 16px;
+      }
+
       .chat-encerrar-btn {
-        width: 100%;
-      }
-
-      .chat-confirm-modal {
-        padding: 12px;
-      }
-
-      .chat-confirm-top {
-        padding: 16px 20px;
-      }
-
-      .chat-confirm-body {
-        padding: 25px 20px;
-      }
-
-      .chat-confirm-actions {
-        flex-direction: column-reverse;
-        padding: 17px 20px;
-      }
-
-      .chat-btn-secondary,
-      .chat-btn-danger {
         width: 100%;
       }
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      .chat-panel,
-      .chat-overlay,
-      .chat-confirm-content {
-        animation: none;
+    @media (max-height: 650px) {
+      .chat-heading {
+        padding-top: 12px;
+        padding-bottom: 15px;
+      }
+
+      .chat-heading h2 {
+        font-size: 25px;
+      }
+
+      .chat-order-bar,
+      .chat-conversation-heading {
+        padding-top: 10px;
+        padding-bottom: 10px;
+      }
+
+      .chat-footer {
+        padding-top: 12px;
+        padding-bottom: 12px;
       }
     }
   `]
 })
 export class GlobalChatComponent implements OnInit, OnDestroy {
+  private readonly pedidoService = inject(PedidoService);
+  private readonly chatApiService = inject(ChatApiService);
+
   @ViewChild('chatMessages') chatMessages!: ElementRef;
 
   chatAberto: boolean = false;
@@ -1130,7 +864,7 @@ export class GlobalChatComponent implements OnInit, OnDestroy {
         }
 
         const token = this.authService.getToken();
-        const response = await fetch(`/api/pedidos/${pedidoId}`, {
+        const response = await this.pedidoService.buscarPorIdRelativo(pedidoId, {
           headers: {
             Authorization: 'Bearer ' + token
           }
@@ -1215,7 +949,7 @@ export class GlobalChatComponent implements OnInit, OnDestroy {
       const token = this.authService.getToken();
       const url = `/api/chat/cliente/${pedidoId}?clienteId=${user.id}`;
 
-      const response = await fetch(url, {
+      const response = await this.chatApiService.consultarMensagensPorUrl(url, {
         headers: {
           Authorization: 'Bearer ' + token
         }
@@ -1231,7 +965,7 @@ export class GlobalChatComponent implements OnInit, OnDestroy {
         this.mensagensChat = mensagens;
         this.scrollChatParaBaixo();
 
-        await fetch(`/api/chat/cliente/${pedidoId}/ler`, {
+        await this.chatApiService.marcarLidasClienteRelativo(pedidoId, {
           method: 'PUT',
           headers: {
             Authorization: 'Bearer ' + token
@@ -1261,14 +995,11 @@ export class GlobalChatComponent implements OnInit, OnDestroy {
 
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `/api/chat/cliente/${pedidoId}?clienteId=${user.id}`,
-        {
+      const response = await this.chatApiService.listarMensagensClienteRelativo(pedidoId, user.id, {
           headers: {
             Authorization: 'Bearer ' + token
           }
-        }
-      );
+        });
 
       if (response.ok) {
         const novasMensagens = await response.json();
@@ -1281,7 +1012,7 @@ export class GlobalChatComponent implements OnInit, OnDestroy {
           this.mensagensChat = novasMensagens;
           this.scrollChatParaBaixo();
 
-          await fetch(`/api/chat/cliente/${pedidoId}/ler`, {
+          await this.chatApiService.marcarLidasClienteRelativo(pedidoId, {
             method: 'PUT',
             headers: {
               Authorization: 'Bearer ' + token
@@ -1325,17 +1056,14 @@ export class GlobalChatComponent implements OnInit, OnDestroy {
       const mensagem = this.novaMensagemChat.trim();
       const pedidoId = this.pedidoChat.id;
 
-      const response = await fetch(
-        `/api/chat/cliente?pedidoId=${pedidoId}&clienteId=${user.id}`,
-        {
+      const response = await this.chatApiService.enviarMensagemClienteRelativo(pedidoId, user.id, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: 'Bearer ' + token
           },
           body: JSON.stringify({ mensagem })
-        }
-      );
+        });
 
       if (response.ok) {
         this.novaMensagemChat = '';
@@ -1350,14 +1078,11 @@ export class GlobalChatComponent implements OnInit, OnDestroy {
     try {
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `/api/chat/admin/${pedidoId}/atendimento-ativo`,
-        {
+      const response = await this.chatApiService.consultarAtendimentoRelativo(pedidoId, {
           headers: {
             Authorization: 'Bearer ' + token
           }
-        }
-      );
+        });
 
       if (response.ok) {
         const data = await response.json();
@@ -1413,15 +1138,12 @@ export class GlobalChatComponent implements OnInit, OnDestroy {
       const pedidoId = this.pedidoChat.id;
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `/api/chat/cliente/${pedidoId}/encerrar`,
-        {
+      const response = await this.chatApiService.encerrarClienteRelativo(pedidoId, {
           method: 'PUT',
           headers: {
             Authorization: 'Bearer ' + token
           }
-        }
-      );
+        });
 
       if (response.ok) {
         this.chatAtivo = false;
@@ -1464,15 +1186,12 @@ export class GlobalChatComponent implements OnInit, OnDestroy {
       const pedidoId = this.pedidoChat.id;
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `/api/chat/cliente/${pedidoId}/reativar`,
-        {
+      const response = await this.chatApiService.reativarClienteRelativo(pedidoId, {
           method: 'PUT',
           headers: {
             Authorization: 'Bearer ' + token
           }
-        }
-      );
+        });
 
       if (response.ok) {
         this.chatAtivo = true;

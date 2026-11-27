@@ -68,7 +68,7 @@ public class MaisVendidosService {
                                 .reversed()
                                 .thenComparing(Map.Entry.comparingByKey())
                 )
-                .limit(3)
+                .limit(5)
                 .map(Map.Entry::getKey)
                 .toList();
     }

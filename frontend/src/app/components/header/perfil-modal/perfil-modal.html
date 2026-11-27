@@ -1,28 +1,27 @@
-<div class="custom-modal" [class.active]="visible">
-  <div class="custom-modal-overlay" (click)="fechar()"></div>
-  <div class="custom-modal-content">
-    <button class="custom-modal-close" (click)="fechar()">
-      <i class="pi pi-times"></i>
-    </button>
-
-    <div class="custom-modal-header">
-      <div class="auth-icon"><i class="pi pi-user"></i></div>
-      <h2>Meu Perfil</h2>
-      <p>Gerencie suas informações pessoais</p>
-    </div>
-
-    <div class="custom-modal-body" style="position: relative; min-height: 300px;">
-      <div *ngIf="loading" class="loader-overlay">
-        <div class="loader-container">
-          <div class="loader-spinner">
-            <div class="spinner-ring"></div>
-            <div class="spinner-ring"></div>
-            <div class="spinner-ring"></div>
-          </div>
-          <p class="loader-text">Carregando seus dados...</p>
-        </div>
+<app-modal-base [visivel]="visible" largura="750px" alturaMaxima="92vh" rotulo="Meu Perfil" (fechar)="fechar()">
+  
+  
+    
+    <app-modal-cabecalho titulo="Meu Perfil" subtitulo="Gerencie suas informações pessoais" icone="pi pi-user" (fechar)="fechar()">
+      
+      
+      
+    <div class="perfil-pendencias" *ngIf="perfilIncompleto">
+      <div class="perfil-pendencias-icon">
+        <i class="pi pi-exclamation-circle"></i>
       </div>
 
+      <div class="perfil-pendencias-content">
+        <strong>Complete seu perfil</strong>
+        <p>{{ mensagemPendenciasPerfil }}</p>
+      </div>
+    </div>
+        </app-modal-cabecalho>
+
+    <app-modal-corpo rolagemInterna>
+      <div *ngIf="loading" class="loader-overlay">
+        <app-carregamento texto="Carregando seus dados..." modelo="aneis"></app-carregamento>
+      </div>
       <div *ngIf="!loading">
         <div *ngIf="usuario" class="perfil-info-grid">
           <div class="perfil-info-item">
@@ -56,32 +55,17 @@
             </span>
           </div>
         </div>
-
-        <div class="perfil-actions">
-          <button class="btn-primary" (click)="editarDados()" [disabled]="carregandoEditarPerfil" [class.loading]="carregandoEditarPerfil">
-            <i class="pi pi-pencil"></i> Editar Dados
-          </button>
-          <button class="p-button-outlined btn-sm" (click)="alterarSenha()">
-            <i class="pi pi-key"></i> Alterar Senha
-          </button>
+        <div appGrupoAcoes class="perfil-actions" alinhamento="inicio" espacamento="var(--acoes-perfil-gap)">
+          <button appBotao class="acao-formulario" variante="primario" tamanho="medio" icone="pi pi-pencil" textoCarregando="Carregando..." (click)="editarDados()" [desabilitado]="carregandoEditarPerfil" [carregando]="carregandoEditarPerfil">Editar Dados</button>
+          <button appBotao class="acao-formulario" variante="secundario" tamanho="medio" icone="pi pi-key" (click)="alterarSenha()">Alterar Senha</button>
         </div>
-
         <hr>
-
         <div class="perfil-section">
           <div class="perfil-section-header">
             <h4><i class="pi pi-map-marker"></i> Endereços</h4>
-            <button class="p-button-outlined btn-sm" (click)="adicionarEndereco()">
-              <i class="pi pi-plus"></i> Adicionar
-            </button>
+            <button appBotao class="acao-formulario" variante="secundario" tamanho="pequeno" icone="pi pi-plus" (click)="adicionarEndereco()">Adicionar</button>
           </div>
-
-          <div *ngIf="perfilEnderecos.length === 0" class="empty-state">
-            <i class="pi pi-map-marker" style="font-size: 2.5rem; color: #cbd5e1;"></i>
-            <p>Nenhum endereço cadastrado</p>
-            <span>Clique em "Adicionar" para criar um novo endereço</span>
-          </div>
-
+          <div *ngIf="perfilEnderecos.length === 0" class="empty-state"><app-estado-vazio icone="pi pi-map-marker" titulo="Nenhum endereço cadastrado" descricao="Clique em &quot;Adicionar&quot; para criar um novo endereço" compacto tamanho="pequeno"></app-estado-vazio></div>
           <div *ngFor="let endereco of perfilEnderecos" class="perfil-card">
             <div class="perfil-card-header">
               <div>
@@ -89,13 +73,9 @@
                 <strong>{{endereco.nomeEndereco || getEnderecoLabel(endereco.tipo)}}</strong>
                 <span class="perfil-badge" *ngIf="endereco.tipo === 'COBRANCA'">Cobrança</span>
               </div>
-              <div class="perfil-card-actions">
-                <button class="perfil-btn-icon" (click)="editarEndereco(endereco)" title="Editar">
-                  <i class="pi pi-pencil"></i>
-                </button>
-                <button class="perfil-btn-icon perfil-btn-danger" (click)="confirmarExclusao('endereco', endereco.id)" title="Excluir">
-                  <i class="pi pi-trash"></i>
-                </button>
+              <div appGrupoAcoes class="perfil-card-actions" espacamento="6px">
+                <button appBotaoIcone class="acao-lista acao-lista-pequena" icone="pi pi-pencil" rotulo="Editar" (click)="editarEndereco(endereco)"></button>
+                <button appBotaoIcone class="acao-lista acao-remover acao-lista-pequena" variante="perigo" icone="pi pi-trash" rotulo="Excluir" (click)="confirmarExclusao('endereco', endereco.id)"></button>
               </div>
             </div>
             <div class="perfil-card-body">
@@ -105,21 +85,12 @@
             </div>
           </div>
         </div>
-
         <div class="perfil-section">
           <div class="perfil-section-header">
             <h4><i class="pi pi-credit-card"></i> Cartões</h4>
-            <button class="p-button-outlined btn-sm" (click)="adicionarCartao()">
-              <i class="pi pi-plus"></i> Adicionar
-            </button>
+            <button appBotao class="acao-formulario" variante="secundario" tamanho="pequeno" icone="pi pi-plus" (click)="adicionarCartao()">Adicionar</button>
           </div>
-
-          <div *ngIf="perfilCartoes.length === 0" class="empty-state">
-            <i class="pi pi-credit-card" style="font-size: 2.5rem; color: #cbd5e1;"></i>
-            <p>Nenhum cartão cadastrado</p>
-            <span>Clique em "Adicionar" para criar um novo cartão</span>
-          </div>
-
+          <div *ngIf="perfilCartoes.length === 0" class="empty-state"><app-estado-vazio icone="pi pi-credit-card" titulo="Nenhum cartão cadastrado" descricao="Clique em &quot;Adicionar&quot; para criar um novo cartão" compacto tamanho="pequeno"></app-estado-vazio></div>
           <div *ngFor="let cartao of perfilCartoes" class="perfil-card">
             <div class="perfil-card-header">
               <div>
@@ -128,13 +99,9 @@
                 <span class="perfil-card-number">**** **** **** {{cartao.numero ? cartao.numero.slice(-4) : '****'}}</span>
                 <span class="perfil-badge perfil-badge-primary" *ngIf="cartao.preferencial">Preferencial</span>
               </div>
-              <div class="perfil-card-actions">
-                <button class="perfil-btn-icon" (click)="editarCartao(cartao)" title="Editar">
-                  <i class="pi pi-pencil"></i>
-                </button>
-                <button class="perfil-btn-icon perfil-btn-danger" (click)="confirmarExclusao('cartao', cartao.id)" title="Excluir">
-                  <i class="pi pi-trash"></i>
-                </button>
+              <div appGrupoAcoes class="perfil-card-actions" espacamento="6px">
+                <button appBotaoIcone class="acao-lista acao-lista-pequena" icone="pi pi-pencil" rotulo="Editar" (click)="editarCartao(cartao)"></button>
+                <button appBotaoIcone class="acao-lista acao-remover acao-lista-pequena" variante="perigo" icone="pi pi-trash" rotulo="Excluir" (click)="confirmarExclusao('cartao', cartao.id)"></button>
               </div>
             </div>
             <div class="perfil-card-body">
@@ -144,325 +111,289 @@
           </div>
         </div>
       </div>
-    </div>
+    </app-modal-corpo>
 
-    <div class="custom-modal-footer">
-      <div class="modal-actions single">
-        <button class="btn-secondary" (click)="fechar()">
-          <i class="pi pi-times"></i> Fechar
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="custom-modal" [class.active]="displayEditarEndereco">
-  <div class="custom-modal-overlay" (click)="displayEditarEndereco = false"></div>
-  <div class="custom-modal-content" style="width: 550px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
-    <button class="custom-modal-close" (click)="displayEditarEndereco = false">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon"><i class="pi pi-map-marker"></i></div>
-      <h2>{{ enderecoEditando?.id ? 'Editar Endereço' : 'Adicionar Endereço' }}</h2>
-    </div>
-    <div class="custom-modal-body">
+  </app-modal-base>
+<app-modal-base [visivel]="displayEditarEndereco" largura="550px" alturaMaxima="90vh" rotulo="Endereço" (fechar)="fecharEndereco()">
+  
+  
+    
+    <app-modal-cabecalho [titulo]="enderecoEditando?.id ? 'Editar Endereço' : 'Adicionar Endereço'" icone="pi pi-map-marker" (fechar)="fecharEndereco()"></app-modal-cabecalho>
+    <app-modal-corpo rolagemInterna>
       <div class="field">
-        <label>Nome do Endereço</label>
-        <input [(ngModel)]="enderecoEditando.nomeEndereco" placeholder="Ex: Casa, Trabalho" class="auth-input">
+        <label for="endereco-cep">CEP *</label>
+        <div class="cep-input-wrapper">
+          <input appMascara="cep" appCampo aparencia="autenticacao" id="endereco-cep" [ngModel]="enderecoEditando.cep" (ngModelChange)="atualizarCepFormatado($event)" (blur)="verificarCepAoSair()" [class.input-invalido]="!!cepErro" [disabled]="carregandoSalvarEndereco" placeholder="00000-000" class="auth-input" inputmode="numeric" autocomplete="postal-code" maxlength="9" [invalido]="!!cepErro" [descricaoId]="cepErro ? 'perfil-cep-erro' : ''">
+          <i *ngIf="buscandoCep" class="pi pi-spin pi-spinner cep-input-icon"></i>
+          <i *ngIf="cepEncontrado && !buscandoCep" class="pi pi-check-circle cep-input-icon cep-icon-sucesso"></i>
+        </div>
+        <small class="cep-status" *ngIf="!buscandoCep && !cepEncontrado && !cepErro">Digite seu cep para persquisar o endereço</small>
+        <small class="cep-status cep-carregando" *ngIf="buscandoCep">Buscando endereço...</small>
+        <app-mensagem-validacao
+          tipo="erro"
+          mensagemId="perfil-cep-erro"
+          [visivel]="!!cepErro"
+          [mensagem]="cepErro">
+        </app-mensagem-validacao>
+        <small class="cep-status cep-sucesso" *ngIf="cepEncontrado && !buscandoCep">Endereço encontrado.</small>
+        <button appBotao class="acao-formulario acao-consultar-cep" variante="secundario" tamanho="pequeno" *ngIf="cepErro && cepCompleto && !buscandoCep" (click)="buscarCEP(enderecoEditando.cep.replace('-', ''))">Consultar novamente</button>
       </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Rua *</label>
-          <input [(ngModel)]="enderecoEditando.rua" placeholder="Digite o nome da rua" class="auth-input">
-        </div>
-        <div class="form-group">
-          <label>Número *</label>
-          <input [(ngModel)]="enderecoEditando.numero" placeholder="Número" class="auth-input">
-        </div>
+      <div class="field">
+        <label for="perfil-enderecoEditando-nomeEndereco">Nome do Endereço</label>
+        <input id="perfil-enderecoEditando-nomeEndereco" appCampo aparencia="autenticacao" [(ngModel)]="enderecoEditando.nomeEndereco" placeholder="Ex: Casa, Trabalho" class="auth-input">
       </div>
-
-      <div class="form-row">
+      <div appGrupoFormulario class="form-row" [colunas]="2" espacamento="16px">
         <div class="form-group">
-          <label>Bairro *</label>
-          <input [(ngModel)]="enderecoEditando.bairro" placeholder="Digite o bairro" class="auth-input">
+          <label for="perfil-enderecoEditando-rua">Rua *</label>
+          <input id="perfil-enderecoEditando-rua" appCampo aparencia="autenticacao" [(ngModel)]="enderecoEditando.rua" placeholder="Digite o nome da rua" class="auth-input">
         </div>
         <div class="form-group">
-          <label>Cidade *</label>
-          <input [(ngModel)]="enderecoEditando.cidade" placeholder="Digite a cidade" class="auth-input">
-        </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label>Estado *</label>
-          <select [(ngModel)]="enderecoEditando.estado" class="auth-input">
-            <option value="">Selecione</option>
-            <option value="AC">Acre</option>
-            <option value="AL">Alagoas</option>
-            <option value="AP">Amapá</option>
-            <option value="AM">Amazonas</option>
-            <option value="BA">Bahia</option>
-            <option value="CE">Ceará</option>
-            <option value="DF">Distrito Federal</option>
-            <option value="ES">Espírito Santo</option>
-            <option value="GO">Goiás</option>
-            <option value="MA">Maranhão</option>
-            <option value="MT">Mato Grosso</option>
-            <option value="MS">Mato Grosso do Sul</option>
-            <option value="MG">Minas Gerais</option>
-            <option value="PA">Pará</option>
-            <option value="PB">Paraíba</option>
-            <option value="PR">Paraná</option>
-            <option value="PE">Pernambuco</option>
-            <option value="PI">Piauí</option>
-            <option value="RJ">Rio de Janeiro</option>
-            <option value="RN">Rio Grande do Norte</option>
-            <option value="RS">Rio Grande do Sul</option>
-            <option value="RO">Rondônia</option>
-            <option value="RR">Roraima</option>
-            <option value="SC">Santa Catarina</option>
-            <option value="SP">São Paulo</option>
-            <option value="SE">Sergipe</option>
-            <option value="TO">Tocantins</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>CEP *</label>
-          <input [(ngModel)]="enderecoEditando.cep" (input)="formatarCEP($event)" placeholder="00000-000" class="auth-input" maxlength="9">
+          <label for="perfil-enderecoEditando-numero">Número *</label>
+          <input id="perfil-enderecoEditando-numero" appCampo aparencia="autenticacao" [(ngModel)]="enderecoEditando.numero" placeholder="Número" class="auth-input">
         </div>
       </div>
-
-      <div class="form-row">
+      <div appGrupoFormulario class="form-row" [colunas]="2" espacamento="16px">
         <div class="form-group">
-          <label>Tipo de Residência</label>
-          <input [(ngModel)]="enderecoEditando.tipoResidencia" placeholder="Casa/Apartamento" class="auth-input">
+          <label for="perfil-enderecoEditando-bairro">Bairro *</label>
+          <input id="perfil-enderecoEditando-bairro" appCampo aparencia="autenticacao" [(ngModel)]="enderecoEditando.bairro" placeholder="Digite o bairro" class="auth-input">
         </div>
         <div class="form-group">
-          <label>Complemento</label>
-          <input [(ngModel)]="enderecoEditando.complemento" placeholder="Complemento (opcional)" class="auth-input">
-        </div>
-      </div>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="displayEditarEndereco = false">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button class="btn-primary" (click)="salvarEndereco()" [disabled]="carregandoSalvarEndereco" [class.loading]="carregandoSalvarEndereco">
-          <i class="pi pi-save"></i> Salvar
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="custom-modal" [class.active]="displayEditarCartao">
-  <div class="custom-modal-overlay" (click)="displayEditarCartao = false"></div>
-  <div class="custom-modal-content" style="width: 550px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
-    <button class="custom-modal-close" (click)="displayEditarCartao = false">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon"><i class="pi pi-credit-card"></i></div>
-      <h2>{{ cartaoEditando?.id ? 'Editar Cartão' : 'Adicionar Cartão' }}</h2>
-    </div>
-    <div class="custom-modal-body">
-      <div class="form-row">
-        <div class="form-group">
-          <label>Número do Cartão *</label>
-          <input [(ngModel)]="cartaoEditando.numero" (input)="formatarNumeroCartao($event)" placeholder="0000 0000 0000 0000" class="auth-input" maxlength="19">
-        </div>
-        <div class="form-group">
-          <label>Nome no Cartão *</label>
-          <input [(ngModel)]="cartaoEditando.nomeTitular" placeholder="Como está no cartão" class="auth-input">
+          <label for="perfil-enderecoEditando-cidade">Cidade *</label>
+          <input id="perfil-enderecoEditando-cidade" appCampo aparencia="autenticacao" [(ngModel)]="enderecoEditando.cidade" placeholder="Digite a cidade" class="auth-input">
         </div>
       </div>
-
-      <div class="form-row">
+      <div class="field">
+          <label for="perfil-enderecoEditando-estado">Estado *</label>
+          <app-campo-selecao
+          campoId="perfil-enderecoEditando-estado"
+          aparencia="autenticacao"
+          placeholder="Selecione"
+          [valorVazio]="''"
+          [opcoes]="opcoesEstados"
+          [(ngModel)]="enderecoEditando.estado">
+        </app-campo-selecao>
+      </div>
+      <div appGrupoFormulario class="form-row" [colunas]="2" espacamento="16px">
         <div class="form-group">
-          <label>Bandeira *</label>
-          <select [(ngModel)]="cartaoEditando.bandeira" class="auth-input">
-            <option value="">Selecione</option>
-            <option value="Visa">Visa</option>
-            <option value="Mastercard">Mastercard</option>
-            <option value="Elo">Elo</option>
-            <option value="American Express">American Express</option>
-          </select>
+          <label for="perfil-enderecoEditando-tipoResidencia">Tipo de Residência</label>
+          <input id="perfil-enderecoEditando-tipoResidencia" appCampo aparencia="autenticacao" [(ngModel)]="enderecoEditando.tipoResidencia" placeholder="Casa/Apartamento" class="auth-input">
         </div>
         <div class="form-group">
-          <label>CVV *</label>
-          <input [(ngModel)]="cartaoEditando.cvv" (input)="formatarCVV($event)" placeholder="000" class="auth-input" maxlength="4">
+          <label for="perfil-enderecoEditando-complemento">Complemento</label>
+          <input id="perfil-enderecoEditando-complemento" appCampo aparencia="autenticacao" [(ngModel)]="enderecoEditando.complemento" placeholder="Complemento (opcional)" class="auth-input">
+        </div>
+      </div>
+    </app-modal-corpo>
+    <app-modal-rodape separador>
+      <div appGrupoAcoes class="modal-actions" largurasIguais espacamento="var(--acoes-modal-gap)">
+        <button appBotao class="acao-formulario" variante="secundario" tamanho="medio" icone="pi pi-times" (click)="fecharEndereco()">Cancelar</button>
+        <button appBotao class="acao-formulario" variante="primario" tamanho="medio" icone="pi pi-save" textoCarregando="Salvando..." (click)="salvarEndereco()" [desabilitado]="carregandoSalvarEndereco || buscandoCep || !!cepErro || !cepCompleto" [carregando]="carregandoSalvarEndereco">Salvar</button>
+      </div>
+    </app-modal-rodape>
+  </app-modal-base>
+<app-modal-base [visivel]="displayEditarCartao" largura="550px" alturaMaxima="90vh" rotulo="Cartão" (fechar)="displayEditarCartao = false">
+  
+  
+    
+    <app-modal-cabecalho [titulo]="cartaoEditando?.id ? 'Editar Cartão' : 'Adicionar Cartão'" icone="pi pi-credit-card" (fechar)="displayEditarCartao = false"></app-modal-cabecalho>
+    <app-modal-corpo rolagemInterna>
+      <div appGrupoFormulario class="form-row" [colunas]="2" espacamento="16px">
+        <div class="form-group">
+          <label for="perfil-cartaoEditando-numero">Número do Cartão *</label>
+          <input appMascara="cartao" id="perfil-cartaoEditando-numero" appCampo aparencia="autenticacao" [(ngModel)]="cartaoEditando.numero" placeholder="0000 0000 0000 0000" class="auth-input" maxlength="19">
         </div>
         <div class="form-group">
-          <label>Validade *</label>
-          <input
+          <label for="perfil-cartaoEditando-nomeTitular">Nome no Cartão *</label>
+          <input id="perfil-cartaoEditando-nomeTitular" appCampo aparencia="autenticacao" [(ngModel)]="cartaoEditando.nomeTitular" placeholder="Como está no cartão" class="auth-input">
+        </div>
+      </div>
+      <div appGrupoFormulario class="form-row" [colunas]="2" espacamento="16px">
+        <div class="form-group">
+          <label for="perfil-cartaoEditando-bandeira">Bandeira *</label>
+          <app-campo-selecao
+          campoId="perfil-cartaoEditando-bandeira"
+          aparencia="autenticacao"
+          placeholder="Selecione"
+          [valorVazio]="''"
+          [opcoes]="opcoesBandeiras"
+          [(ngModel)]="cartaoEditando.bandeira">
+        </app-campo-selecao>
+        </div>
+        <div class="form-group">
+          <label for="perfil-cartaoEditando-cvv">CVV *</label>
+          <input appMascara="cvv" id="perfil-cartaoEditando-cvv" appCampo aparencia="autenticacao" [(ngModel)]="cartaoEditando.cvv" placeholder="000" class="auth-input" maxlength="4">
+        </div>
+        <div class="form-group">
+          <label for="perfil-cartaoEditando-dataValidade">Validade *</label>
+          <input id="perfil-cartaoEditando-dataValidade" appCampo aparencia="autenticacao"
             [(ngModel)]="cartaoEditando.dataValidade"
             type="month"
-            class="auth-input"
-            [value]="cartaoEditando.dataValidade">
+            class="auth-input">
         </div>
       </div>
-
       <div class="field" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
-        <input type="checkbox" [(ngModel)]="cartaoEditando.preferencial" id="preferencial-check">
+        <input type="checkbox" [(ngModel)]="cartaoEditando.preferencial" id="preferencial-check" class="controle-selecao-compartilhado">
         <label for="preferencial-check" style="margin: 0; cursor: pointer;">Cartão Preferencial</label>
       </div>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="displayEditarCartao = false">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button class="btn-primary" (click)="salvarCartao()" [disabled]="carregandoSalvarCartao" [class.loading]="carregandoSalvarCartao">
-          <i class="pi pi-save"></i> Salvar
-        </button>
+    </app-modal-corpo>
+    <app-modal-rodape separador>
+      <div appGrupoAcoes class="modal-actions" largurasIguais espacamento="var(--acoes-modal-gap)">
+        <button appBotao class="acao-formulario" variante="secundario" tamanho="medio" icone="pi pi-times" (click)="displayEditarCartao = false">Cancelar</button>
+        <button appBotao class="acao-formulario" variante="primario" tamanho="medio" icone="pi pi-save" textoCarregando="Salvando..." (click)="salvarCartao()" [desabilitado]="carregandoSalvarCartao" [carregando]="carregandoSalvarCartao">Salvar</button>
       </div>
-    </div>
-  </div>
-</div>
-
-<div class="custom-modal" [class.active]="displayEditarPerfil">
-  <div class="custom-modal-overlay" (click)="displayEditarPerfil = false"></div>
-  <div class="custom-modal-content" style="width: 450px; max-width: 95%;">
-    <button class="custom-modal-close" (click)="displayEditarPerfil = false">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon"><i class="pi pi-user"></i></div>
-      <h2>Editar Dados</h2>
-    </div>
-    <div class="custom-modal-body" *ngIf="usuario">
+    </app-modal-rodape>
+  </app-modal-base>
+<app-modal-base [visivel]="displayEditarPerfil" largura="450px" alturaMaxima="90vh" rotulo="Editar Dados" (fechar)="displayEditarPerfil = false">
+  
+  
+    
+    <app-modal-cabecalho titulo="Editar Dados" icone="pi pi-user" (fechar)="displayEditarPerfil = false"></app-modal-cabecalho>
+    <app-modal-corpo *ngIf="usuario" rolagemInterna>
       <div class="field">
-        <label>Nome completo *</label>
-        <input [ngModel]="usuario.nome" (ngModelChange)="usuario.nome = $event" placeholder="Seu nome completo" class="auth-input">
+        <label for="perfil-usuario-nome">Nome completo *</label>
+        <input id="perfil-usuario-nome" appCampo aparencia="autenticacao" [ngModel]="usuario.nome" (ngModelChange)="usuario.nome = $event" placeholder="Seu nome completo" class="auth-input">
       </div>
       <div class="field">
-        <label>E-mail *</label>
-        <input [ngModel]="usuario.email" (ngModelChange)="usuario.email = $event" type="email" placeholder="seu@email.com" class="auth-input">
+        <label for="perfil-usuario-email">E-mail *</label>
+        <input id="perfil-usuario-email" appCampo aparencia="autenticacao" [ngModel]="usuario.email" (ngModelChange)="usuario.email = $event" type="email" placeholder="seu@email.com" class="auth-input">
+      </div>
+          <div class="field">
+            <label for="perfil-usuario-cpf">CPF</label>
+            <input appMascara="cpf" id="perfil-usuario-cpf" appCampo aparencia="autenticacao"
+              [ngModel]="usuario.cpf"
+              (ngModelChange)="atualizarCpfFormatado($event)"
+              (blur)="verificarCPF()"
+              [class.input-invalido]="cpfTocado && cpfErro"
+              [disabled]="carregandoSalvarPerfil"
+              placeholder="000.000.000-00"
+              class="auth-input"
+              inputmode="numeric"
+              maxlength="14" [invalido]="cpfTocado && !!cpfErro" [descricaoId]="cpfTocado && cpfErro ? 'perfil-cpf-erro' : cpfVerificado && !cpfErro && !validandoCpf ? 'perfil-cpf-valido' : ''">
+            <small class="cpf-validando" *ngIf="validandoCpf">
+              <i class="pi pi-spin pi-spinner"></i>
+              Verificando CPF...
+            </small>
+            <app-mensagem-validacao
+              tipo="erro"
+              mensagemId="perfil-cpf-erro"
+              [visivel]="cpfTocado && !!cpfErro"
+              [mensagem]="cpfErro">
+            </app-mensagem-validacao>
+            <app-mensagem-validacao
+              tipo="sucesso"
+              mensagemId="perfil-cpf-valido"
+              [visivel]="!!cpfVerificado && !cpfErro && !validandoCpf"
+              mensagem="CPF válido e disponível.">
+            </app-mensagem-validacao>
+          </div>
+      <div class="field">
+        <label for="perfil-usuario-nascimento">Data de Nascimento</label>
+        <input id="perfil-usuario-nascimento" appCampo aparencia="autenticacao" [ngModel]="usuario.nascimento" (ngModelChange)="usuario.nascimento = $event" type="date" class="auth-input">
       </div>
       <div class="field">
-        <label>CPF</label>
-        <input [ngModel]="usuario.cpf" (ngModelChange)="usuario.cpf = $event" (input)="formatarCPF($event)" placeholder="000.000.000-00" class="auth-input" maxlength="14">
-      </div>
-      <div class="field">
-        <label>Data de Nascimento</label>
-        <input [ngModel]="usuario.nascimento" (ngModelChange)="usuario.nascimento = $event" type="date" class="auth-input">
-      </div>
-      <div class="field">
-        <label>Gênero</label>
-        <select [ngModel]="usuario.genero" (ngModelChange)="usuario.genero = $event" class="auth-input">
-          <option value="">Selecione</option>
-          <option value="MASCULINO">Masculino</option>
-          <option value="FEMININO">Feminino</option>
-          <option value="PREFIRO_NAO_INFORMAR">Prefiro não informar</option>
-        </select>
+        <label for="perfil-usuario-genero">Gênero</label>
+        <app-campo-selecao
+          campoId="perfil-usuario-genero"
+          aparencia="autenticacao"
+          placeholder="Selecione"
+          [valorVazio]="''"
+          [opcoes]="opcoesGeneros"
+          [ngModel]="usuario.genero" (ngModelChange)="usuario.genero = $event">
+        </app-campo-selecao>
       </div>
       <div class="field" *ngIf="usuario">
         <label>Telefone</label>
         <div class="telefone-group">
-          <select [(ngModel)]="usuario.tipotelefone" class="auth-input telefone-tipo" (ngModelChange)="onTipoTelefoneChange()">
+          <select appCampo aparencia="autenticacao" [(ngModel)]="usuario.tipotelefone" class="auth-input telefone-tipo" (ngModelChange)="onTipoTelefoneChange()">
             <option value="">Tipo</option>
             <option value="RESIDENCIAL">Residencial</option>
             <option value="COMERCIAL">Comercial</option>
             <option value="CELULAR">Celular</option>
           </select>
-          <input
+          <input [appMascara]="usuario?.tipotelefone === 'CELULAR' ? 'celular' : 'telefone-fixo'" appCampo aparencia="autenticacao"
             [ngModel]="usuario.telefone"
             (ngModelChange)="usuario.telefone = $event"
-            (input)="formatarTelefone($event)"
+            
             [placeholder]="getTelefonePlaceholder()"
             class="auth-input telefone-input"
             maxlength="15">
         </div>
       </div>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="displayEditarPerfil = false">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button class="btn-primary" (click)="salvarDados()" [disabled]="carregandoSalvarPerfil" [class.loading]="carregandoSalvarPerfil">
-          <i class="pi pi-save"></i> Salvar
-        </button>
+    </app-modal-corpo>
+    <app-modal-rodape separador>
+      <div appGrupoAcoes class="modal-actions" largurasIguais espacamento="var(--acoes-modal-gap)">
+        <button appBotao class="acao-formulario" variante="secundario" tamanho="medio" icone="pi pi-times" (click)="displayEditarPerfil = false">Cancelar</button>
+        <button appBotao class="acao-formulario" variante="primario" tamanho="medio" icone="pi pi-save" textoCarregando="Salvando..." (click)="salvarDados()"
+          [desabilitado]="carregandoSalvarPerfil || validandoCpf || !!cpfErro || !validarCPF(usuario?.cpf)"
+          [carregando]="carregandoSalvarPerfil">Salvar</button>
       </div>
-    </div>
-  </div>
-</div>
-
-<div class="custom-modal" [class.active]="displayAlterarSenha">
-  <div class="custom-modal-overlay" (click)="displayAlterarSenha = false"></div>
-  <div class="custom-modal-content" style="width: 420px; max-width: 95%;">
-    <button class="custom-modal-close" (click)="displayAlterarSenha = false">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon"><i class="pi pi-key"></i></div>
-      <h2>Alterar Senha</h2>
-    </div>
-    <div class="custom-modal-body">
+    </app-modal-rodape>
+  </app-modal-base>
+<app-modal-base [visivel]="displayAlterarSenha" largura="420px" alturaMaxima="90vh" rotulo="Alterar Senha" (fechar)="displayAlterarSenha = false">
+  
+  
+    
+    <app-modal-cabecalho titulo="Alterar Senha" icone="pi pi-key" (fechar)="displayAlterarSenha = false"></app-modal-cabecalho>
+    <app-modal-corpo rolagemInterna>
       <div class="field">
-        <label>Nova senha *</label>
-        <input
-          type="password"
+        <label for="nova-senha-input">Nova senha *</label>
+        <app-campo-senha
+          campoId="nova-senha-input"
+          rotulo="Nova senha"
+          aparencia="autenticacao"
+          autocomplete="new-password"
+          obrigatorio
+          
           [(ngModel)]="novaSenha"
-          placeholder="Digite a nova senha"
-          class="auth-input"
-          autocomplete="off"
-          id="nova-senha-input">
+          placeholder="Digite a nova senha" [disabled]="carregandoSalvarSenha">
+        </app-campo-senha>
       </div>
       <div class="field">
-        <label>Confirmar senha *</label>
-        <input
-          type="password"
+        <label for="confirmar-senha-input">Confirmar senha *</label>
+        <app-campo-senha
+          campoId="confirmar-senha-input"
+          rotulo="Confirmar senha"
+          aparencia="autenticacao"
+          autocomplete="new-password"
+          obrigatorio
+          [invalido]="!!confirmarSenha && novaSenha !== confirmarSenha" [descricaoId]="confirmarSenha ? 'perfil-senha-validacao' : ''"
           [(ngModel)]="confirmarSenha"
-          placeholder="Confirme a nova senha"
-          class="auth-input"
-          autocomplete="off"
-          id="confirmar-senha-input">
+          placeholder="Confirme a nova senha" [disabled]="carregandoSalvarSenha">
+        </app-campo-senha>
+        <app-mensagem-validacao
+          mensagemId="perfil-senha-validacao"
+          [tipo]="novaSenha === confirmarSenha ? 'sucesso' : 'erro'"
+          [visivel]="!!confirmarSenha"
+          [mensagem]="novaSenha === confirmarSenha ? 'As senhas coincidem.' : 'As senhas não conferem.'">
+        </app-mensagem-validacao>
       </div>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="displayAlterarSenha = false">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button class="btn-primary" (click)="salvarSenha()" [disabled]="carregandoSalvarSenha" [class.loading]="carregandoSalvarSenha">
-          <i class="pi pi-save"></i> Alterar
-        </button>
+    </app-modal-corpo>
+    <app-modal-rodape separador>
+      <div appGrupoAcoes class="modal-actions" largurasIguais espacamento="var(--acoes-modal-gap)">
+        <button appBotao class="acao-formulario" variante="secundario" tamanho="medio" icone="pi pi-times" (click)="displayAlterarSenha = false">Cancelar</button>
+        <button appBotao class="acao-formulario" variante="primario" tamanho="medio" icone="pi pi-save" textoCarregando="Alterando..." (click)="salvarSenha()" [desabilitado]="carregandoSalvarSenha" [carregando]="carregandoSalvarSenha">Alterar</button>
       </div>
-    </div>
-  </div>
-</div>
+    </app-modal-rodape>
+  </app-modal-base>
+<app-modal-confirmacao
+  [visivel]="displayConfirmarExclusao"
+  titulo="Confirmar Exclusão"
+  [mensagem]="'Tem certeza que deseja excluir este ' + (itemParaExcluir?.tipo === 'endereco' ? 'endereço' : 'cartão') + '?'"
+  subtitulo="Esta ação não pode ser desfeita."
+  icone="pi pi-exclamation-triangle"
+  variante="perigo"
+  textoConfirmar="Excluir"
+  iconeConfirmar="pi pi-trash"
+  textoCarregando="Excluindo..."
+  [carregando]="carregandoExcluir"
+  (cancelar)="cancelarExclusao()"
+  (confirmar)="executarExclusao()">
+</app-modal-confirmacao><app-notificacao></app-notificacao>
 
-<div class="custom-modal" [class.active]="displayConfirmarExclusao">
-  <div class="custom-modal-overlay" (click)="cancelarExclusao()"></div>
-  <div class="custom-modal-content" style="width: 400px; max-width: 95%;">
-    <div class="custom-modal-header">
-      <div class="auth-icon" style="background: #fee2e2;">
-        <i class="pi pi-exclamation-triangle" style="color: #dc2626;"></i>
-      </div>
-      <h2>Confirmar Exclusão</h2>
-    </div>
-    <div class="custom-modal-body" style="text-align: center;">
-      <p style="color: #4a5a6a; font-size: 0.95rem;">
-        Tem certeza que deseja excluir este {{ itemParaExcluir?.tipo === 'endereco' ? 'endereço' : 'cartão' }}?
-        <br><br>
-        <span style="color: #94a3b8; font-size: 0.85rem;">Esta ação não pode ser desfeita.</span>
-      </p>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="cancelarExclusao()">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button class="btn-danger" (click)="executarExclusao()" [disabled]="carregandoExcluir" [class.loading]="carregandoExcluir">
-          <i class="pi pi-trash"></i> Excluir
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
 
-<p-toast position="top-right" [life]="2000"></p-toast>
+
+
+
+
+
+

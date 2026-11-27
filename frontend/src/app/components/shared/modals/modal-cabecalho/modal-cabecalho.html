@@ -1,0 +1,33 @@
+<header
+  class="modal-cabecalho"
+  [class.com-fechar]="exibirFechar"
+  [style.padding]="espacamento || null">
+
+  @if (exibirFechar) {
+    <button
+      appBotaoIcone
+      class="modal-cabecalho-fechar"
+      aparencia="autenticacao"
+      icone="pi pi-times"
+      rotulo="Fechar"
+      [desabilitado]="desabilitarFechar"
+      (click)="fechar.emit()">
+    </button>
+  }
+
+  @if (icone) {
+    <div class="modal-cabecalho-icone" [attr.data-variante]="variante">
+      <i [class]="icone" aria-hidden="true"></i>
+    </div>
+  }
+
+  @if (titulo) {
+    <h2 [attr.id]="tituloId || null">{{ titulo }}</h2>
+  }
+
+  @if (subtitulo) {
+    <p [attr.id]="subtituloId || null">{{ subtitulo }}</p>
+  }
+
+  <ng-content></ng-content>
+</header>

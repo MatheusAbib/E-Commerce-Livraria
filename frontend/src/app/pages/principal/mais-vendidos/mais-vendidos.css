@@ -1,0 +1,549 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.mais-vendidos-livraria {
+  background: #f7f5ef;
+  color: var(--cor-primaria, #1a2332);
+}
+
+.mais-vendidos-contador {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  flex-shrink: 0;
+}
+
+.mais-vendidos-contador > i {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  border: 1px solid #b8bec5;
+  font-size: 18px;
+}
+
+.mais-vendidos-contador > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mais-vendidos-contador small {
+  font-size: 9px;
+  letter-spacing: .12em;
+  color: #737d8b;
+}
+
+.mais-vendidos-contador strong {
+  font-size: 23px;
+  letter-spacing: -.045em;
+}
+
+.mais-vendidos-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 1fr;
+  grid-template-rows: repeat(2, auto);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.mais-vendidos-card {
+  --card-fundo: #e8edf3;
+  --card-texto: #1a2332;
+  --card-secundario: #667486;
+  --card-borda: #c5ced9;
+  --card-numero: #c6d1df;
+  --card-acento: #344258;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: clamp(15px, 1.6vw, 25px);
+  box-sizing: border-box;
+  border: 1px solid var(--card-borda);
+  border-radius: 0;
+  background: var(--card-fundo);
+  color: var(--card-texto);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .2s ease, background-color .2s ease;
+}
+
+.mais-vendidos-card:nth-child(3),
+.mais-vendidos-card:nth-child(4) {
+  --card-fundo: #eee8dc;
+  --card-borda: #d5cbbb;
+  --card-numero: #dcd2bf;
+  --card-secundario: #716b60;
+  --card-acento: #7b6a4e;
+}
+
+.mais-vendidos-card:hover {
+  border-color: var(--card-acento);
+}
+
+.mais-vendidos-card:focus-visible {
+  outline: 3px solid #2a5298;
+  outline-offset: 3px;
+}
+
+.mais-vendidos-card-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--card-borda);
+}
+
+.mais-vendidos-colocacao {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .12em;
+  color: var(--card-acento);
+}
+
+.mais-vendidos-abrir {
+  display: grid;
+  place-items: center;
+  width: 31px;
+  height: 31px;
+  flex-shrink: 0;
+  border: 1px solid var(--card-borda);
+  font-size: 12px;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+.mais-vendidos-card:hover .mais-vendidos-abrir {
+  background: var(--card-texto);
+  color: var(--card-fundo);
+}
+
+.mais-vendidos-palco {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 15px;
+  min-height: 165px;
+  padding: 20px 0;
+  overflow: hidden;
+}
+
+.mais-vendidos-posicao {
+  position: absolute;
+  z-index: -1;
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: clamp(95px, 11vw, 165px);
+  font-weight: 900;
+  line-height: .85;
+  letter-spacing: -.1em;
+  color: var(--card-numero);
+  user-select: none;
+  pointer-events: none;
+}
+
+.mais-vendidos-geometria {
+  position: absolute;
+  z-index: -1;
+  width: 135px;
+  aspect-ratio: 1;
+  left: 22%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 1px solid var(--card-borda);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.mais-vendidos-geometria::after {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border: 1px dashed var(--card-borda);
+  border-radius: 50%;
+}
+
+.mais-vendidos-imagem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 43%;
+  max-width: 130px;
+  flex-shrink: 0;
+  transition: transform .25s ease;
+}
+
+.mais-vendidos-imagem img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 160px;
+  padding: 4px;
+  box-sizing: border-box;
+  border: 1px solid #a6aeb8;
+  background: #fdfcf9;
+  object-fit: contain;
+  box-shadow: 3px 3px 0 rgba(26, 35, 50, .12);
+}
+
+.mais-vendidos-card:hover .mais-vendidos-imagem {
+  transform: translateY(-5px);
+}
+
+.mais-vendidos-vendas {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  width: 29%;
+  min-width: 0;
+  color: var(--card-secundario);
+}
+
+.mais-vendidos-vendas > i {
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+
+.mais-vendidos-vendas strong {
+  font-size: clamp(22px, 2.4vw, 35px);
+  line-height: 1;
+  font-weight: 750;
+  letter-spacing: -.05em;
+  color: var(--card-texto);
+  overflow-wrap: anywhere;
+}
+
+.mais-vendidos-vendas > span {
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.mais-vendidos-card-informacoes {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mais-vendidos-categoria {
+  margin-bottom: 8px;
+  color: var(--card-acento);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.mais-vendidos-card-informacoes h3 {
+  margin: 0;
+  font-size: clamp(18px, 1.65vw, 26px);
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -.04em;
+  overflow-wrap: anywhere;
+}
+
+.mais-vendidos-card-informacoes p {
+  margin: 8px 0 18px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--card-secundario);
+  overflow-wrap: anywhere;
+}
+
+.mais-vendidos-card-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--card-borda);
+}
+
+.mais-vendidos-preco {
+  font-size: clamp(17px, 1.7vw, 25px);
+  font-weight: 750;
+  letter-spacing: -.04em;
+}
+
+.mais-vendidos-detalhes {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--card-secundario);
+}
+
+.mais-vendidos-detalhes i {
+  font-size: 10px;
+  transition: transform .2s ease;
+}
+
+.mais-vendidos-card:hover .mais-vendidos-detalhes i {
+  transform: translateX(3px);
+}
+
+.mais-vendidos-card.mais-vendidos-lider {
+  --card-fundo: #1a2332;
+  --card-texto: #faf9f5;
+  --card-secundario: #b4c0cf;
+  --card-borda: #46556b;
+  --card-numero: #344258;
+  --card-acento: #e1d5b8;
+
+  grid-row: span 2;
+  padding: clamp(20px, 2.5vw, 36px);
+  background-image: radial-gradient(ellipse at 65% 35%, #2a394e 0%, transparent 75%);
+}
+
+.mais-vendidos-lider .mais-vendidos-colocacao {
+  font-size: 11px;
+}
+
+.mais-vendidos-lider .mais-vendidos-colocacao i {
+  font-size: 16px;
+}
+
+.mais-vendidos-lider .mais-vendidos-abrir {
+  width: 38px;
+  height: 38px;
+}
+
+.mais-vendidos-lider .mais-vendidos-palco {
+  flex: 1;
+  min-height: 330px;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+  padding: 30px 0;
+}
+
+.mais-vendidos-lider .mais-vendidos-posicao {
+  top: 43%;
+  left: -5px;
+  font-size: clamp(160px, 20vw, 300px);
+}
+
+.mais-vendidos-lider .mais-vendidos-geometria {
+  width: 90%;
+  max-width: 320px;
+  left: 50%;
+  top: 43%;
+  transform: translate(-50%, -50%);
+}
+
+.mais-vendidos-lider .mais-vendidos-geometria::after {
+  inset: 18px;
+}
+
+.mais-vendidos-lider .mais-vendidos-imagem {
+  width: 65%;
+  max-width: 235px;
+}
+
+.mais-vendidos-lider .mais-vendidos-imagem img {
+  max-height: 310px;
+  padding: 6px;
+  border-color: #a6afbc;
+  box-shadow: 5px 5px 0 rgba(0, 0, 0, .18);
+}
+
+.mais-vendidos-lider .mais-vendidos-vendas {
+  width: auto;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding: 10px 14px;
+  border: 1px solid var(--card-borda);
+  background: var(--card-fundo);
+}
+
+.mais-vendidos-lider .mais-vendidos-vendas > i {
+  margin: 0;
+}
+
+.mais-vendidos-lider .mais-vendidos-vendas strong {
+  font-size: 20px;
+}
+
+.mais-vendidos-lider .mais-vendidos-vendas > span {
+  font-size: 11px;
+}
+
+.mais-vendidos-lider .mais-vendidos-card-informacoes {
+  flex: 0;
+}
+
+.mais-vendidos-lider .mais-vendidos-categoria {
+  font-size: 10px;
+  margin-bottom: 12px;
+}
+
+.mais-vendidos-lider .mais-vendidos-card-informacoes h3 {
+  font-size: clamp(26px, 3vw, 43px);
+}
+
+.mais-vendidos-lider .mais-vendidos-card-informacoes p {
+  font-size: 14px;
+  margin-bottom: 25px;
+}
+
+.mais-vendidos-lider .mais-vendidos-card-rodape {
+  padding-top: 20px;
+}
+
+.mais-vendidos-lider .mais-vendidos-preco {
+  font-size: clamp(24px, 2.6vw, 36px);
+}
+
+.mais-vendidos-grid[data-total="1"] {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+}
+
+.mais-vendidos-grid[data-total="2"],
+.mais-vendidos-grid[data-total="3"] {
+  grid-template-columns: 1.15fr 1fr;
+}
+
+.mais-vendidos-grid[data-total="1"] .mais-vendidos-lider,
+.mais-vendidos-grid[data-total="2"] .mais-vendidos-lider {
+  grid-row: auto;
+}
+
+.mais-vendidos-grid[data-total="2"] .mais-vendidos-card:nth-child(2) .mais-vendidos-palco {
+  flex: 1;
+}
+
+.mais-vendidos-grid[data-total="4"] .mais-vendidos-card:last-child {
+  grid-column: 2 / -1;
+}
+
+.mais-vendidos-carregamento {
+  display: grid;
+  place-items: center;
+  min-height: 300px;
+  border: 1px solid #d5cbbb;
+}
+
+@media (max-width: 1100px) {
+  .mais-vendidos-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mais-vendidos-card.mais-vendidos-lider {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .mais-vendidos-lider .mais-vendidos-palco {
+    min-height: 290px;
+  }
+
+  .mais-vendidos-lider .mais-vendidos-posicao {
+    left: 15%;
+    font-size: clamp(200px, 30vw, 350px);
+  }
+
+  .mais-vendidos-grid[data-total="2"] .mais-vendidos-card:last-child,
+  .mais-vendidos-grid[data-total="4"] .mais-vendidos-card:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+
+.mais-vendidos-contador > i {
+    width: 35px;
+    height: 35px;
+    font-size: 14px;
+  }
+
+  .mais-vendidos-contador strong {
+    font-size: 18px;
+  }
+
+  .mais-vendidos-grid,
+  .mais-vendidos-grid[data-total] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    gap: 12px;
+  }
+
+  .mais-vendidos-grid .mais-vendidos-card {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    padding: 18px;
+  }
+
+  .mais-vendidos-palco {
+    min-height: 170px;
+    gap: 18px;
+  }
+
+  .mais-vendidos-posicao {
+    font-size: clamp(110px, 37vw, 180px);
+  }
+
+  .mais-vendidos-imagem {
+    max-width: 125px;
+  }
+
+  .mais-vendidos-card-informacoes h3 {
+    font-size: 23px;
+  }
+
+  .mais-vendidos-lider .mais-vendidos-palco {
+    min-height: 280px;
+  }
+
+  .mais-vendidos-lider .mais-vendidos-posicao {
+    left: 0;
+    font-size: clamp(180px, 66vw, 280px);
+  }
+
+  .mais-vendidos-lider .mais-vendidos-imagem {
+    max-width: 180px;
+  }
+
+  .mais-vendidos-lider .mais-vendidos-imagem img {
+    max-height: 245px;
+  }
+
+  .mais-vendidos-lider .mais-vendidos-card-informacoes h3 {
+    font-size: 30px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mais-vendidos-card,
+  .mais-vendidos-imagem,
+  .mais-vendidos-abrir,
+  .mais-vendidos-detalhes i {
+    transition: none;
+  }
+
+  .mais-vendidos-card:hover .mais-vendidos-imagem,
+  .mais-vendidos-card:hover .mais-vendidos-detalhes i {
+    transform: none;
+  }
+}

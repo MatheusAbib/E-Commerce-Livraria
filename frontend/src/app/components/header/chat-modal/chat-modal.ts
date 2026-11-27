@@ -1,18 +1,24 @@
+import { inject } from '@angular/core';
+import { ChatApiService } from '../../../services/chat-api.service';
+import { ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent } from '../../shared/modals';
+import { EstadoVazioComponent } from '../../../components/shared/feedback';
+import { CarregamentoComponent } from '../../../components/shared/feedback';
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth';
 import { ChatService } from '../../../services/chat.service';
-import { environment } from '../../../../environments/environment';
+
 
 @Component({
   selector: 'app-chat-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [EstadoVazioComponent, CarregamentoComponent, CommonModule, ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent],
   templateUrl: './chat-modal.html',
   styleUrls: ['./chat-modal.css']
 })
 export class ChatModalComponent {
+  private readonly chatApiService = inject(ChatApiService);
+
   @Input() visible: boolean = false;
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() abrirChat = new EventEmitter<{pedidoId: number, pedido: any}>();
@@ -51,7 +57,7 @@ export class ChatModalComponent {
 
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/chat/cliente/${user.id}/conversas`, {
+      const response = await this.chatApiService.listarConversasCliente(user.id, {
         headers: {
           'Authorization': 'Bearer ' + token
         }

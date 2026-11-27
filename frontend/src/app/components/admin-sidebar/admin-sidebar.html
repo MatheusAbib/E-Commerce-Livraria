@@ -3,7 +3,7 @@
 <div class="sidebar-logo">
   <span>LivrariaOnline</span>
 </div>
-    <button class="menu-toggle-admin" (click)="toggleMenu()" [class.active]="menuAberto">
+    <button type="button" class="menu-toggle-admin" (click)="toggleMenu()" [class.active]="menuAberto" [attr.aria-expanded]="menuAberto" aria-label="Abrir ou fechar menu administrativo">
       <span></span>
       <span></span>
       <span></span>
@@ -24,6 +24,10 @@
     <a routerLink="/admin/livros" routerLinkActive="active" class="sidebar-link" (click)="fecharMenu()">
       <i class="pi pi-book"></i>
       <span>Livros</span>
+    </a>
+    <a routerLink="/admin/autores" routerLinkActive="active" class="sidebar-link" (click)="fecharMenu()">
+      <i class="pi pi-id-card"></i>
+      <span>Autores</span>
     </a>
     <a routerLink="/admin/Usuarios" routerLinkActive="active" class="sidebar-link" (click)="fecharMenu()">
       <i class="pi pi-users"></i>
@@ -49,19 +53,30 @@
   </nav>
 
   <div class="sidebar-footer" [class.mobile-open]="menuAberto">
-    <div class="sidebar-user" (click)="abrirPerfil()">
-      <div class="user-avatar">
+    <button
+      type="button"
+      class="sidebar-user"
+      aria-label="Meu perfil"
+      title="Meu perfil"
+      (click)="abrirPerfil()">
+      <span class="user-avatar">
         {{ usuario?.nome?.charAt(0)?.toUpperCase() || 'A' }}
-      </div>
-      <div class="user-info">
+      </span>
+      <span class="user-info">
         <span class="user-name">{{ usuario?.nome || 'Administrador' }}</span>
         <span class="user-role">Admin</span>
-      </div>
+      </span>
       <i class="pi pi-chevron-right user-arrow"></i>
-    </div>
-    <button class="sidebar-link logout" (click)="abrirLogout()">
-      <i class="pi pi-sign-out"></i>
-      <span>Sair</span>
+    </button>
+    <button
+      appBotao
+      class="acao-sidebar-sair"
+      variante="perigo"
+      icone="pi pi-sign-out"
+      aria-label="Sair da conta"
+      title="Sair da conta"
+      (click)="abrirLogout()">
+      Sair
     </button>
   </div>
 </aside>

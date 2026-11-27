@@ -1,16 +1,19 @@
-
 package com.biblioteca.biblioteca_online.controller;
 
 import com.biblioteca.biblioteca_online.model.Livro;
-import com.biblioteca.biblioteca_online.repository.LivroRepository;
 import com.biblioteca.biblioteca_online.service.LivroService;
 import com.biblioteca.biblioteca_online.service.FileStorageService;
 import com.biblioteca.biblioteca_online.service.MaisVendidosService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -20,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.List;
 import java.util.Set;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -27,18 +31,19 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/livros")
 public class LivroController {
 
+    private static final Logger logger =
+            LoggerFactory.getLogger(LivroController.class);
+
     private final LivroService livroService;
     private final MaisVendidosService maisVendidosService;
 
     @Autowired
     private FileStorageService fileStorageService;
 
-    @Autowired
-    private LivroRepository livroRepository;
-
     public LivroController(
             LivroService livroService,
             MaisVendidosService maisVendidosService) {
+
         this.livroService = livroService;
         this.maisVendidosService = maisVendidosService;
     }
@@ -46,66 +51,99 @@ public class LivroController {
     private Livro preencherQuantidadeVendida(
             Livro livro,
             Map<Long, Long> quantidadesVendidas) {
+
         livro.setQuantidadeVendida(
-                quantidadesVendidas.getOrDefault(livro.getId(), 0L)
+                quantidadesVendidas.getOrDefault(
+                        livro.getId(),
+                        0L
+                )
         );
+
         return livro;
     }
 
-    private List<Livro> preencherQuantidadesVendidas(List<Livro> livros) {
+    private List<Livro> preencherQuantidadesVendidas(
+            List<Livro> livros) {
+
         Map<Long, Long> quantidadesVendidas =
                 maisVendidosService.buscarQuantidadesVendidas();
 
         livros.forEach(livro ->
-                preencherQuantidadeVendida(livro, quantidadesVendidas)
+                preencherQuantidadeVendida(
+                        livro,
+                        quantidadesVendidas
+                )
         );
 
         return livros;
     }
 
+    private Livro preencherQuantidadeVendida(Livro livro) {
+        return preencherQuantidadeVendida(
+                livro,
+                maisVendidosService.buscarQuantidadesVendidas()
+        );
+    }
+
     @PostMapping
-    public ResponseEntity<Livro> salvar(@RequestBody Livro livro) {
+    public ResponseEntity<Livro> salvar(
+            @RequestBody Livro livro) {
+
         Livro livroSalvo = livroService.salvar(livro);
+
         return ResponseEntity.ok(
-                preencherQuantidadeVendida(
-                        livroSalvo,
-                        maisVendidosService.buscarQuantidadesVendidas()
-                )
+                preencherQuantidadeVendida(livroSalvo)
         );
     }
 
     @PostMapping("/com-imagem")
     public ResponseEntity<?> salvarComImagem(
             @RequestPart("livro") Livro livro,
-            @RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+            @RequestPart(
+                    value = "imagem",
+                    required = false
+            ) MultipartFile imagem) {
+
+        String nomeArquivo = null;
+        Livro livroSalvo;
 
         try {
             if (imagem != null && !imagem.isEmpty()) {
-                String nomeArquivo = fileStorageService.storeFile(imagem);
+                nomeArquivo = fileStorageService.storeFile(imagem);
                 livro.setImagemUrl(nomeArquivo);
             }
 
-            Livro livroSalvo = livroService.salvar(livro);
-            return ResponseEntity.ok(
-                    preencherQuantidadeVendida(
-                            livroSalvo,
-                            maisVendidosService.buscarQuantidadesVendidas()
-                    )
-            );
+            livroSalvo = livroService.salvar(livro);
+
+        } catch (ResponseStatusException e) {
+            excluirImagemComSeguranca(nomeArquivo);
+            throw e;
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Erro ao salvar livro: " + e.getMessage());
+            excluirImagemComSeguranca(nomeArquivo);
+
+            return ResponseEntity.badRequest().body(
+                    "Erro ao salvar livro: " + mensagemAmigavel(e)
+            );
         }
+
+        return ResponseEntity.ok(
+                preencherQuantidadeVendida(livroSalvo)
+        );
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Livro> atualizar(@PathVariable Long id, @RequestBody Livro livro) {
-        Livro livroAtualizado = livroService.atualizar(id, livro);
+    public ResponseEntity<Livro> atualizar(
+            @PathVariable Long id,
+            @RequestBody Livro livro) {
+
+        Livro livroAtualizado = livroService.atualizar(
+                id,
+                livro
+        );
 
         return ResponseEntity.ok(
-                preencherQuantidadeVendida(
-                        livroAtualizado,
-                        maisVendidosService.buscarQuantidadesVendidas()
-                )
+                preencherQuantidadeVendida(livroAtualizado)
         );
     }
 
@@ -113,41 +151,56 @@ public class LivroController {
     public ResponseEntity<?> atualizarComImagem(
             @PathVariable Long id,
             @RequestPart("livro") Livro livro,
-            @RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+            @RequestPart(
+                    value = "imagem",
+                    required = false
+            ) MultipartFile imagem) {
+
+        Optional<Livro> livroExistente =
+                livroService.buscarPorId(id);
+
+        if (livroExistente.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String imagemAnterior =
+                livroExistente.get().getImagemUrl();
+
+        String novaImagem = null;
+        Livro livroAtualizado;
 
         try {
-            Optional<Livro> livroExistente = livroService.buscarPorId(id);
-            if (livroExistente.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-
-            Livro livroAtual = livroExistente.get();
-
-            atualizarCamposLivro(livroAtual, livro);
-
             if (imagem != null && !imagem.isEmpty()) {
-                if (livroAtual.getImagemUrl() != null) {
-                    try {
-                        fileStorageService.deleteFile(livroAtual.getImagemUrl());
-                    } catch (Exception e) {
-                    }
-                }
-
-                String nomeArquivo = fileStorageService.storeFile(imagem);
-                livroAtual.setImagemUrl(nomeArquivo);
+                novaImagem = fileStorageService.storeFile(imagem);
             }
 
-            Livro livroAtualizado = livroService.salvar(livroAtual);
-
-            return ResponseEntity.ok(
-                    preencherQuantidadeVendida(
-                            livroAtualizado,
-                            maisVendidosService.buscarQuantidadesVendidas()
-                    )
+            livroAtualizado = livroService.atualizarComImagem(
+                    id,
+                    livro,
+                    novaImagem
             );
+
+        } catch (ResponseStatusException e) {
+            excluirImagemComSeguranca(novaImagem);
+            throw e;
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Erro ao atualizar livro: " + e.getMessage());
+            excluirImagemComSeguranca(novaImagem);
+
+            return ResponseEntity.badRequest().body(
+                    "Erro ao atualizar livro: " + mensagemAmigavel(e)
+            );
         }
+
+        if (novaImagem != null
+                && !Objects.equals(imagemAnterior, novaImagem)) {
+
+            excluirImagemComSeguranca(imagemAnterior);
+        }
+
+        return ResponseEntity.ok(
+                preencherQuantidadeVendida(livroAtualizado)
+        );
     }
 
     @PostMapping("/{id}/imagem")
@@ -155,101 +208,168 @@ public class LivroController {
             @PathVariable Long id,
             @RequestParam("imagem") MultipartFile imagem) {
 
-        try {
-            Optional<Livro> livro = livroService.buscarPorId(id);
-            if (livro.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
+        Optional<Livro> livroExistente =
+                livroService.buscarPorId(id);
 
-            Livro livroAtual = livro.get();
-
-            if (livroAtual.getImagemUrl() != null) {
-                try {
-                    fileStorageService.deleteFile(livroAtual.getImagemUrl());
-                } catch (Exception e) {
-                }
-            }
-
-            String nomeArquivo = fileStorageService.storeFile(imagem);
-            livroAtual.setImagemUrl(nomeArquivo);
-
-            Livro livroAtualizado = livroService.salvar(livroAtual);
-
-            return ResponseEntity.ok(
-                    preencherQuantidadeVendida(
-                            livroAtualizado,
-                            maisVendidosService.buscarQuantidadesVendidas()
-                    )
-            );
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Erro ao fazer upload da imagem: " + e.getMessage());
+        if (livroExistente.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
+
+        if (imagem == null || imagem.isEmpty()) {
+            return ResponseEntity.badRequest().body(
+                    "Selecione uma imagem válida."
+            );
+        }
+
+        String imagemAnterior =
+                livroExistente.get().getImagemUrl();
+
+        String novaImagem = null;
+        Livro livroAtualizado;
+
+        try {
+            novaImagem = fileStorageService.storeFile(imagem);
+
+            livroAtualizado = livroService.atualizarImagem(
+                    id,
+                    novaImagem
+            );
+
+        } catch (ResponseStatusException e) {
+            excluirImagemComSeguranca(novaImagem);
+            throw e;
+
+        } catch (Exception e) {
+            excluirImagemComSeguranca(novaImagem);
+
+            return ResponseEntity.badRequest().body(
+                    "Erro ao fazer upload da imagem: "
+                            + e.getMessage()
+            );
+        }
+
+        if (!Objects.equals(imagemAnterior, novaImagem)) {
+            excluirImagemComSeguranca(imagemAnterior);
+        }
+
+        return ResponseEntity.ok(
+                preencherQuantidadeVendida(livroAtualizado)
+        );
     }
 
-    private void atualizarCamposLivro(Livro livroAtual, Livro livroNovo) {
-        livroAtual.setTitulo(livroNovo.getTitulo());
-        livroAtual.setAutor(livroNovo.getAutor());
-        livroAtual.setEditora(livroNovo.getEditora());
-        livroAtual.setCategoria(livroNovo.getCategoria());
-        livroAtual.setEdicao(livroNovo.getEdicao());
-        livroAtual.setIsbn(livroNovo.getIsbn());
-        livroAtual.setPaginas(livroNovo.getPaginas());
-        livroAtual.setSinopse(livroNovo.getSinopse());
-        livroAtual.setAltura(livroNovo.getAltura());
-        livroAtual.setLargura(livroNovo.getLargura());
-        livroAtual.setProfundidade(livroNovo.getProfundidade());
-        livroAtual.setPeso(livroNovo.getPeso());
-        livroAtual.setCodigoBarras(livroNovo.getCodigoBarras());
-        livroAtual.setPrecoCusto(livroNovo.getPrecoCusto());
-        livroAtual.setPrecoVenda(livroNovo.getPrecoVenda());
-        livroAtual.setEstoque(livroNovo.getEstoque());
-        livroAtual.setDataEntrada(livroNovo.getDataEntrada());
+    private String mensagemAmigavel(Exception e) {
+        if (e instanceof org.springframework.dao.DataIntegrityViolationException) {
+            String original = ((org.springframework.dao.DataIntegrityViolationException) e).getMostSpecificCause().getMessage();
+            if (original != null) {
+                java.util.regex.Matcher matcher = java.util.regex.Pattern
+                        .compile("Column '(\\w+)' cannot be null")
+                        .matcher(original);
+                if (matcher.find()) {
+                    return "O campo " + rotuloColuna(matcher.group(1)) + " é obrigatório.";
+                }
+                if (original.contains("Duplicate entry")) {
+                    return "Já existe um registro com esses dados.";
+                }
+            }
+            return "Dados inválidos. Verifique os campos e tente novamente.";
+        }
+        return "Não foi possível concluir a operação. Verifique os dados e tente novamente.";
+    }
+
+    private String rotuloColuna(String coluna) {
+        return switch (coluna) {
+            case "edicao" -> "Edição";
+            case "paginas" -> "Páginas";
+            case "altura" -> "Altura";
+            case "largura" -> "Largura";
+            case "profundidade" -> "Profundidade";
+            case "peso" -> "Peso";
+            case "preco_custo" -> "Preço de custo";
+            case "preco_venda" -> "Preço de venda";
+            case "estoque" -> "Estoque";
+            case "data_entrada" -> "Data de entrada";
+            case "titulo" -> "Título";
+            case "autor" -> "Autor";
+            case "isbn" -> "ISBN";
+            case "codigo_barras" -> "Código de barras";
+            default -> coluna;
+        };
+    }
+    private void excluirImagemComSeguranca(String imagemUrl) {
+        if (imagemUrl == null || imagemUrl.isBlank()) {
+            return;
+        }
+
+        try {
+            fileStorageService.deleteFile(imagemUrl);
+        } catch (Exception e) {
+            logger.warn(
+                    "Não foi possível excluir a imagem {}.",
+                    imagemUrl,
+                    e
+            );
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        Optional<Livro> livro = livroService.buscarPorId(id);
+    public ResponseEntity<Void> excluir(
+            @PathVariable Long id) {
 
-        if (livro.isPresent() && livro.get().getImagemUrl() != null) {
-            try {
-                fileStorageService.deleteFile(livro.get().getImagemUrl());
-            } catch (Exception e) {
-            }
-        }
+        String imagemUrl =
+                livroService.excluirERetornarImagem(id);
 
-        livroService.excluir(id);
+        excluirImagemComSeguranca(imagemUrl);
+
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/inativar")
-    public ResponseEntity<Void> inativar(@PathVariable Long id, @RequestParam String motivo) {
+    public ResponseEntity<Void> inativar(
+            @PathVariable Long id,
+            @RequestParam String motivo) {
+
         livroService.inativar(id, motivo);
+
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/ativar")
-    public ResponseEntity<Void> ativar(@PathVariable Long id, @RequestParam String motivo) {
+    public ResponseEntity<Void> ativar(
+            @PathVariable Long id,
+            @RequestParam String motivo) {
+
         livroService.ativar(id, motivo);
+
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/ativos")
     public ResponseEntity<List<Livro>> listarAtivos() {
-        return ResponseEntity.ok(
-                preencherQuantidadesVendidas(livroService.listarAtivos())
-        );
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(
+                        preencherQuantidadesVendidas(
+                                livroService.listarAtivos()
+                        )
+                );
     }
 
     @GetMapping("/mais-vendidos")
     public ResponseEntity<List<Livro>> listarMaisVendidos() {
-        List<Long> idsMaisVendidos = maisVendidosService.buscarIdsMaisVendidos();
+        List<Long> idsMaisVendidos =
+                maisVendidosService.buscarIdsMaisVendidos();
 
-        List<Livro> livrosDisponiveis = livroService.listarAtivos()
+        List<Livro> livrosDisponiveis = livroService
+                .listarAtivos()
                 .stream()
-                .filter(livro -> livro.getEstoque() != null && livro.getEstoque() > 0)
+                .filter(livro ->
+                        livro.getEstoqueDisponivel() != null
+                                && livro.getEstoqueDisponivel() > 0
+                )
                 .toList();
 
-        Map<Long, Livro> livrosPorId = livrosDisponiveis.stream()
+        Map<Long, Livro> livrosPorId = livrosDisponiveis
+                .stream()
                 .collect(Collectors.toMap(
                         Livro::getId,
                         Function.identity(),
@@ -266,36 +386,55 @@ public class LivroController {
                 resultado.add(livro);
             }
 
-            if (resultado.size() == 3) {
+            if (resultado.size() == 5) {
                 break;
             }
         }
 
-        if (resultado.size() < 3) {
+        if (resultado.size() < 5) {
             livrosDisponiveis.stream()
-                    .filter(livro -> !idsSelecionados.contains(livro.getId()))
-                    .sorted(Comparator.comparing(Livro::getId))
-                    .limit(3 - resultado.size())
+                    .filter(livro ->
+                            !idsSelecionados.contains(livro.getId())
+                    )
+                    .sorted(
+                            Comparator.comparing(Livro::getId)
+                    )
+                    .limit(5 - resultado.size())
                     .forEach(livro -> {
                         resultado.add(livro);
                         idsSelecionados.add(livro.getId());
                     });
         }
 
-        return ResponseEntity.ok(
-                preencherQuantidadesVendidas(resultado)
-        );
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(
+                        preencherQuantidadesVendidas(resultado)
+                );
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Livro> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<Livro> buscarPorId(
+            @PathVariable Long id) {
+
         Map<Long, Long> quantidadesVendidas =
                 maisVendidosService.buscarQuantidadesVendidas();
 
         return livroService.buscarPorId(id)
-                .map(livro -> preencherQuantidadeVendida(livro, quantidadesVendidas))
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .map(livro ->
+                        preencherQuantidadeVendida(
+                                livro,
+                                quantidadesVendidas
+                        )
+                )
+                .map(livro ->
+                        ResponseEntity.ok()
+                                .cacheControl(CacheControl.noStore())
+                                .body(livro)
+                )
+                .orElse(
+                        ResponseEntity.notFound().build()
+                );
     }
 
     @GetMapping("/consulta")
@@ -313,10 +452,21 @@ public class LivroController {
             @RequestParam(required = false) String ordenarPor,
             @RequestParam(required = false) String direcao) {
 
-        Map<String, Object> resultado = livroService.consultarComFiltrosComContagem(
-                titulo, autor, editora, isbn, categoria, precoMin, precoMax,
-                estoqueMin, estoqueMax, status, ordenarPor, direcao
-        );
+        Map<String, Object> resultado =
+                livroService.consultarComFiltrosComContagem(
+                        titulo,
+                        autor,
+                        editora,
+                        isbn,
+                        categoria,
+                        precoMin,
+                        precoMax,
+                        estoqueMin,
+                        estoqueMax,
+                        status,
+                        ordenarPor,
+                        direcao
+                );
 
         Map<Long, Long> quantidadesVendidas =
                 maisVendidosService.buscarQuantidadesVendidas();
@@ -326,86 +476,44 @@ public class LivroController {
         if (livros instanceof List<?> lista) {
             for (Object item : lista) {
                 if (item instanceof Livro livro) {
-                    preencherQuantidadeVendida(livro, quantidadesVendidas);
+                    preencherQuantidadeVendida(
+                            livro,
+                            quantidadesVendidas
+                    );
                 }
             }
         }
 
-        return ResponseEntity.ok(resultado);
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(resultado);
     }
 
     @PostMapping("/change-status/{id}")
-    public ResponseEntity<?> changeStatus(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
-        Optional<Livro> livroOpt = livroRepository.findById(id);
+    public ResponseEntity<?> changeStatus(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> payload) {
 
-        if (!livroOpt.isPresent()) {
-            return ResponseEntity.notFound().build();
+        Object ativoInformado = payload.get("ativo");
+        Object motivoInformado = payload.get("motivo");
+
+        if (!(ativoInformado instanceof Boolean ativo)
+                || !(motivoInformado instanceof String motivo)
+                || motivo.isBlank()) {
+
+            return ResponseEntity.badRequest().body(
+                    "Campos 'ativo' e 'motivo' são obrigatórios."
+            );
         }
 
-        Livro livro = livroOpt.get();
-
-        Boolean ativo = (Boolean) payload.get("ativo");
-        String motivo = (String) payload.get("motivo");
-
-        if (ativo == null || motivo == null || motivo.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body("Campos 'ativo' e 'motivo' são obrigatórios.");
-        }
-
-        livro.setAtivo(ativo);
-
-        if (ativo) {
-            livro.setMotivoAtivacao(motivo);
-            livro.setMotivoInativacao(null);
-        } else {
-            livro.setMotivoInativacao(motivo);
-            livro.setMotivoAtivacao(null);
-        }
-
-        livroRepository.save(livro);
+        livroService.alterarStatus(
+                id,
+                ativo,
+                motivo
+        );
 
         return ResponseEntity.ok().build();
     }
-
-
-
-@PostMapping("/processar-pedido")
-public ResponseEntity<?> processarPedido(@RequestBody Map<String, Object> payload) {
-    try {
-        Object dados = payload.get("itens");
-
-        if (!(dados instanceof List<?> lista)) {
-            return ResponseEntity.badRequest().body("Lista de itens inválida.");
-        }
-
-        List<Map<String, Object>> itens = new ArrayList<>();
-
-        for (Object item : lista) {
-            if (!(item instanceof Map<?, ?> mapa)) {
-                return ResponseEntity.badRequest().body("Item do pedido inválido.");
-            }
-
-            Map<String, Object> itemConvertido = new java.util.HashMap<>();
-
-            for (Map.Entry<?, ?> entrada : mapa.entrySet()) {
-                if (!(entrada.getKey() instanceof String chave)) {
-                    return ResponseEntity.badRequest().body("Chave do item inválida.");
-                }
-
-                itemConvertido.put(chave, entrada.getValue());
-            }
-
-            itens.add(itemConvertido);
-        }
-
-        livroService.processarCompra(itens);
-        return ResponseEntity.ok().build();
-
-    } catch (RuntimeException e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
-    }
-}
-
-
 
     @PutMapping("/{id}/repor-estoque")
     public ResponseEntity<Livro> reporEstoque(
@@ -417,18 +525,15 @@ public ResponseEntity<?> processarPedido(@RequestBody Map<String, Object> payloa
             return ResponseEntity.badRequest().body(null);
         }
 
-        try {
-            Livro livroAtualizado = livroService.reporEstoque(id, quantidade, motivo);
+        Livro livroAtualizado = livroService.reporEstoque(
+                id,
+                quantidade,
+                motivo
+        );
 
-            return ResponseEntity.ok(
-                    preencherQuantidadeVendida(
-                            livroAtualizado,
-                            maisVendidosService.buscarQuantidadesVendidas()
-                    )
-            );
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(
+                preencherQuantidadeVendida(livroAtualizado)
+        );
     }
 
     @PutMapping("/{id}/repor-estoque-json")
@@ -436,37 +541,70 @@ public ResponseEntity<?> processarPedido(@RequestBody Map<String, Object> payloa
             @PathVariable Long id,
             @RequestBody ReporEstoqueRequest request) {
 
-        if (request.getQuantidade() == null || request.getQuantidade() <= 0) {
+        if (request.getQuantidade() == null
+                || request.getQuantidade() <= 0) {
+
             return ResponseEntity.badRequest().body(null);
         }
 
-        try {
-            Livro livroAtualizado = livroService.reporEstoque(
-                    id,
-                    request.getQuantidade(),
-                    request.getMotivo()
-            );
+        Livro livroAtualizado = livroService.reporEstoque(
+                id,
+                request.getQuantidade(),
+                request.getMotivo()
+        );
 
-            return ResponseEntity.ok(
-                    preencherQuantidadeVendida(
-                            livroAtualizado,
-                            maisVendidosService.buscarQuantidadesVendidas()
-                    )
-            );
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(
+                preencherQuantidadeVendida(livroAtualizado)
+        );
     }
 
     @GetMapping("/categorias")
     public ResponseEntity<List<String>> listarCategorias() {
-        return ResponseEntity.ok(livroService.listarCategorias());
+        return ResponseEntity.ok(
+                livroService.listarCategorias()
+        );
     }
 
     @GetMapping
     public ResponseEntity<List<Livro>> listarTodos() {
-        return ResponseEntity.ok(
-                preencherQuantidadesVendidas(livroService.listarTodos())
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(
+                        preencherQuantidadesVendidas(
+                                livroService.listarTodos()
+                        )
+                );
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, Object>> tratarErro(
+            ResponseStatusException exception) {
+
+        String mensagem = exception.getReason() == null
+                ? "Não foi possível realizar a operação."
+                : exception.getReason();
+
+        return ResponseEntity
+                .status(exception.getStatusCode())
+                .body(Map.of(
+                        "mensagem", mensagem,
+                        "status", exception.getStatusCode().value()
+                ));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> tratarDadosInvalidos(
+            IllegalArgumentException exception) {
+
+        String mensagem = exception.getMessage() == null
+                ? "Dados inválidos."
+                : exception.getMessage();
+
+        return ResponseEntity.badRequest().body(
+                Map.of(
+                        "mensagem", mensagem,
+                        "status", 400
+                )
         );
     }
 

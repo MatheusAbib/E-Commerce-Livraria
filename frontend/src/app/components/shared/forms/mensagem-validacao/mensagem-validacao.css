@@ -1,0 +1,46 @@
+:host {
+  display: block;
+  margin-top: 6px;
+  color: var(--cor-texto-secundario);
+}
+
+:host([hidden]) {
+  display: none;
+}
+
+:host([data-tipo="erro"]) {
+  color: var(--cor-perigo);
+}
+
+:host([data-tipo="sucesso"]) {
+  color: var(--cor-sucesso);
+}
+
+:host([data-tipo="aviso"]) {
+  color: var(--cor-aviso);
+}
+
+:host([data-tipo="info"]) {
+  color: var(--cor-texto-secundario);
+}
+
+.mensagem-validacao {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.mensagem-validacao i {
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 11px;
+}
+
+.mensagem-validacao span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

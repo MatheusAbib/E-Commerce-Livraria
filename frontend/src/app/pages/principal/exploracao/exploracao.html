@@ -1,0 +1,316 @@
+<section class="exploracao-livraria principal-secao" aria-labelledby="exploracao-titulo">
+  <div class="principal-secao-conteudo">
+  <ng-template #complementoSecao>
+      <div class="exploracao-cabecalho-indice" aria-hidden="true">
+      <span>01 — CATÁLOGO</span>
+      <span>02 — AUTORES</span>
+      <span>03 — GÊNEROS</span>
+    </div>
+    </ng-template>
+
+    <ng-container
+      *ngTemplateOutlet="cabecalhoSecao; context: {
+        indice: '02 / NAVEGAÇÃO',
+        titulo: 'Explore o',
+        destaque: 'acervo.',
+        id: 'exploracao-titulo',
+        complemento: complementoSecao
+      }">
+    </ng-container>
+
+  <div class="exploracao-grid">
+    <button
+      type="button"
+      class="exploracao-card exploracao-catalogo"
+      (click)="abrirExploracao('catalogo')">
+
+      <span class="exploracao-card-cabecalho">
+        <span class="exploracao-numero">01 / CATÁLOGO</span>
+        <i class="pi pi-book" aria-hidden="true"></i>
+      </span>
+
+      <span class="exploracao-catalogo-ilustracao" aria-hidden="true">
+        <svg viewBox="0 0 280 240" fill="none">
+          <circle cx="140" cy="120" r="105" stroke="currentColor" stroke-dasharray="2 6" opacity=".45"/>
+          <circle cx="140" cy="120" r="85" stroke="currentColor" opacity=".18"/>
+          <path d="M140 0V240M0 120H280" stroke="currentColor" stroke-dasharray="3 7" opacity=".25"/>
+          <g stroke="currentColor" stroke-width="1.5">
+            <rect x="38" y="65" width="29" height="140"/>
+            <rect x="72" y="45" width="35" height="160"/>
+            <rect x="112" y="75" width="27" height="130"/>
+            <rect x="144" y="55" width="36" height="150"/>
+            <rect x="185" y="82" width="29" height="123"/>
+            <path d="M220 83L241 77L269 198L248 204Z"/>
+            <path d="M45 77H60M45 87H60M45 187H60M45 193H60"/>
+            <path d="M79 58H100M79 68H100M79 78H100M79 187H100M79 193H100"/>
+            <path d="M118 88H133M118 98H133M118 187H133M118 193H133"/>
+            <path d="M151 68H173M151 78H173M151 187H173M151 193H173"/>
+            <path d="M192 95H207M192 105H207M192 187H207M192 193H207"/>
+            <path d="M225 94L239 90M245 183L259 179"/>
+            <path d="M23 205H275M23 213H275"/>
+            <circle cx="89.5" cy="129" r="10"/>
+            <path d="M162 109L173 128L162 147L151 128Z"/>
+            <path d="M199 131V156M190 143H208"/>
+          </g>
+          <path d="M20 28H36M28 20V36M244 35H260M252 27V43" stroke="currentColor"/>
+          <circle cx="140" cy="15" r="3" fill="currentColor"/>
+          <circle cx="35" cy="120" r="3" fill="currentColor"/>
+          <circle cx="245" cy="120" r="3" fill="currentColor"/>
+        </svg>
+      </span>
+
+      <span class="exploracao-catalogo-conteudo">
+        <span class="exploracao-titulo">Todos os<br>livros.</span>
+        <span class="exploracao-catalogo-total">
+          {{ livros.length | number:'1.0-0' }} títulos no acervo
+        </span>
+      </span>
+
+      <span class="exploracao-card-rodape">
+        <span>Acessar catálogo</span>
+        <span class="exploracao-seta" aria-hidden="true">
+          <i class="pi pi-arrow-up-right"></i>
+        </span>
+      </span>
+    </button>
+
+    <button
+      type="button"
+      class="exploracao-card exploracao-autores"
+      [class.exploracao-card-ativo]="painelExploracao === 'autores'"
+      [attr.aria-expanded]="painelExploracao === 'autores'"
+      [attr.aria-controls]="painelExploracao === 'autores' ? 'exploracao-painel-autores' : null"
+      (click)="abrirExploracao('autores')">
+
+      <span class="exploracao-card-cabecalho">
+        <span class="exploracao-numero">02 / AUTORES</span>
+        <i class="pi pi-users" aria-hidden="true"></i>
+      </span>
+
+      <span class="exploracao-autores-ilustracao" aria-hidden="true">
+        <span class="exploracao-alfabeto">Aa</span>
+        <span class="exploracao-alfabeto-linha"></span>
+        <span class="exploracao-alfabeto-indice">A — Z</span>
+      </span>
+
+      <span class="exploracao-card-conteudo">
+        <span class="exploracao-titulo">Autores</span>
+        <span class="exploracao-descricao">
+          {{ autoresDisponiveis.length | number:'1.0-0' }} autores
+          <span class="exploracao-separador"></span>
+          Índice alfabético
+        </span>
+      </span>
+
+      <span class="exploracao-card-rodape">
+        <span>Consultar autores</span>
+        <span class="exploracao-seta" aria-hidden="true">
+          <i class="pi"
+            [class.pi-arrow-up-right]="painelExploracao !== 'autores'"
+            [class.pi-minus]="painelExploracao === 'autores'"></i>
+        </span>
+      </span>
+    </button>
+
+    <button
+      type="button"
+      class="exploracao-card exploracao-generos"
+      [class.exploracao-card-ativo]="painelExploracao === 'generos'"
+      [attr.aria-expanded]="painelExploracao === 'generos'"
+      [attr.aria-controls]="painelExploracao === 'generos' ? 'exploracao-painel-generos' : null"
+      (click)="abrirExploracao('generos')">
+
+      <span class="exploracao-card-cabecalho">
+        <span class="exploracao-numero">03 / GÊNEROS</span>
+        <i class="pi pi-th-large" aria-hidden="true"></i>
+      </span>
+
+      <span class="exploracao-generos-ilustracao" aria-hidden="true">
+        <svg viewBox="0 0 180 140" fill="none">
+          <g stroke="currentColor" stroke-width="1.3">
+            <rect x="8" y="8" width="78" height="78" fill="#d7e0da"/>
+            <circle cx="47" cy="47" r="25"/>
+            <path d="M47 22V72M22 47H72"/>
+            <rect x="48" y="32" width="78" height="78" fill="#e5ebe7"/>
+            <path d="M60 98L87 46L114 98Z"/>
+            <rect x="88" y="56" width="78" height="78" fill="#f0f3f0"/>
+            <path d="M100 68H154V122H100Z"/>
+            <path d="M100 68L154 122M154 68L100 122"/>
+            <circle cx="127" cy="95" r="18"/>
+          </g>
+        </svg>
+      </span>
+
+      <span class="exploracao-card-conteudo">
+        <span class="exploracao-titulo">Gêneros</span>
+        <span class="exploracao-descricao">
+          {{ generosDisponiveis.length | number:'1.0-0' }} categorias
+          <span class="exploracao-separador"></span>
+          Por assunto
+        </span>
+      </span>
+
+      <span class="exploracao-card-rodape">
+        <span>Consultar gêneros</span>
+        <span class="exploracao-seta" aria-hidden="true">
+          <i class="pi"
+            [class.pi-arrow-up-right]="painelExploracao !== 'generos'"
+            [class.pi-minus]="painelExploracao === 'generos'"></i>
+        </span>
+      </span>
+    </button>
+  </div>
+
+  <div
+    class="exploracao-painel exploracao-painel-autores"
+    id="exploracao-painel-autores"
+    *ngIf="painelExploracao === 'autores'">
+
+    <header class="exploracao-painel-cabecalho">
+      <div>
+        <span class="exploracao-painel-indice">02 / ÍNDICE ALFABÉTICO</span>
+        <h3>Todos os autores.</h3>
+      </div>
+
+      <button
+        appBotaoIcone
+        type="button"
+        variante="neutro"
+        icone="pi pi-times"
+        rotulo="Fechar"
+        (click)="painelExploracao = null">
+      </button>
+    </header>
+
+    <div class="exploracao-busca">
+      <div class="exploracao-busca-campo">
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <input
+          appCampo
+          tamanho="grande"
+          aparencia="padrao"
+          type="search"
+          [(ngModel)]="buscaExploracaoAutor"
+          placeholder="Buscar autor"
+          aria-label="Buscar autores"
+          autocomplete="off">
+      </div>
+
+      <span class="exploracao-busca-total" aria-live="polite">
+        {{ autoresExploracaoFiltrados.length }} encontrados
+      </span>
+    </div>
+
+    <div class="exploracao-opcoes" *ngIf="autoresExploracaoFiltrados.length">
+      <button
+        type="button"
+        class="exploracao-opcao"
+        *ngFor="let autor of autoresExploracaoFiltrados"
+        (click)="selecionarAutor(autor)">
+
+        <span class="exploracao-opcao-simbolo exploracao-opcao-letra">
+          {{ autor.charAt(0).toUpperCase() }}
+        </span>
+
+        <span class="exploracao-opcao-conteudo">
+          <strong>{{ autor }}</strong>
+          <span class="exploracao-opcao-total">
+            {{ quantidadePorAutor(autor) }}
+            {{ quantidadePorAutor(autor) === 1 ? 'livro' : 'livros' }}
+          </span>
+        </span>
+
+        <i class="pi pi-arrow-up-right"></i>
+      </button>
+    </div>
+
+    <div class="exploracao-vazio" *ngIf="autoresDisponiveis.length === 0">
+      <i class="pi pi-users"></i>
+      <span>Nenhum autor cadastrado.</span>
+    </div>
+
+    <div
+      class="exploracao-vazio"
+      *ngIf="autoresDisponiveis.length > 0 && autoresExploracaoFiltrados.length === 0">
+      <i class="pi pi-search"></i>
+      <span>Nenhum autor corresponde à sua busca.</span>
+    </div>
+  </div>
+
+  <div
+    class="exploracao-painel exploracao-painel-generos"
+    id="exploracao-painel-generos"
+    *ngIf="painelExploracao === 'generos'">
+
+    <header class="exploracao-painel-cabecalho">
+      <div>
+        <span class="exploracao-painel-indice">03 / CATEGORIAS</span>
+        <h3>Todos os gêneros.</h3>
+      </div>
+
+      <button
+        appBotaoIcone
+        type="button"
+        variante="neutro"
+        icone="pi pi-times"
+        rotulo="Fechar"
+        (click)="painelExploracao = null">
+      </button>
+    </header>
+
+    <div class="exploracao-busca">
+      <div class="exploracao-busca-campo">
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <input
+          appCampo
+          tamanho="grande"
+          aparencia="padrao"
+          type="search"
+          [(ngModel)]="buscaExploracaoGenero"
+          placeholder="Buscar gênero ou categoria"
+          aria-label="Buscar gêneros"
+          autocomplete="off">
+      </div>
+
+      <span class="exploracao-busca-total" aria-live="polite">
+        {{ generosExploracaoFiltrados.length }} encontrados
+      </span>
+    </div>
+
+    <div class="exploracao-opcoes" *ngIf="generosExploracaoFiltrados.length">
+      <button
+        type="button"
+        class="exploracao-opcao"
+        *ngFor="let genero of generosExploracaoFiltrados; let i = index"
+        (click)="selecionarGenero(genero)">
+
+        <span class="exploracao-opcao-simbolo exploracao-opcao-geometria">
+          <i class="pi" [ngClass]="['pi-book', 'pi-bookmark', 'pi-th-large', 'pi-clone'][i % 4]"></i>
+        </span>
+
+        <span class="exploracao-opcao-conteudo">
+          <strong>{{ genero }}</strong>
+          <span class="exploracao-opcao-total">
+            {{ quantidadePorGenero(genero) }}
+            {{ quantidadePorGenero(genero) === 1 ? 'livro' : 'livros' }}
+          </span>
+        </span>
+
+        <i class="pi pi-arrow-up-right"></i>
+      </button>
+    </div>
+
+    <div class="exploracao-vazio" *ngIf="generosDisponiveis.length === 0">
+      <i class="pi pi-th-large"></i>
+      <span>Nenhum gênero cadastrado.</span>
+    </div>
+
+    <div
+      class="exploracao-vazio"
+      *ngIf="generosDisponiveis.length > 0 && generosExploracaoFiltrados.length === 0">
+      <i class="pi pi-search"></i>
+      <span>Nenhum gênero corresponde à sua busca.</span>
+    </div>
+  </div>
+  </div>
+</section>

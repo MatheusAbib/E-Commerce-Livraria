@@ -10,13 +10,9 @@
           </h1>
           <p class="page-description">Acompanhe as métricas de vendas, lucros e desempenho da sua livraria</p>
         </div>
-        <div class="export-buttons">
-          <button class="btn-danger" (click)="exportarPDF()">
-            <i class="pi pi-file-pdf"></i> PDF
-          </button>
-          <button class="btn-primary" (click)="exportarExcel()">
-            <i class="pi pi-file-excel"></i> Excel
-          </button>
+        <div appGrupoAcoes class="export-buttons" alinhamento="inicio" espacamento="8px">
+          <button appBotao class="acao-admin" variante="perigo" icone="pi pi-file-pdf" (click)="exportarPDF()">PDF</button>
+          <button appBotao class="acao-admin" variante="primario" icone="pi pi-file-excel" (click)="exportarExcel()">Excel</button>
         </div>
       </div>
     </div>
@@ -109,57 +105,65 @@
       </div>
       <div class="filtros-grid">
         <div class="filtro-item">
-          <label>Período</label>
-          <select [(ngModel)]="filtros.periodo" class="auth-input">
-            <option value="day">Hoje</option>
-            <option value="week">Esta Semana</option>
-            <option value="month" selected>Este Mês</option>
-            <option value="year">Este Ano</option>
-          </select>
+          <label for="dashboard-periodo">Período</label>
+          <app-campo-selecao
+            campoId="dashboard-periodo"
+            rotulo="Período"
+            aparencia="administrativo"
+            [opcoes]="opcoesPeriodo"
+            [exibirPlaceholder]="false"
+            [(ngModel)]="filtros.periodo"
+            >
+          </app-campo-selecao>
         </div>
         <div class="filtro-item">
-          <label>Status</label>
-          <select [(ngModel)]="filtros.status" class="auth-input">
-            <option value="todos">Todos</option>
-            <option value="ENTREGUE">Entregues</option>
-            <option value="EM_PROCESSAMENTO">Em Processamento</option>
-            <option value="EM_TRANSITO">Em Trânsito</option>
-            <option value="CANCELADO">Cancelados</option>
-            <option value="DEVOLUCAO">Devolução</option>
-          </select>
+          <label for="dashboard-status">Status</label>
+          <app-campo-selecao
+            campoId="dashboard-status"
+            rotulo="Status"
+            aparencia="administrativo"
+            [opcoes]="opcoesStatus"
+            [exibirPlaceholder]="false"
+            [(ngModel)]="filtros.status"
+            >
+          </app-campo-selecao>
         </div>
         <div class="filtro-item">
-          <label>Livro</label>
-          <select [(ngModel)]="filtros.livro" class="auth-input">
-            <option value="">Todos</option>
-            <option *ngFor="let livro of livrosOptions" [value]="livro">{{ livro }}</option>
-          </select>
+          <label for="dashboard-livro">Livro</label>
+          <app-campo-selecao
+            campoId="dashboard-livro"
+            rotulo="Livro"
+            aparencia="administrativo"
+            [opcoes]="opcoesLivrosFiltro"
+            [exibirPlaceholder]="false"
+            [(ngModel)]="filtros.livro"
+            >
+          </app-campo-selecao>
         </div>
         <div class="filtro-item">
-          <label>Tipo de Gráfico</label>
-          <select [(ngModel)]="filtros.chartType" class="auth-input">
-            <option value="line">Linha</option>
-            <option value="bar">Barras</option>
-          </select>
+          <label for="dashboard-tipo-grafico">Tipo de Gráfico</label>
+          <app-campo-selecao
+            campoId="dashboard-tipo-grafico"
+            rotulo="Tipo de Gráfico"
+            aparencia="administrativo"
+            [opcoes]="opcoesTipoGrafico"
+            [exibirPlaceholder]="false"
+            [(ngModel)]="filtros.chartType"
+            >
+          </app-campo-selecao>
         </div>
         <div class="filtro-item">
-          <label>Data Inicial</label>
-          <input type="date" [(ngModel)]="filtros.dataInicio" class="auth-input">
+          <label for="dashboard-data-inicial">Data Inicial</label>
+          <input appCampo aparencia="administrativo" id="dashboard-data-inicial" type="date" [(ngModel)]="filtros.dataInicio">
         </div>
         <div class="filtro-item">
-          <label>Data Final</label>
-          <input type="date" [(ngModel)]="filtros.dataFim" class="auth-input">
+          <label for="dashboard-data-final">Data Final</label>
+          <input appCampo aparencia="administrativo" id="dashboard-data-final" type="date" [(ngModel)]="filtros.dataFim">
         </div>
         <div class="filtro-item full-width">
-          <div class="filtro-actions">
-            <button class="btn-filtrar" (click)="aplicarFiltros()" [disabled]="filtrando">
-              <i class="pi" [class.pi-search]="!filtrando" [class.pi-spin]="filtrando" [class.pi-spinner]="filtrando"></i>
-              {{ filtrando ? 'Filtrando...' : 'Filtrar' }}
-            </button>
-            <button class="btn-limpar" (click)="limparFiltros()" [disabled]="filtrando">
-              <i class="pi" [class.pi-times]="!filtrando" [class.pi-spin]="filtrando" [class.pi-spinner]="filtrando"></i>
-              {{ filtrando ? 'Limpando...' : 'Limpar' }}
-            </button>
+          <div appGrupoAcoes class="filtro-actions" alinhamento="inicio" espacamento="10px">
+            <button appBotao class="acao-admin acao-admin-filtro" variante="primario" icone="pi pi-search" [carregando]="filtrando" textoCarregando="Filtrando..." (click)="aplicarFiltros()">Filtrar</button>
+            <button appBotao class="acao-admin acao-admin-filtro" variante="secundario" icone="pi pi-times" [carregando]="filtrando" textoCarregando="Limpando..." (click)="limparFiltros()">Limpar</button>
           </div>
         </div>
       </div>
@@ -172,22 +176,13 @@
   </div>
   <canvas *ngIf="!loading && temDados" id="salesChart" style="width: 100%; height: 300px;"></canvas>
   <div *ngIf="loading" class="loader-overlay-transacoes">
-    <div class="loader-container">
-      <div class="loader-spinner">
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
-      </div>
-      <p class="loader-text">Carregando dados do gráfico...</p>
-    </div>
+    <app-carregamento texto="Carregando dados do gráfico..." modelo="aneis"></app-carregamento>
   </div>
   <div *ngIf="!loading && !temDados" class="chart-state chart-empty">
     <i class="pi pi-chart-line"></i>
     <h3>Nenhum dado disponível</h3>
     <p>Não há vendas para o período selecionado</p>
-    <button class="btn-limpar" (click)="limparFiltros()">
-      <i class="pi pi-times"></i> Limpar Filtros
-    </button>
+    <button appBotao class="acao-admin" variante="secundario" icone="pi pi-times" (click)="limparFiltros()">Limpar Filtros</button>
   </div>
 </div>
     </div>
@@ -197,27 +192,22 @@
         <div class="dashboard-card-header">
           <h3><i class="pi pi-money-bill"></i> Lucro por Livro</h3>
           <div class="filter-group">
-            <select [(ngModel)]="filtroLivro" (ngModelChange)="onFiltroLivroChange()" class="auth-input">
-              <option value="todos">Todos os livros</option>
-              <option *ngFor="let livro of livrosOptions" [value]="livro">{{ livro }}</option>
-            </select>
+            <app-campo-selecao
+            campoId="dashboard-lucro-livro"
+            rotulo="Filtrar lucro por livro"
+            aparencia="administrativo"
+            [opcoes]="opcoesLivrosLucro"
+            [exibirPlaceholder]="false"
+            [(ngModel)]="filtroLivro"
+            (ngModelChange)="onFiltroLivroChange()">
+          </app-campo-selecao>
           </div>
         </div>
         <div class="dashboard-card-body">
           <div *ngIf="loading" class="loader-overlay-transacoes">
-            <div class="loader-container">
-              <div class="loader-spinner">
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-              </div>
-              <p class="loader-text">Carregando dados...</p>
-            </div>
+            <app-carregamento texto="Carregando dados..." modelo="aneis"></app-carregamento>
           </div>
-          <div *ngIf="!loading && lucrosFiltrados.length === 0" class="empty-state">
-            <i class="pi pi-inbox"></i>
-            <p>Nenhum dado encontrado</p>
-          </div>
+          <div *ngIf="!loading && lucrosFiltrados.length === 0" class="empty-state"><app-estado-vazio icone="pi pi-inbox" titulo="" descricao="Nenhum dado encontrado" compacto tamanho="pequeno"></app-estado-vazio></div>
           <div *ngIf="!loading && lucrosFiltrados.length > 0" class="lucros-grid">
             <div *ngFor="let item of lucrosPaginados" class="lucro-item">
               <span class="lucro-nome">{{ item[0] }}</span>
@@ -247,19 +237,9 @@
         </div>
         <div class="dashboard-card-body">
           <div *ngIf="loading" class="loader-overlay-transacoes">
-            <div class="loader-container">
-              <div class="loader-spinner">
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-              </div>
-              <p class="loader-text">Carregando dados...</p>
-            </div>
+            <app-carregamento texto="Carregando dados..." modelo="aneis"></app-carregamento>
           </div>
-          <div *ngIf="!loading && statusDistribuicao.length === 0" class="empty-state">
-            <i class="pi pi-inbox"></i>
-            <p>Nenhum dado encontrado</p>
-          </div>
+          <div *ngIf="!loading && statusDistribuicao.length === 0" class="empty-state"><app-estado-vazio icone="pi pi-inbox" titulo="" descricao="Nenhum dado encontrado" compacto tamanho="pequeno"></app-estado-vazio></div>
           <div *ngIf="!loading && statusDistribuicao.length > 0">
             <div *ngFor="let item of statusDistribuicao" class="status-item">
               <div class="status-info">
@@ -286,19 +266,9 @@
         </div>
         <div class="dashboard-card-body">
           <div *ngIf="loadingAvaliacoes" class="loader-overlay-transacoes">
-            <div class="loader-container">
-              <div class="loader-spinner">
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-              </div>
-              <p class="loader-text">Carregando avaliações...</p>
-            </div>
+            <app-carregamento texto="Carregando avaliações..." modelo="aneis"></app-carregamento>
           </div>
-          <div *ngIf="!loadingAvaliacoes && rankingLivros.length === 0" class="empty-state">
-            <i class="pi pi-inbox"></i>
-            <p>Nenhuma avaliação encontrada</p>
-          </div>
+          <div *ngIf="!loadingAvaliacoes && rankingLivros.length === 0" class="empty-state"><app-estado-vazio icone="pi pi-inbox" titulo="" descricao="Nenhuma avaliação encontrada" compacto tamanho="pequeno"></app-estado-vazio></div>
           <div *ngIf="!loadingAvaliacoes && rankingLivros.length > 0">
             <div *ngFor="let item of rankingLivrosPaginados; let i = index" class="ranking-item">
               <div class="ranking-posicao">
@@ -340,19 +310,9 @@
         </div>
         <div class="dashboard-card-body">
           <div *ngIf="loadingAvaliacoes" class="loader-overlay-transacoes">
-            <div class="loader-container">
-              <div class="loader-spinner">
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-              </div>
-              <p class="loader-text">Carregando avaliações...</p>
-            </div>
+            <app-carregamento texto="Carregando avaliações..." modelo="aneis"></app-carregamento>
           </div>
-          <div *ngIf="!loadingAvaliacoes && distribuicaoNotas.length === 0" class="empty-state">
-            <i class="pi pi-inbox"></i>
-            <p>Nenhuma avaliação encontrada</p>
-          </div>
+          <div *ngIf="!loadingAvaliacoes && distribuicaoNotas.length === 0" class="empty-state"><app-estado-vazio icone="pi pi-inbox" titulo="" descricao="Nenhuma avaliação encontrada" compacto tamanho="pequeno"></app-estado-vazio></div>
           <div *ngIf="!loadingAvaliacoes && distribuicaoNotas.length > 0">
             <div *ngFor="let item of distribuicaoNotas" class="status-item">
               <div class="status-info">

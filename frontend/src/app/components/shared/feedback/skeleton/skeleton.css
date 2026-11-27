@@ -1,0 +1,45 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.skeleton-grupo {
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  max-width: 100%;
+  background: var(--cor-superficie-suave);
+  border: 1px solid var(--cor-borda-suave);
+}
+
+.skeleton.circular {
+  border-radius: 50%;
+}
+
+.skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, .8),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: skeleton 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton {
+  to { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+  }
+}

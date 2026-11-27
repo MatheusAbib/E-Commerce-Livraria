@@ -1,0 +1,18 @@
+textarea,
+textarea.p-inputtext {
+  min-height: 100px;
+  padding: 12px 14px;
+  line-height: 1.6;
+  resize: vertical;
+  border-radius: 0 !important;
+}
+
+input::placeholder,
+textarea::placeholder,
+.p-inputtext::placeholder {
+  color: var(--campo-placeholder) !important;
+  font-family: var(--campo-fonte) !important;
+  font-size: var(--campo-tamanho) !important;
+  font-weight: 400 !important;
+  opacity: 1;
+}

@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +43,12 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/pedidos")
 public class PedidoController {
+    private void validarAdministrador() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getAuthorities().stream().noneMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()) || "ADMIN".equals(a.getAuthority()))) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso restrito à administração.");
+        }
+    }
     private final PedidoService pedidoService;
     private final LogService logService;
     private final SimpMessagingTemplate messagingTemplate;
@@ -132,6 +139,8 @@ public ResponseEntity<List<PedidoResponseDTO>> listarPedidosPorCliente(
             }
             Pedido pedido = pedidoService.criarPedido(
                     pedidoDTO.getClienteId(),
+                    pedidoDTO.getCarrinhoId(),
+                    pedidoDTO.getCarrinhoRevisao(),
                     pedidoDTO.getItens(),
                     pedidoDTO.getEnderecoId(),
                     pedidoDTO.getPagamentos(),
@@ -140,6 +149,8 @@ public ResponseEntity<List<PedidoResponseDTO>> listarPedidosPorCliente(
                     pedidoDTO.getValorSubtotal()
             );
             return ResponseEntity.ok(pedido);
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(Map.of("mensagem", e.getReason() == null ? "Não foi possível finalizar o pedido" : e.getReason(), "status", "erro"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(
                     Map.of(
@@ -193,6 +204,7 @@ public ResponseEntity<List<PedidoResponseDTO>> listarPedidosPorCliente(
     @DeleteMapping("/{id}")
     public ResponseEntity<?> excluirPedido(@PathVariable Long id) {
         try {
+            validarAdministrador();
             Optional<Pedido> pedidoOpt = pedidoService.buscarPorIdOptional(id);
             if (pedidoOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -221,6 +233,7 @@ public ResponseEntity<List<PedidoResponseDTO>> listarPedidosPorCliente(
     @PutMapping("/{id}/confirmar-reembolso")
     public ResponseEntity<?> confirmarReembolso(@PathVariable Long id) {
         try {
+            validarAdministrador();
             Command command = new ConfirmarReembolsoCommand(pedidoService, id);
             Pedido pedido = (Pedido) commandInvoker.executar(command);
             return ResponseEntity.ok(pedido);

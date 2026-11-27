@@ -1,31 +1,17 @@
-<div class="custom-modal" [class.active]="visible">
-  <div class="custom-modal-overlay" (click)="fechar()"></div>
-  <div class="custom-modal-content" style="width: 380px; max-width: 95%; position: relative;">
-    <div class="custom-modal-header">
-      <div class="auth-icon" style="background: #fee2e2;">
-        <i class="pi pi-sign-out" style="color: #dc2626;"></i>
-      </div>
-      <h2>Sair da conta</h2>
-    </div>
-    <div class="custom-modal-body" style="text-align: center; padding-bottom: 0.5rem;">
-      <p style="color: #6b7a8f; font-size: 0.95rem;">Você será desconectado e precisará fazer login novamente.</p>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="p-button-outlined" (click)="fechar()" [disabled]="loading">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button class="btn-danger" (click)="confirmarLogout()" [disabled]="loading">
-          <i class="pi" [class.pi-spin]="loading" [class.pi-spinner]="loading" [class.pi-sign-out]="!loading"></i>
-          {{ loading ? 'Saindo...' : 'Sair' }}
-        </button>
-      </div>
-    </div>
-    <div *ngIf="loading" class="modal-loader">
-      <div class="loader-overlay">
-        <i class="pi pi-spin pi-spinner"></i>
-        <span>Saindo...</span>
-      </div>
-    </div>
-  </div>
-</div>
+<app-modal-confirmacao
+  [visivel]="visible"
+  titulo="Sair da conta"
+  mensagem="Você será desconectado e precisará fazer login novamente."
+  icone="pi pi-sign-out"
+  variante="perigo"
+  largura="380px"
+  textoCancelar="Cancelar"
+  textoConfirmar="Sair"
+  iconeCancelar="pi pi-times"
+  iconeConfirmar="pi pi-sign-out"
+  textoCarregando="Saindo..."
+  [carregando]="loading"
+  [bloquearComOverlay]="true"
+  (cancelar)="fechar()"
+  (confirmar)="confirmarLogout()">
+</app-modal-confirmacao>

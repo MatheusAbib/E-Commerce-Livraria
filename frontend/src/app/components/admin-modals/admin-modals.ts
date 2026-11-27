@@ -1,24 +1,37 @@
-
+import { ClienteService } from '../../services/cliente.service';
+import { inject } from '@angular/core';
+import { ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent, ModalRodapeComponent, ModalConfirmacaoComponent } from '../shared/modals';
+import { NotificacaoComponent } from '../../components/shared/feedback';
+import { MensagemValidacaoComponent } from '../shared/forms';
+import { CampoSenhaComponent } from '../shared/forms';
+import { ImagemPreviewComponent } from '../shared/forms';
+import { CampoArquivoComponent } from '../shared/forms';
+import { GrupoCampoComponent } from '../shared/forms';
+import { GrupoFormularioComponent } from '../shared/forms';
+import { CampoMonetarioComponent } from '../shared/forms';
+import { CampoDirective } from '../shared/forms';
+import { BotaoComponent } from '../shared/buttons/botao/botao';
+import { GrupoAcoesComponent } from '../shared/buttons/grupo-acoes/grupo-acoes';
 import { Component, EventEmitter, Output, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
-import { AdminService } from '../../services/admin.service';
 import { DropdownModule } from 'primeng/dropdown';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-admin-modals',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToastModule, DropdownModule],
+  imports: [NotificacaoComponent, MensagemValidacaoComponent, CampoSenhaComponent, ImagemPreviewComponent, CampoArquivoComponent, GrupoCampoComponent, GrupoFormularioComponent, CampoMonetarioComponent, CampoDirective, CommonModule, FormsModule, DropdownModule, BotaoComponent, GrupoAcoesComponent, ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent, ModalRodapeComponent, ModalConfirmacaoComponent],
   providers: [MessageService],
   templateUrl: './admin-modals.html',
   styleUrls: ['./admin-modals.css']
 })
 export class AdminModalsComponent {
+  private readonly clienteService = inject(ClienteService);
+
   @Output() perfilAtualizado = new EventEmitter<void>();
   @Input() categorias: string[] = [];
 
@@ -88,13 +101,12 @@ export class AdminModalsComponent {
 
   onConfirmarExcluir: (() => void) | null = null;
   onConfirmarStatus: (() => void) | null = null;
-  onSalvarLivro: (() => void) | null = null;
+  onSalvarLivro: (() => void | Promise<void>) | null = null;
   onConfirmarPedidoStatus: ((pedido: any, status: string, dadosCupom?: any, codigoRastreamento?: string) => void) | null = null;
   onConfirmarPedidoExcluir: ((pedido: any) => void) | null = null;
 
   constructor(
     private authService: AuthService,
-    private adminService: AdminService,
     private messageService: MessageService,
     private router: Router
   ) {}
@@ -117,21 +129,6 @@ export class AdminModalsComponent {
     this.confirmarSenha = '';
   }
 
-  togglePassword(inputId: string): void {
-    const input = document.getElementById(inputId) as HTMLInputElement;
-    if (!input) return;
-
-    const icon = input.parentElement?.querySelector('.password-toggle') as HTMLElement;
-    if (!icon) return;
-
-    if (input.type === 'password') {
-      input.type = 'text';
-      icon.className = 'pi pi-eye-slash password-toggle';
-    } else {
-      input.type = 'password';
-      icon.className = 'pi pi-eye password-toggle';
-    }
-  }
 
 abrirFotoAmpliada(caminho: string): void {
   const url = caminho.startsWith('http')
@@ -178,7 +175,7 @@ abrirFotoAmpliada(caminho: string): void {
         senhaAlterada = true;
       }
 
-      await this.adminService.atualizarAdmin(user.id, dados).toPromise();
+      await this.clienteService.atualizarAdministrativo(user.id, dados).toPromise();
 
       const userAtualizado = {
         ...user,
@@ -284,7 +281,11 @@ abrirFotoAmpliada(caminho: string): void {
         peso: livro.peso || null,
         codigoBarras: livro.codigoBarras || '',
         precoCusto: livro.precoCusto || null,
-        estoque: livro.estoque || null,
+        estoque: livro.estoque ?? 0,
+        estoqueOriginal: livro.estoque ?? 0,
+        estoqueFisicoAtual: livro.estoque ?? 0,
+        estoqueReservado: livro.estoqueReservado,
+        estoqueDisponivel: livro.estoqueDisponivel,
         dataEntrada: livro.dataEntrada ? new Date(livro.dataEntrada) : new Date(),
         imagem: null,
         imagemUrl: livro.imagemUrl || ''
@@ -352,20 +353,25 @@ abrirFotoAmpliada(caminho: string): void {
     this.imagemPreview = null;
   }
 
-  onFileSelected(event: any): void {
-    const file = event.target.files[0];
-
-    if (file) {
-      this.livroEditando.imagem = file;
-
-      const reader = new FileReader();
-
-      reader.onload = (e: any) => {
-        this.imagemPreview = e.target.result;
-      };
-
-      reader.readAsDataURL(file);
+  selecionarImagemLivro(arquivos: File[]): void {
+    if (this.carregandoSalvarLivro || !arquivos.length) {
+      return;
     }
+
+    this.livroEditando.imagem = arquivos[0];
+    this.imagemPreview = null;
+  }
+
+  informarErroImagem(erros: unknown[]): void {
+    if (!erros.length) {
+      return;
+    }
+
+    this.messageService.add({
+      severity: 'warn',
+      summary: 'Imagem inválida',
+      detail: 'Selecione uma imagem válida de até 5 MB.'
+    });
   }
 
   removerImagem(): void {
@@ -374,20 +380,20 @@ abrirFotoAmpliada(caminho: string): void {
     this.livroEditando.imagemUrl = '';
   }
 
-  setSalvarLivroCallback(callback: () => void): void {
+  setSalvarLivroCallback(callback: () => void | Promise<void>): void {
     this.onSalvarLivro = callback;
   }
 
-  salvarLivro(): void {
+  async salvarLivro(): Promise<void> {
     if (this.carregandoSalvarLivro) return;
 
     this.carregandoSalvarLivro = true;
 
-    if (this.onSalvarLivro) {
-      this.onSalvarLivro();
+    try {
+      if (this.onSalvarLivro) await this.onSalvarLivro();
+    } finally {
+      this.carregandoSalvarLivro = false;
     }
-
-    this.carregandoSalvarLivro = false;
   }
 
   abrirExcluir(onConfirm: () => void): void {
@@ -408,20 +414,6 @@ abrirFotoAmpliada(caminho: string): void {
     this.carregandoExcluir = false;
   }
 
-  formatarPreco(event: any): void {
-    let valor = event.target.value.replace(/\D/g, '');
-
-    if (valor === '') {
-      this.livroEditando.precoCusto = null;
-      event.target.value = '';
-      return;
-    }
-
-    const valorNumerico = parseFloat(valor) / 100;
-
-    this.livroEditando.precoCusto = valorNumerico;
-    event.target.value = valorNumerico.toFixed(2).replace('.', ',');
-  }
 
   abrirStatus(ativo: boolean, onConfirm: () => void): void {
     this.statusAtivo = ativo;

@@ -86,6 +86,37 @@ public ResponseEntity<?> salvarCliente(@RequestBody Cliente cliente) {
         }
     }
 
+    @PostMapping("/{id}/validar-cpf")
+        public ResponseEntity<?> validarCpf(
+                @PathVariable Long id,
+                @RequestBody Map<String, String> dados,
+                org.springframework.security.core.Authentication authentication) {
+
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return ResponseEntity.status(401).build();
+            }
+
+            Optional<Cliente> cliente = clienteService.buscarPorId(id);
+
+            if (cliente.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            if (!cliente.get().getEmail().equalsIgnoreCase(authentication.getName())) {
+                return ResponseEntity.status(403).build();
+            }
+
+            try {
+                clienteService.validarCpfCliente(dados.get("cpf"), id);
+
+                return ResponseEntity.ok(Map.of("valido", true));
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(
+                    Map.of("valido", false, "message", e.getMessage())
+                );
+            }
+        }
+
     @PostMapping("/change-status/{id}")
     public ResponseEntity<?> changeStatus(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
         try {

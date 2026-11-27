@@ -1,48 +1,70 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { CardModule } from 'primeng/card';
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
-import { GalleriaModule } from 'primeng/galleria';
-import { PaginatorModule } from 'primeng/paginator';
-import { DialogModule } from 'primeng/dialog';
-import { BadgeModule } from 'primeng/badge';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { ToastModule } from 'primeng/toast';
-import { TooltipModule } from 'primeng/tooltip';
+import { ViewEncapsulation } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { AvaliacaoService } from '../../services/avaliacao.service';
+import { inject } from '@angular/core';
+import { FavoritoService } from '../../services/favorito.service';
+import { LivroService } from '../../services/livro.service';
+import { AutoresComponent } from './autores/autores';
+import { DescobertaLiterariaComponent } from './descoberta-literaria/descoberta-literaria';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { MessageService } from 'primeng/api';
+import { AberturaComponent } from './abertura/abertura';
+import { ExploracaoComponent } from './exploracao/exploracao';
+import { MaisVendidosComponent } from './mais-vendidos/mais-vendidos';
+import { CatalogoComponent } from './catalogo/catalogo';
+import { DetalhesLivroComponent } from './detalhes-livro/detalhes-livro';
+import { NotificacaoComponent } from '../../components/shared/feedback';
 import { CarrinhoService } from '../../services/carrinho';
 import { AuthService } from '../../services/auth';
-import { ActivatedRoute } from '@angular/router';
-import { Router } from '@angular/router';
-import { environment } from '../../../environments/environment';
+
+
 @Component({
   selector: 'app-principal',
   standalone: true,
   imports: [
-    CommonModule,
-    FormsModule,
-    RouterModule,
-    CardModule,
-    ButtonModule,
-    InputTextModule,
-    DropdownModule,
-    GalleriaModule,
-    PaginatorModule,
-    DialogModule,
-    BadgeModule,
-    ProgressSpinnerModule,
-    ToastModule,
-    TooltipModule
+    NgTemplateOutlet,
+    AberturaComponent,
+    ExploracaoComponent,
+    MaisVendidosComponent,
+    DescobertaLiterariaComponent,
+    AutoresComponent,
+    CatalogoComponent,
+    DetalhesLivroComponent,
+    NotificacaoComponent
   ],
   providers: [MessageService],
   templateUrl: './principal.html',
+  encapsulation: ViewEncapsulation.None,
   styleUrls: ['./principal.css']
 })
-export class Principal implements OnInit {
+export class Principal implements OnInit, OnDestroy {
+  private readonly avaliacaoService = inject(AvaliacaoService);
+
+  private readonly favoritoService = inject(FavoritoService);
+  private readonly livroService = inject(LivroService);
+
+  readonly consultarEstoque = (livro: any): number => this.estoqueDisponivel(livro);
+  readonly consultarLimiteAdicao = (livro: any): number => this.limiteAdicao(livro);
+  readonly consultarTipoEstrela = (nota: number, indice: number): string => this.getTipoEstrelaPrincipal(nota, indice);
+  readonly consultarNota = (nota: number): string => this.formatarNota(nota);
+
+  get opcoesCategoriasCompartilhadas() {
+    return [
+      { rotulo: 'Todas as categorias', valor: '' },
+      ...this.categorias.map(categoria => ({
+        rotulo: categoria.label,
+        valor: String(categoria.value)
+      }))
+    ];
+  }
+
+  private inscricoes = new Subscription();
+  private intervaloEstoque?: ReturnType<typeof setInterval>;
+  private atualizandoEstoque = false;
+  private destruido = false;
+  private quantidadesReservadas = new Map<number, number>();
   livros: any[] = [];
   maisVendidos: any[] = [];
   carregandoMaisVendidos: boolean = false;
@@ -52,35 +74,27 @@ export class Principal implements OnInit {
   loading: boolean = false;
   totalRecords: number = 0;
   first: number = 0;
-  rows: number = 12;
+  rows: number = 24;
   isLoggedIn: boolean = false;
   favoritosIds: number[] = [];
   favoritosCount: number = 0;
   carrinhoItens: number = 0;
   cuponsDisponiveisCount: number = 0;
-  comentarios: any[] = [];
-  comentariosPaginados: any[] = [];
-  comentariosLoading: boolean = false;
-  comentariosExpandido: boolean = false;
-  comentariosFirst: number = 0;
-  comentariosRows: number = 5;
-  comentariosTotal: number = 0;
   carregandoFiltro: boolean = false;
   carregandoLimpar: boolean = false;
   carregandoCarrinho: { [key: number]: boolean } = {};
   carregandoFavorito: { [key: number]: boolean } = {};
   carregandoCarrinhoModal: boolean = false;
-  carregandoFavoritoModal: boolean = false;
   filtros = {
     titulo: '',
     autor: '',
     editora: '',
     categoria: '',
-    precoMax: null
+    precoMax: null as number | null,
+      avaliacao: '',
+      ordenacao: ''
   };
   categorias: any[] = [];
-  quantidadeSelecionada: number = 1;
-  selectedIsFavorited: boolean = false;
   constructor(
     private messageService: MessageService,
     private carrinhoService: CarrinhoService,
@@ -90,21 +104,26 @@ export class Principal implements OnInit {
     private router: Router
   ) {}
   ngOnInit(): void {
-    this.carrinhoService.carrinhoItens$.subscribe(total => {
+    this.inscricoes.add(this.carrinhoService.carrinhoItens$.subscribe(total => {
       this.carrinhoItens = total;
       this.cdr.markForCheck();
-    });
+    }));
 
-    this.authService.favoritosCount$.subscribe(count => {
+    this.inscricoes.add(this.authService.favoritosCount$.subscribe(count => {
       this.favoritosCount = count;
       this.cdr.markForCheck();
-    });
+    }));
 
-    this.authService.cuponsCount$.subscribe(count => {
+    this.inscricoes.add(this.authService.cuponsCount$.subscribe(count => {
       this.cuponsDisponiveisCount = count;
       this.cdr.markForCheck();
-    });
+    }));
 
+    this.inscricoes.add(this.carrinhoService.carrinhoAtualizado$.subscribe(() => {
+      this.quantidadesReservadas.clear();
+      void this.atualizarEstoqueCatalogo();
+    }));
+    this.intervaloEstoque = setInterval(() => void this.atualizarEstoqueCatalogo(), 10000);
     this.carregarLivros();
     this.carregarMaisVendidos();
     const user = JSON.parse(localStorage.getItem('clienteLogado') || 'null');
@@ -112,20 +131,20 @@ export class Principal implements OnInit {
     if (this.isLoggedIn) {
       this.carregarFavoritos();
     }
-    this.authService.loginStatus$.subscribe(async logado => {
+    this.inscricoes.add(this.authService.loginStatus$.subscribe(async logado => {
       this.isLoggedIn = logado;
       if (!logado) {
         this.favoritosIds = [];
-        this.selectedIsFavorited = false;
+
       } else {
         await this.carregarFavoritos();
       }
       this.cdr.detectChanges();
-    });
-    this.authService.favoritosAtualizados$.subscribe(() => {
+    }));
+    this.inscricoes.add(this.authService.favoritosAtualizados$.subscribe(() => {
       this.carregarFavoritos();
-    });
-    this.route.queryParams.subscribe(params => {
+    }));
+    this.inscricoes.add(this.route.queryParams.subscribe(params => {
       const livroId = params['livroId'];
       if (livroId) {
         setTimeout(() => {
@@ -136,65 +155,14 @@ export class Principal implements OnInit {
           }
         }, 500);
       }
-    });
-  }
-  async carregarComentarios(livroId: number): Promise<void> {
-    this.comentariosLoading = true;
-    try {
-      const response = await fetch(`${environment.apiUrl}/avaliacoes/livro/${livroId}`);
-      if (response.ok) {
-        this.comentarios = await response.json();
-        this.comentarios.sort((a, b) =>
-          new Date(b.dataAvaliacao).getTime() - new Date(a.dataAvaliacao).getTime()
-        );
-        this.comentariosTotal = this.comentarios.length;
-        this.atualizarComentariosPaginados();
-      }
-    } catch (error) {
-      console.error('Erro ao carregar comentários:', error);
-    } finally {
-      this.comentariosLoading = false;
-    }
-  }
-  atualizarComentariosPaginados(): void {
-    this.comentariosPaginados = this.comentarios.slice(
-      this.comentariosFirst,
-      this.comentariosFirst + this.comentariosRows
-    );
-  }
-  onComentariosPageChange(event: any): void {
-    this.comentariosFirst = event.first;
-    this.comentariosRows = event.rows;
-    this.atualizarComentariosPaginados();
-  }
-  toggleComentarios(): void {
-    this.comentariosExpandido = !this.comentariosExpandido;
-    if (this.comentariosExpandido && this.comentarios.length === 0) {
-      this.carregarComentarios(this.selectedLivro.id);
-    }
-  }
-  formatarDataComentario(data: string): string {
-    const date = new Date(data);
-    const hoje = new Date();
-    const diff = hoje.getTime() - date.getTime();
-    const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
-    if (dias === 0) return 'Hoje';
-    if (dias === 1) return 'Ontem';
-    if (dias < 7) return `${dias} dias atrás`;
-    if (dias < 30) return `${Math.floor(dias / 7)} semanas atrás`;
-    if (dias < 365) return `${Math.floor(dias / 30)} meses atrás`;
-    return `${Math.floor(dias / 365)} anos atrás`;
-  }
-  getIniciais(nome: string): string {
-    if (!nome) return '?';
-    return nome.charAt(0).toUpperCase();
+    }));
   }
   async carregarFavoritos(): Promise<void> {
     const user = JSON.parse(localStorage.getItem('clienteLogado') || 'null');
     if (!user) return;
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/clientes/${user.id}/favoritos`, {
+      const response = await this.favoritoService.listar(user.id, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + token
@@ -209,61 +177,13 @@ export class Principal implements OnInit {
       console.error('Erro ao carregar favoritos:', error);
     }
   }
-  abrirAtalho(tipo: 'favoritos' | 'carrinho' | 'cupons'): void {
-    window.dispatchEvent(new CustomEvent('livraria:abrir-atalho', { detail: tipo }));
-  }
+abrirAtalho(tipo: 'favoritos' | 'carrinho' | 'cupons' | 'perfil'): void {
+  window.dispatchEvent(new CustomEvent('livraria:abrir-atalho', { detail: tipo }));
+}
 
-  painelExploracao: 'autores' | 'generos' | null = null;
-  buscaExploracaoAutor: string = '';
-  buscaExploracaoGenero: string = '';
-
-  get autoresExploracaoFiltrados(): string[] {
-    const termo = this.normalizarBuscaExploracao(this.buscaExploracaoAutor);
-    return this.autoresDisponiveis.filter(autor => this.normalizarBuscaExploracao(autor).includes(termo));
-  }
-
-  get generosExploracaoFiltrados(): string[] {
-    const termo = this.normalizarBuscaExploracao(this.buscaExploracaoGenero);
-    return this.generosDisponiveis.filter(genero => this.normalizarBuscaExploracao(genero).includes(termo));
-  }
-
-  private normalizarBuscaExploracao(valor: string): string {
-    return String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR').trim();
-  }
-
-  get autoresDisponiveis(): string[] {
-    return [...new Set(
-      this.livros
-        .map(l => String(l.autor || '').trim())
-        .filter(Boolean)
-    )].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-  }
-
-  get generosDisponiveis(): string[] {
-    return [...new Set(
-      this.livros
-        .map(l => String(l.categoria || '').trim())
-        .filter(Boolean)
-    )].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-  }
-
-  quantidadePorAutor(autor: string): number {
-    return this.livros.filter(l => l.autor === autor).length;
-  }
-
-  quantidadePorGenero(genero: string): number {
-    return this.livros.filter(l => l.categoria === genero).length;
-  }
-
-  abrirExploracao(tipo: 'catalogo' | 'autores' | 'generos'): void {
-    if (tipo === 'catalogo') {
-      this.painelExploracao = null;
-      this.limparFiltros();
-      setTimeout(() => this.scrollTo('produtos'), 0);
-      return;
-    }
-
-    this.painelExploracao = this.painelExploracao === tipo ? null : tipo;
+  abrirCatalogo(): void {
+    this.limparFiltros();
+    setTimeout(() => this.scrollTo('produtos'), 0);
   }
 
   selecionarAutor(autor: string): void {
@@ -272,10 +192,11 @@ export class Principal implements OnInit {
       autor,
       editora: '',
       categoria: '',
-      precoMax: null
+      precoMax: null as number | null,
+      avaliacao: '',
+      ordenacao: ''
     };
 
-    this.painelExploracao = null;
     this.aplicarFiltros();
     setTimeout(() => this.scrollTo('produtos'), 0);
   }
@@ -286,10 +207,11 @@ export class Principal implements OnInit {
       autor: '',
       editora: '',
       categoria: genero,
-      precoMax: null
+      precoMax: null as number | null,
+      avaliacao: '',
+      ordenacao: ''
     };
 
-    this.painelExploracao = null;
     this.aplicarFiltros();
     setTimeout(() => this.scrollTo('produtos'), 0);
   }
@@ -322,7 +244,7 @@ async carregarMaisVendidos(): Promise<void> {
   this.carregandoMaisVendidos = true;
 
   try {
-    const response = await fetch(`${environment.apiUrl}/livros/mais-vendidos`);
+    const response = await this.livroService.listarMaisVendidos();
 
     if (!response.ok) {
       throw new Error('Erro ao buscar os livros mais vendidos');
@@ -341,7 +263,7 @@ async carregarMaisVendidos(): Promise<void> {
 async carregarLivros(): Promise<void> {
     this.loading = true;
     try {
-      const response = await fetch(`${environment.apiUrl}/livros`);
+      const response = await this.livroService.listar();
       this.livros = await response.json();
       this.filteredLivros = [...this.livros];
       await this.carregarAvaliacoesDosLivros();
@@ -356,7 +278,7 @@ async carregarLivros(): Promise<void> {
   async carregarAvaliacoesDosLivros(): Promise<void> {
     for (const livro of this.livros) {
       try {
-        const response = await fetch(`${environment.apiUrl}/avaliacoes/livro/${livro.id}/resumo`);
+        const response = await this.avaliacaoService.buscarResumo(livro.id);
         if (response.ok) {
           livro.avaliacao = await response.json();
         }
@@ -372,7 +294,51 @@ async carregarLivros(): Promise<void> {
     const cats = this.livros.map(l => l.categoria).filter(c => c);
     this.categorias = [...new Set(cats)].map(c => ({ label: c, value: c }));
   }
-  filtrando: boolean = false;
+  private ordenarLivrosCatalogo(): void {
+    const compararTitulo = (a: any, b: any): number =>
+      String(a.titulo ?? '').localeCompare(String(b.titulo ?? ''), 'pt-BR');
+
+    const nota = (livro: any): number =>
+      Number(livro.avaliacao?.totalAvaliacoes ?? 0) > 0
+        ? Number(livro.avaliacao?.media ?? 0)
+        : -1;
+
+    switch (this.filtros.ordenacao) {
+      case 'avaliacao':
+        this.filteredLivros.sort((a, b) =>
+          nota(b) - nota(a) ||
+          Number(b.avaliacao?.totalAvaliacoes ?? 0) - Number(a.avaliacao?.totalAvaliacoes ?? 0) ||
+          compararTitulo(a, b)
+        );
+        break;
+
+      case 'vendas':
+        this.filteredLivros.sort((a, b) =>
+          Number(b.quantidadeVendida ?? 0) - Number(a.quantidadeVendida ?? 0) ||
+          compararTitulo(a, b)
+        );
+        break;
+
+      case 'preco-asc':
+        this.filteredLivros.sort((a, b) =>
+          Number(a.precoVenda ?? 0) - Number(b.precoVenda ?? 0) ||
+          compararTitulo(a, b)
+        );
+        break;
+
+      case 'preco-desc':
+        this.filteredLivros.sort((a, b) =>
+          Number(b.precoVenda ?? 0) - Number(a.precoVenda ?? 0) ||
+          compararTitulo(a, b)
+        );
+        break;
+
+      case 'titulo':
+        this.filteredLivros.sort(compararTitulo);
+        break;
+    }
+  }
+
 async aplicarFiltros(): Promise<void> {
   if (this.carregandoFiltro) return;
 
@@ -388,10 +354,23 @@ async aplicarFiltros(): Promise<void> {
     if (this.filtros.autor && !l.autor?.toLowerCase().includes(this.filtros.autor.toLowerCase())) match = false;
     if (this.filtros.editora && !l.editora?.toLowerCase().includes(this.filtros.editora.toLowerCase())) match = false;
     if (this.filtros.categoria && l.categoria !== this.filtros.categoria) match = false;
-    if (this.filtros.precoMax && l.precoVenda > this.filtros.precoMax) match = false;
+    if (this.filtros.precoMax !== null && l.precoVenda > this.filtros.precoMax) match = false;
+
+    const totalAvaliacoes = Number(l.avaliacao?.totalAvaliacoes ?? 0);
+    const media = Number(l.avaliacao?.media ?? 0);
+
+    if (this.filtros.avaliacao === 'sem' && (!l.avaliacao || totalAvaliacoes !== 0)) {
+      match = false;
+    } else if (this.filtros.avaliacao && this.filtros.avaliacao !== 'sem') {
+      if (totalAvaliacoes <= 0 || media < Number(this.filtros.avaliacao)) {
+        match = false;
+      }
+    }
 
     return match;
   });
+
+  this.ordenarLivrosCatalogo();
 
   this.totalRecords = this.filteredLivros.length;
   this.first = 0;
@@ -420,7 +399,9 @@ async limparFiltros(): Promise<void> {
     autor: '',
     editora: '',
     categoria: '',
-    precoMax: null
+    precoMax: null as number | null,
+      avaliacao: '',
+      ordenacao: ''
   };
 
   this.filteredLivros = [...this.livros];
@@ -455,34 +436,10 @@ onPageChange(event: any): void {
   }
   verDetalhes(livro: any): void {
     this.selectedLivro = livro;
-    this.quantidadeSelecionada = 1;
-    this.selectedIsFavorited = this.favoritosIds.includes(livro.id);
+
     this.displayDialog = true;
-    this.comentarios = [];
-    this.comentariosPaginados = [];
-    this.comentariosExpandido = false;
-    this.comentariosFirst = 0;
-    this.carregarComentarios(livro.id);
-  }
-async favoritarDoModal(): Promise<void> {
-  if (!this.selectedLivro) return;
-  this.carregandoFavoritoModal = true;
-  try {
-    await this.favoritar(this.selectedLivro.id);
-    this.selectedIsFavorited = this.favoritosIds.includes(this.selectedLivro.id);
-  } finally {
-    this.carregandoFavoritoModal = false;
-  }
-}
-  aumentarQuantidade(): void {
-    if (this.selectedLivro && this.quantidadeSelecionada < this.selectedLivro.estoque) {
-      this.quantidadeSelecionada++;
-    }
-  }
-  diminuirQuantidade(): void {
-    if (this.quantidadeSelecionada > 1) {
-      this.quantidadeSelecionada--;
-    }
+    void this.atualizarEstoqueCatalogo();
+
   }
 async favoritar(livroId: number): Promise<void> {
   if (this.carregandoFavorito[livroId]) return;
@@ -501,7 +458,7 @@ async favoritar(livroId: number): Promise<void> {
     const token = this.authService.getToken();
     const isFavorited = this.favoritosIds.includes(livroId);
     if (isFavorited) {
-      const response = await fetch(`${environment.apiUrl}/clientes/${user.id}/favoritos/${livroId}`, {
+      const response = await this.favoritoService.remover(user.id, livroId, {
         method: 'DELETE',
         headers: {
           'Authorization': 'Bearer ' + token
@@ -509,7 +466,7 @@ async favoritar(livroId: number): Promise<void> {
       });
       if (response.ok) {
         this.favoritosIds = this.favoritosIds.filter(id => id !== livroId);
-        this.selectedIsFavorited = false;
+
         const livro = this.livros.find(l => l.id === livroId);
         const nomeLivro = livro ? livro.titulo : 'Livro';
         this.messageService.add({severity:'info', summary:'Removido', detail:`${nomeLivro} removido dos favoritos`});
@@ -519,7 +476,7 @@ async favoritar(livroId: number): Promise<void> {
       }
     } else {
       const body = { livroId };
-      const response = await fetch(`${environment.apiUrl}/clientes/${user.id}/favoritos`, {
+      const response = await this.favoritoService.adicionar(user.id, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -529,7 +486,7 @@ async favoritar(livroId: number): Promise<void> {
       });
       if (response.ok) {
         this.favoritosIds.push(livroId);
-        this.selectedIsFavorited = true;
+
         const livro = this.livros.find(l => l.id === livroId);
         const nomeLivro = livro ? livro.titulo : 'Livro';
         this.messageService.add({severity:'success', summary:'Favoritado', detail:`${nomeLivro} adicionado aos favoritos`});
@@ -549,7 +506,7 @@ async favoritar(livroId: number): Promise<void> {
     if (!user) return;
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/clientes/${user.id}/favoritos`, {
+      const response = await this.favoritoService.listar(user.id, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + token
@@ -566,115 +523,17 @@ async favoritar(livroId: number): Promise<void> {
   atualizarFavoritos(): void {
     this.carregarFavoritos();
   }
-  async adicionarAoCarrinhoComQuantidade(id: number): Promise<void> {
-    if (this.carregandoCarrinhoModal) return;
+  async adicionarAoCarrinhoComQuantidade(id: number, quantidade: number): Promise<void> {
+    if (this.carregandoCarrinhoModal || this.carregandoCarrinho[id]) return;
     this.carregandoCarrinhoModal = true;
-    const user = this.authService.getUser();
-    if (!user) {
-      this.messageService.add({severity:'error', summary:'Erro', detail:'Faça login para comprar'});
-      this.carregandoCarrinhoModal = false;
-      return;
-    }
     try {
-      const carrinhos = JSON.parse(localStorage.getItem('carrinhosPorUsuario') || '{}');
-      let carrinho = carrinhos[user.id] || [];
-      const carrinhoValido = carrinho.filter((item: any) => {
-        if (!item.dataAdicao) {
-          item.dataAdicao = new Date().toISOString();
-          return true;
-        }
-        const dataAdicao = new Date(item.dataAdicao);
-        const agora = new Date();
-        const diff = (agora.getTime() - dataAdicao.getTime()) / (1000 * 60);
-        return diff < 30;
-      });
-      if (carrinhoValido.length !== carrinho.length) {
-        carrinho = carrinhoValido;
-        carrinhos[user.id] = carrinho;
-        localStorage.setItem('carrinhosPorUsuario', JSON.stringify(carrinhos));
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Carrinho atualizado',
-          detail: 'Itens antigos foram removidos por expiração.'
-        });
+      if (await this.reservarLivro(id, quantidade)) {
+        this.displayDialog = false;
+
       }
-      const token = this.authService.getToken();
-      const responseUser = await fetch(`${environment.apiUrl}/clientes/${user.id}`, {
-        headers: {
-          'Authorization': 'Bearer ' + token
-        }
-      });
-      if (responseUser.ok) {
-        const usuarioCompleto = await responseUser.json();
-        const temEndereco = usuarioCompleto.enderecos && usuarioCompleto.enderecos.length > 0;
-        const temCartao = usuarioCompleto.cartoes && usuarioCompleto.cartoes.length > 0;
-        if (!temEndereco || !temCartao) {
-          let mensagem = '';
-          if (!temEndereco && !temCartao) {
-            mensagem = 'Cadastre um endereco e um cartao para finalizar a compra';
-          } else if (!temEndereco) {
-            mensagem = 'Cadastre um endereco para finalizar a compra';
-          } else {
-            mensagem = 'Cadastre um cartao para finalizar a compra';
-          }
-          this.messageService.add({
-            severity: 'warn',
-            summary: 'Dados incompletos',
-            detail: mensagem,
-            life: 2000
-          });
-          this.authService.adicionarNotificacao('Dados incompletos', mensagem, 'warning');
-          this.carregandoCarrinhoModal = false;
-          return;
-        }
-      }
-      const response = await fetch(`${environment.apiUrl}/livros/${id}`);
-      const produto = await response.json();
-      if (produto.estoque <= 0) {
-        this.messageService.add({severity:'error', summary:'Erro', detail:'Produto indisponivel'});
-        this.carregandoCarrinhoModal = false;
-        return;
-      }
-      const existente = carrinho.find((i: any) => i.id === id);
-      const novaQuantidade = this.quantidadeSelecionada;
-      if (existente) {
-        if (existente.quantidade + novaQuantidade > produto.estoque) {
-          this.messageService.add({severity:'error', summary:'Erro', detail:'Quantidade indisponivel em estoque'});
-          this.carregandoCarrinhoModal = false;
-          return;
-        }
-        existente.quantidade += novaQuantidade;
-        existente.dataAdicao = new Date().toISOString();
-      } else {
-        carrinho.push({
-          id,
-          quantidade: novaQuantidade,
-          dataAdicao: new Date().toISOString()
-        });
-      }
-      carrinhos[user.id] = carrinho;
-      localStorage.setItem('carrinhosPorUsuario', JSON.stringify(carrinhos));
-      this.carrinhoService.atualizarContador();
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Sucesso',
-        detail: `${novaQuantidade}x ${produto.titulo} adicionado ao carrinho!`
-      });
-      this.authService.adicionarNotificacao('Carrinho', `${produto.titulo} adicionado ao carrinho!`, 'success');
-      this.displayDialog = false;
-      this.quantidadeSelecionada = 1;
-    } catch (error) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Erro ao adicionar produto'
-      });
     } finally {
       this.carregandoCarrinhoModal = false;
     }
-  }
-  arredondarNota(nota: number): number {
-    return Math.round(nota);
   }
   getTipoEstrelaPrincipal(nota: number, estrelaIndex: number): string {
     if (nota >= estrelaIndex + 1) {
@@ -685,119 +544,83 @@ async favoritar(livroId: number): Promise<void> {
       return 'vazia';
     }
   }
-  getTipoEstrelaComentario(nota: number, estrelaIndex: number): string {
-    if (!nota) return 'vazia';
-    if (nota >= estrelaIndex + 1) {
-      return 'cheia';
-    } else if (nota > estrelaIndex && nota < estrelaIndex + 1) {
-      return 'meia';
-    } else {
-      return 'vazia';
-    }
-  }
   async adicionarAoCarrinho(id: number): Promise<void> {
-    if (this.carregandoCarrinho[id]) return;
+    if (this.carregandoCarrinho[id] || this.carregandoCarrinhoModal) return;
+    await this.reservarLivro(id, 1);
+  }
+
+  estoqueDisponivel(livro: any): number {
+    return Math.max(0, Number(livro?.estoqueDisponivel ?? 0));
+  }
+
+  limiteAdicao(livro: any): number {
+    return Math.max(0, Math.min(this.estoqueDisponivel(livro), 3 - (this.quantidadesReservadas.get(livro?.id) ?? 0)));
+  }
+
+  private async reservarLivro(id: number, quantidade: number): Promise<boolean> {
+    if (this.carregandoCarrinho[id]) return false;
     this.carregandoCarrinho[id] = true;
-    const user = this.authService.getUser();
-    if (!user) {
-      this.messageService.add({severity:'error', summary:'Erro', detail:'Faça login para comprar'});
-      this.carregandoCarrinho[id] = false;
-      return;
-    }
     try {
-      const carrinhos = JSON.parse(localStorage.getItem('carrinhosPorUsuario') || '{}');
-      let carrinho = carrinhos[user.id] || [];
-      const carrinhoValido = carrinho.filter((item: any) => {
-        if (!item.dataAdicao) {
-          item.dataAdicao = new Date().toISOString();
-          return true;
+      if (!this.authService.isAuthenticated()) throw new Error('Faça login para comprar');
+      const acesso = await this.authService.verificarAcessoCarrinho();
+      if (!acesso.permitido) {
+        this.messageService.add({severity:'warn', summary:'Dados incompletos', detail:acesso.mensagem, life:2000});
+        this.authService.adicionarNotificacao('Dados incompletos', acesso.mensagem, 'warning');
+        if (this.authService.isAuthenticated()) {
+          this.displayDialog = false;
+          this.abrirAtalho('perfil');
         }
-        const dataAdicao = new Date(item.dataAdicao);
-        const agora = new Date();
-        const diff = (agora.getTime() - dataAdicao.getTime()) / (1000 * 60);
-        return diff < 30;
-      });
-      if (carrinhoValido.length !== carrinho.length) {
-        carrinho = carrinhoValido;
-        carrinhos[user.id] = carrinho;
-        localStorage.setItem('carrinhosPorUsuario', JSON.stringify(carrinhos));
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'Carrinho atualizado',
-          detail: 'Itens antigos foram removidos por expiração.'
-        });
+        return false;
       }
-      const token = this.authService.getToken();
-      const responseUser = await fetch(`${environment.apiUrl}/clientes/${user.id}`, {
-        headers: {
-          'Authorization': 'Bearer ' + token
-        }
-      });
-      if (responseUser.ok) {
-        const usuarioCompleto = await responseUser.json();
-        const temEndereco = usuarioCompleto.enderecos && usuarioCompleto.enderecos.length > 0;
-        const temCartao = usuarioCompleto.cartoes && usuarioCompleto.cartoes.length > 0;
-        if (!temEndereco || !temCartao) {
-          let mensagem = '';
-          if (!temEndereco && !temCartao) {
-            mensagem = 'Cadastre um endereco e um cartao para finalizar a compra';
-          } else if (!temEndereco) {
-            mensagem = 'Cadastre um endereco para finalizar a compra';
-          } else {
-            mensagem = 'Cadastre um cartao para finalizar a compra';
-          }
-          this.messageService.add({
-            severity: 'warn',
-            summary: 'Dados incompletos',
-            detail: mensagem,
-            life: 2000
-          });
-          this.authService.adicionarNotificacao('Dados incompletos', mensagem, 'warning');
-          this.carregandoCarrinho[id] = false;
-          return;
+      const carrinho = await this.carrinhoService.adicionarAoCarrinho(id, quantidade);
+      this.quantidadesReservadas = new Map(carrinho.itens.map(i => [i.livroId, i.quantidade]));
+      const item = carrinho.itens.find(i => i.livroId === id);
+      const titulo = item?.titulo ?? this.livros.find(l => l.id === id)?.titulo ?? 'Livro';
+      if (item) {
+        for (const livro of [...this.livros, ...this.maisVendidos, this.selectedLivro]) {
+          if (livro?.id === id) livro.estoqueDisponivel = item.estoqueDisponivel;
         }
       }
-      const response = await fetch(`${environment.apiUrl}/livros/${id}`);
-      const produto = await response.json();
-      if (produto.estoque <= 0) {
-        this.messageService.add({severity:'error', summary:'Erro', detail:'Produto indisponivel'});
-        this.carregandoCarrinho[id] = false;
-        return;
-      }
-      const existente = carrinho.find((i: any) => i.id === id);
-      if (existente) {
-        if (existente.quantidade + 1 > produto.estoque) {
-          this.messageService.add({severity:'error', summary:'Erro', detail:'Quantidade indisponivel em estoque'});
-          this.carregandoCarrinho[id] = false;
-          return;
-        }
-        existente.quantidade++;
-        existente.dataAdicao = new Date().toISOString();
-      } else {
-        carrinho.push({
-          id,
-          quantidade: 1,
-          dataAdicao: new Date().toISOString()
-        });
-      }
-      carrinhos[user.id] = carrinho;
-      localStorage.setItem('carrinhosPorUsuario', JSON.stringify(carrinhos));
-      this.carrinhoService.atualizarContador();
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Sucesso',
-        detail: `${produto.titulo} adicionado ao carrinho!`
-      });
-      this.authService.adicionarNotificacao('Carrinho', `${produto.titulo} adicionado ao carrinho!`, 'success');
-    } catch (error) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Erro ao adicionar produto'
-      });
+      this.messageService.add({severity:'success', summary:'Sucesso', detail:`${quantidade}x ${titulo} adicionado ao carrinho!`});
+      this.authService.adicionarNotificacao('Carrinho', `${titulo} adicionado ao carrinho!`, 'success');
+      return true;
+    } catch (erro) {
+      this.messageService.add({severity:'error', summary:'Erro', detail:this.carrinhoService.obterMensagemErro(erro)});
+      return false;
     } finally {
       this.carregandoCarrinho[id] = false;
+      void this.atualizarEstoqueCatalogo();
+      if (!this.destruido) this.cdr.markForCheck();
     }
   }
-}
 
+  private async atualizarEstoqueCatalogo(): Promise<void> {
+    if (this.atualizandoEstoque || this.destruido || !this.livros.length) return;
+    this.atualizandoEstoque = true;
+    try {
+      const response = await this.livroService.listar({cache:'no-store'});
+      if (!response.ok) return;
+      const dados: any[] = await response.json();
+      if (this.destruido) return;
+      const porId = new Map(dados.map(l => [l.id, l]));
+      for (const livro of [...this.livros, ...this.maisVendidos, this.selectedLivro]) {
+        if (!livro) continue;
+        const atual = porId.get(livro.id);
+        livro.estoqueDisponivel = atual?.estoqueDisponivel ?? 0;
+        if (atual) livro.ativo = atual.ativo;
+      }
+
+      this.cdr.markForCheck();
+    } catch (erro) {
+      console.error('Erro ao atualizar estoque:', erro);
+    } finally {
+      this.atualizandoEstoque = false;
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destruido = true;
+    this.inscricoes.unsubscribe();
+    if (this.intervaloEstoque) clearInterval(this.intervaloEstoque);
+  }
+}

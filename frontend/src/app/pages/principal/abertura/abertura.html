@@ -1,0 +1,174 @@
+<section class="abertura-livraria" aria-label="Livraria Online">
+  <div class="abertura-cenario">
+    <div class="abertura-textura" aria-hidden="true"></div>
+    <div class="abertura-papel abertura-papel-superior" aria-hidden="true"></div>
+    <div class="abertura-papel abertura-papel-inferior" aria-hidden="true"></div>
+
+    <svg class="abertura-constelacoes"
+      viewBox="0 0 1440 760"
+      preserveAspectRatio="none"
+      aria-hidden="true">
+
+      <g fill="none" stroke="currentColor" stroke-width="1">
+        <path d="M-20 190 L110 85 L245 145 L390 65 L535 160 L680 85 L820 175 L970 60 L1130 135 L1300 55 L1460 155"/>
+        <path d="M-20 490 L125 370 L280 460 L435 320 L590 435 L745 300 L920 410 L1080 270 L1240 390 L1460 280"/>
+        <path d="M-20 680 L160 570 L320 690 L490 555 L660 675 L830 545 L1010 650 L1190 525 L1460 665"/>
+      </g>
+
+      <g fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="3 8">
+        <path d="M110 85 L125 370 L160 570"/>
+        <path d="M390 65 L435 320 L490 555"/>
+        <path d="M680 85 L745 300 L830 545"/>
+        <path d="M970 60 L1080 270 L1190 525"/>
+        <path d="M1300 55 L1240 390 L1460 665"/>
+        <path d="M245 145 L435 320 L660 675"/>
+        <path d="M820 175 L920 410 L1010 650"/>
+      </g>
+
+      <g fill="currentColor">
+        <path *ngFor="let estrela of estrelas"
+          [attr.transform]="'translate(' + estrela.x + ' ' + estrela.y + ') scale(' + estrela.escala + ')'"
+          d="M0 -12 L2.5 -2.5 L12 0 L2.5 2.5 L0 12 L-2.5 2.5 L-12 0 L-2.5 -2.5 Z"/>
+      </g>
+
+      <g fill="currentColor">
+        <circle *ngFor="let ponto of pontos"
+          [attr.cx]="ponto.x"
+          [attr.cy]="ponto.y"
+          [attr.r]="ponto.r"/>
+      </g>
+    </svg>
+
+    <div class="abertura-grade" aria-hidden="true"></div>
+
+    <div class="abertura-conteudo">
+
+      <div class="abertura-palco">
+        <div class="abertura-linhas" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+
+        <div class="abertura-titulo">
+          <div class="abertura-titulo-identificacao">
+            <span class="abertura-cruz" aria-hidden="true">+</span>
+            <span>01 — O ACERVO</span>
+          </div>
+
+          <h1>
+            <span class="abertura-titulo-linha abertura-titulo-livros">LIVROS</span>
+            <span class="abertura-titulo-linha abertura-titulo-outras">
+              <span class="abertura-e">&amp;</span> OUTRAS
+            </span>
+            <span class="abertura-titulo-linha abertura-titulo-historias">HISTÓRIAS.</span>
+          </h1>
+
+          <div class="abertura-acoes">
+            <button
+              appBotao
+              variante="secundario"
+              tamanho="grande"
+              icone="pi pi-arrow-down"
+              posicaoIcone="fim"
+              (click)="verCatalogo()">
+              Ver catálogo
+            </button>
+          </div>
+
+          <div class="abertura-titulo-rodape">
+            <span class="abertura-traco"></span>
+            <span>EST. ONLINE</span>
+          </div>
+        </div>
+
+        <div class="abertura-mosaico"
+          [class.abertura-mosaico-reduzido]="capas.length < 5">
+
+          <div class="abertura-orbita abertura-orbita-1" aria-hidden="true"></div>
+          <div class="abertura-orbita abertura-orbita-2" aria-hidden="true"></div>
+
+          <button type="button"
+            class="abertura-livro"
+            (click)="livroSelecionado.emit(livro)"
+            [attr.aria-label]="'Ver detalhes de ' + livro.titulo"
+            *ngFor="let livro of capas; let i = index; trackBy: identificarLivro"
+            [style.--livro-x.%]="posicaoX(i)"
+            [style.--livro-y.%]="posicaoY(i)"
+            [style.--livro-largura.%]="larguraLivro(i)"
+            [style.--livro-camada]="i + 1"
+            [style.--livro-atraso]="(i * 65) + 'ms'">
+
+            <div class="abertura-livro-capa">
+              <img
+                [src]="livro.imagemUrl ? '/uploads/' + livro.imagemUrl : '/images/livro.png'"
+                [alt]="livro.titulo"
+                [attr.loading]="i < 5 ? 'eager' : 'lazy'"
+                (error)="corrigirImagem($event)">
+            </div>
+
+            <div class="abertura-livro-legenda" aria-hidden="true">
+              <span>{{ numeroLivro(i) }}</span>
+              <span>{{ livro.titulo }}</span>
+            </div>
+          </button>
+
+          <div class="abertura-placeholder" *ngIf="!capas.length">
+            <img src="/images/livro.png" alt="Livraria Online">
+          </div>
+
+          <span class="abertura-marcacao abertura-marcacao-superior" aria-hidden="true">
+            + 01
+          </span>
+
+          <span class="abertura-marcacao abertura-marcacao-inferior" aria-hidden="true">
+            + 02
+          </span>
+        </div>
+
+        <div class="abertura-indice-lateral" aria-hidden="true">
+          <span>FIG. 01</span>
+          <span></span>
+          <span>COLEÇÃO</span>
+        </div>
+
+      </div>
+
+      <footer class="abertura-informacoes">
+        <div class="abertura-informacao-identidade">
+          <span class="abertura-selo" aria-hidden="true">
+            <i class="pi pi-book"></i>
+            <span>L.O.</span>
+          </span>
+
+          <div>
+            <strong>Livraria Online</strong>
+            <span>Índice do acervo</span>
+          </div>
+        </div>
+
+        <div class="abertura-estatisticas">
+          <div class="abertura-estatistica">
+            <span class="abertura-estatistica-indice">01 /</span>
+            <strong>{{ totalLivros | number:'1.0-0' }}</strong>
+            <span>Títulos</span>
+          </div>
+
+          <div class="abertura-estatistica">
+            <span class="abertura-estatistica-indice">02 /</span>
+            <strong>{{ totalAutores | number:'1.0-0' }}</strong>
+            <span>Autores</span>
+          </div>
+
+          <div class="abertura-estatistica">
+            <span class="abertura-estatistica-indice">03 /</span>
+            <strong>{{ totalGeneros | number:'1.0-0' }}</strong>
+            <span>Gêneros</span>
+          </div>
+        </div>
+
+      </footer>
+    </div>
+  </div>
+</section>

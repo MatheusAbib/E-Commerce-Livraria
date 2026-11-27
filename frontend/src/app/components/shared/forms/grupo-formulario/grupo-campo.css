@@ -1,0 +1,54 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--grupo-campo-gap, 7px);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+:host(.grupo-campo-completo) {
+  grid-column: 1 / -1;
+}
+
+.grupo-campo-rotulo {
+  display: block;
+  margin: 0;
+  color: var(--cor-texto);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .035em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.grupo-campo-obrigatorio {
+  color: var(--cor-perigo);
+  margin-left: 2px;
+}
+
+.grupo-campo-descricao {
+  color: var(--cor-texto-secundario);
+  font-size: 11px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+:host(.campo-autenticacao) {
+  --grupo-campo-gap: 0px;
+  margin-bottom: 22px;
+}
+
+:host(.campo-autenticacao) .grupo-campo-rotulo {
+  margin-bottom: 10px;
+  color: var(--cor-primaria);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .09em;
+}
+
+:host(.campo-autenticacao) .grupo-campo-obrigatorio {
+  color: inherit;
+  margin-left: 0;
+}

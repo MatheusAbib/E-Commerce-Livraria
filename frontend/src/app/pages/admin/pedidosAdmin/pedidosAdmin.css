@@ -1,4 +1,4 @@
-﻿.pedidos-table {
+.pedidos-table {
   width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
@@ -137,58 +137,11 @@
   cursor: not-allowed;
 }
 
-.btn-icon.btn-success-icon {
-  background: #ffffff;
-  border: 1px solid #c5dfce;
-  border-radius: 0;
-  color: #247447;
-}
-
-.btn-icon.btn-success-icon:hover:not(:disabled) {
-  background: #e8f5ed;
-  border-color: #247447;
-  color: #247447;
-}
-
-.btn-icon.btn-danger-icon {
-  background: #ffffff;
-  border: 1px solid #e9c7ca;
-  border-radius: 0;
-  color: #b93d43;
-}
-
-.btn-icon.btn-danger-icon:hover:not(:disabled) {
-  background: #fcebec;
-  border-color: #b93d43;
-  color: #b93d43;
-}
-
 .pedidos-paginator {
   padding: 0.75rem 1rem;
   background: #ffffff;
   border-top: 1px solid #dfe2e6;
   border-radius: 0;
-  box-shadow: none;
-}
-
-.acoes-cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.acoes-cell .btn-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border-radius: 0;
-  font-size: 0.85rem;
   box-shadow: none;
 }
 
@@ -243,10 +196,6 @@
 .status-badge.status-cancelado {
   background: #fcebec;
   color: #b93d43;
-}
-
-.btn-chat-icon {
-  position: relative;
 }
 
 .chat-badge-admin {
@@ -314,16 +263,6 @@
     font-size: 0.8rem;
   }
 
-  .acoes-cell {
-    gap: 4px;
-  }
-
-  .acoes-cell .btn-icon {
-    width: 32px;
-    height: 32px;
-    font-size: 0.8rem;
-  }
-
   .status-badge {
     padding: 4px 8px;
     font-size: 0.7rem;
@@ -349,13 +288,33 @@
     font-size: 0.75rem;
   }
 
-  .acoes-cell .btn-icon {
-    width: 30px;
-    height: 30px;
-    font-size: 0.75rem;
-  }
-
   .motivo-texto {
     font-size: 0.75rem;
+  }
+}
+
+.acoes-cell {
+  --pedidos-acoes-gap: 6px;
+  flex-wrap: wrap;
+}
+
+.acoes-cell button.acao-admin-chat {
+  position: relative;
+  overflow: visible;
+}
+
+@media (max-width: 768px) {
+  .acoes-cell {
+    --pedidos-acoes-gap: 4px;
+  }
+
+  .acoes-cell button.acao-admin-tabela {
+    font-size: .8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .acoes-cell button.acao-admin-tabela {
+    font-size: .75rem;
   }
 }

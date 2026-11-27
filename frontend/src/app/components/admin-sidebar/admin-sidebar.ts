@@ -1,18 +1,23 @@
+import { inject } from '@angular/core';
+import { ChatApiService } from '../../services/chat-api.service';
+import { BotaoComponent } from '../shared/buttons/botao/botao';
 import { Component, Output, EventEmitter, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { AdminModalsComponent } from '../admin-modals/admin-modals';
-import { environment } from '../../../environments/environment';
+
 
 @Component({
   selector: 'app-admin-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule, AdminModalsComponent],
+  imports: [CommonModule, RouterModule, AdminModalsComponent, BotaoComponent],
   templateUrl: './admin-sidebar.html',
   styleUrls: ['./admin-sidebar.css']
 })
 export class AdminSidebarComponent implements OnInit {
+  private readonly chatApiService = inject(ChatApiService);
+
   @Output() closeSidebar = new EventEmitter<void>();
   @ViewChild(AdminModalsComponent) adminModals!: AdminModalsComponent;
 
@@ -44,7 +49,7 @@ export class AdminSidebarComponent implements OnInit {
   async carregarTotalChatNaoLidas(): Promise<void> {
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/chat/admin/total-nao-lidas`, {
+      const response = await this.chatApiService.totalNaoLidasAdmin({
         headers: {
           'Authorization': 'Bearer ' + token
         }

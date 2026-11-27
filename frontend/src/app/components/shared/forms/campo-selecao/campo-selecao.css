@@ -1,0 +1,38 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.campo-selecao-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.campo-selecao-wrapper select {
+  display: block;
+  width: 100%;
+  padding-right: 38px;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+
+.campo-selecao-wrapper select:disabled {
+  cursor: not-allowed;
+}
+
+.campo-selecao-icone {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  color: var(--cor-texto-secundario);
+  font-size: 11px;
+  pointer-events: none;
+}
+
+.campo-selecao-wrapper select:disabled + .campo-selecao-icone {
+  opacity: .5;
+}

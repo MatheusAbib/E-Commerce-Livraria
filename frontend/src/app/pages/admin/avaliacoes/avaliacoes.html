@@ -17,32 +17,45 @@
       </div>
       <div class="filtros-grid">
         <div class="filtro-item">
-          <label>Livro</label>
-          <input type="text" [(ngModel)]="filtroLivro" placeholder="Buscar por livro" class="auth-input">
+          <label for="avaliacoes-filtroLivro">Livro</label>
+          <input appCampo aparencia="administrativo" type="text" [(ngModel)]="filtroLivro" placeholder="Buscar por livro" id="avaliacoes-filtroLivro">
         </div>
         <div class="filtro-item">
-          <label>Cliente</label>
-          <input type="text" [(ngModel)]="filtroCliente" placeholder="Buscar por cliente" class="auth-input">
+          <label for="avaliacoes-filtroCliente">Cliente</label>
+          <input appCampo aparencia="administrativo" type="text" [(ngModel)]="filtroCliente" placeholder="Buscar por cliente" id="avaliacoes-filtroCliente">
         </div>
         <div class="filtro-item">
-          <label>Nota</label>
-          <select [(ngModel)]="filtroNota" class="auth-input">
-            <option value="">Todas</option>
-            <option value="1">1 ★</option>
-            <option value="2">2 ★</option>
-            <option value="3">3 ★</option>
-            <option value="4">4 ★</option>
-            <option value="5">5 ★</option>
-          </select>
+          <label for="avaliacoes-filtroNota">Nota</label>
+          <app-campo-selecao
+            campoId="avaliacoes-filtroNota"
+            rotulo="Nota"
+            aparencia="administrativo"
+            [opcoes]="opcoesNotasFiltro"
+            [valorVazio]="''"
+            [exibirPlaceholder]="false"
+            [(ngModel)]="filtroNota">
+          </app-campo-selecao>
         </div>
         <div class="filtro-item full-width">
-          <div class="filtro-actions">
-            <button class="btn-filtrar" (click)="aplicarFiltros()" [disabled]="filtrando">
-              <i class="pi" [class.pi-search]="!filtrando" [class.pi-spin]="filtrando" [class.pi-spinner]="filtrando"></i>
-              {{ filtrando ? 'Filtrando...' : 'Filtrar' }}
+          <div appGrupoAcoes class="filtro-actions" alinhamento="inicio" espacamento="10px">
+            <button
+              appBotao
+              class="acao-admin acao-admin-filtro"
+              variante="primario"
+              icone="pi pi-search"
+              [carregando]="filtrando"
+              textoCarregando="Filtrando..."
+              (click)="aplicarFiltros()">
+              Filtrar
             </button>
-            <button class="btn-limpar" (click)="limparFiltros()" [disabled]="filtrando">
-              <i class="pi pi-times"></i> Limpar
+            <button
+              appBotao
+              class="acao-admin acao-admin-filtro"
+              variante="secundario"
+              icone="pi pi-times"
+              [desabilitado]="filtrando"
+              (click)="limparFiltros()">
+              Limpar
             </button>
           </div>
         </div>
@@ -62,16 +75,9 @@
       </div>
 
       <div class="table-container">
-        <div *ngIf="loading || filtrando" class="loading-state">
-          <i class="pi pi-spin pi-spinner"></i>
-          <p>{{ loading ? 'Carregando avaliações...' : 'Filtrando avaliações...' }}</p>
-        </div>
+        <div *ngIf="loading || filtrando" class="loading-state"><app-carregamento modelo="simples" [texto]="loading ? 'Carregando avaliações...' : 'Filtrando avaliações...'"></app-carregamento></div>
 
-        <div *ngIf="!loading && !filtrando && filteredAvaliacoes.length === 0" class="empty-state">
-          <i class="pi pi-star"></i>
-          <h3>Nenhuma avaliação encontrada</h3>
-          <p>Os clientes ainda não fizeram avaliações</p>
-        </div>
+        <div *ngIf="!loading && !filtrando && filteredAvaliacoes.length === 0" class="empty-state"><app-estado-vazio icone="pi pi-star" titulo="Nenhuma avaliação encontrada" descricao="Os clientes ainda não fizeram avaliações"></app-estado-vazio></div>
 
         <div *ngIf="!loading && !filtrando && filteredAvaliacoes.length > 0">
           <table class="log-table">
@@ -121,8 +127,13 @@
                   </span>
                 </td>
 <td class="text-center">
-  <button class="btn-icon btn-excluir" (click)="abrirExcluir(avaliacao)" title="Remover comentário">
-    <i class="pi pi-trash"></i>
+  <button
+    appBotaoIcone
+    class="acao-admin-tabela"
+    variante="perigo"
+    icone="pi pi-trash"
+    rotulo="Remover comentário"
+    (click)="abrirExcluir(avaliacao)">
   </button>
 </td>
               </tr>
@@ -143,73 +154,86 @@
   </main>
 </div>
 
-<div class="custom-modal" [class.active]="displayExcluirModal">
-  <div class="custom-modal-overlay" (click)="displayExcluirModal = false"></div>
-  <div class="custom-modal-content" style="width: 500px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
-    <button class="custom-modal-close" (click)="displayExcluirModal = false">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon" style="background: #fef3c7;">
-        <i class="pi pi-comment" style="color: #d97706;"></i>
-      </div>
-      <h2>Remover Comentário</h2>
-      <p>Tem certeza que deseja remover o comentário desta avaliação?</p>
-    </div>
-    <div class="custom-modal-body" *ngIf="avaliacaoSelecionada">
-      <div class="detalhes-item">
-        <strong>Livro:</strong>
-        <span>{{ avaliacaoSelecionada.livro?.titulo || 'Livro' }}</span>
-      </div>
-      <div class="detalhes-item">
-        <strong>Cliente:</strong>
-        <span>{{ avaliacaoSelecionada.cliente?.nome || 'Cliente' }}</span>
-      </div>
-      <div class="detalhes-item">
-        <strong>Nota:</strong>
-<div class="estrelas-tabela">
-  <span *ngFor="let star of [0,1,2,3,4]" class="estrela-wrapper-admin">
-    <i *ngIf="getTipoEstrelaAdmin(avaliacaoSelecionada.nota, star) === 'cheia'"
-       class="pi pi-star-fill" style="color: #fbbf24; font-size: 1.2rem;"></i>
-    <i *ngIf="getTipoEstrelaAdmin(avaliacaoSelecionada.nota, star) === 'vazia'"
-       class="pi pi-star" style="color: #d1d5db; font-size: 1.2rem;"></i>
-    <span *ngIf="getTipoEstrelaAdmin(avaliacaoSelecionada.nota, star) === 'meia'"
-          class="estrela-meia-admin" style="width: 1.2rem; height: 1.2rem; display: inline-block; position: relative;">
-      <i class="pi pi-star-fill" style="color: #fbbf24; font-size: 1.2rem; clip-path: inset(0 50% 0 0); position: absolute; top: 0; left: 0;"></i>
-      <i class="pi pi-star-fill" style="color: #d1d5db; font-size: 1.2rem; clip-path: inset(0 0 0 50%); position: absolute; top: 0; left: 0;"></i>
-    </span>
-  </span>
-  <span class="nota-texto-admin">{{ avaliacaoSelecionada.nota | number:'1.1-1' }}</span>
-</div>
-      </div>
-      <div class="detalhes-item" *ngIf="avaliacaoSelecionada.comentario">
-        <strong>Comentário a ser removido:</strong>
-        <div class="detalhes-details" style="background: #fef2f2; border-left: 3px solid #dc2626;">
-          "{{ avaliacaoSelecionada.comentario }}"
-        </div>
-      </div>
-      <div class="detalhes-item">
-        <strong>Data:</strong>
-        <span>{{ formatarData(avaliacaoSelecionada.dataAvaliacao) }}</span>
-      </div>
-      <div style="margin-top: 0.75rem; padding: 0.5rem; background: #fef3c7; border-radius: 8px;">
-        <p style="margin: 0; font-size: 0.85rem; color: #92400e;">
-          <i class="pi pi-info-circle" style="margin-right: 0.5rem;"></i>
-          A nota e a avaliação permanecerão. Apenas o comentário será removido.
-        </p>
-      </div>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="displayExcluirModal = false">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button class="btn-danger" (click)="confirmarExcluir()">
-          <i class="pi pi-trash"></i> Remover Comentário
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+<app-modal-confirmacao
+  [visivel]="displayExcluirModal"
+  titulo="Remover Comentário"
+  mensagem="Tem certeza que deseja remover o comentário desta avaliação?"
+  icone="pi pi-comment"
+  variante="perigo"
+  largura="540px"
+  textoConfirmar="Remover Comentário"
+  iconeConfirmar="pi pi-trash"
+  (cancelar)="displayExcluirModal = false"
+  (confirmar)="confirmarExcluir()">
 
-<p-toast position="top-right" [life]="2000"></p-toast>
+  <div *ngIf="avaliacaoSelecionada" class="avaliacao-modal-conteudo">
+
+    <div class="avaliacao-livro">
+      <div class="avaliacao-livro-icone">
+        <i class="pi pi-book"></i>
+      </div>
+
+      <div class="avaliacao-livro-dados">
+        <span class="avaliacao-rotulo">Livro avaliado</span>
+        <strong>{{ avaliacaoSelecionada.livro?.titulo || 'Livro' }}</strong>
+      </div>
+    </div>
+
+    <div class="avaliacao-informacoes">
+      <div class="avaliacao-informacao">
+        <span class="avaliacao-rotulo">
+          <i class="pi pi-user"></i>
+          Cliente
+        </span>
+        <strong>{{ avaliacaoSelecionada.cliente?.nome || 'Cliente' }}</strong>
+      </div>
+
+      <div class="avaliacao-informacao">
+        <span class="avaliacao-rotulo">
+          <i class="pi pi-calendar"></i>
+          Data da avaliação
+        </span>
+        <strong>{{ formatarData(avaliacaoSelecionada.dataAvaliacao) }}</strong>
+      </div>
+    </div>
+
+    <div class="avaliacao-nota">
+      <div class="avaliacao-nota-valor">
+        <strong>{{ avaliacaoSelecionada.nota | number:'1.1-1' }}</strong>
+        <span>/ 5</span>
+      </div>
+
+      <div class="avaliacao-nota-dados">
+        <span class="avaliacao-rotulo">Nota atribuída</span>
+        <app-campo-avaliacao
+          [ngModel]="avaliacaoSelecionada.nota"
+          tamanho="medio"
+          somenteLeitura
+          permitirMeiaEstrela>
+        </app-campo-avaliacao>
+      </div>
+    </div>
+
+    <section class="avaliacao-comentario-secao" *ngIf="avaliacaoSelecionada.comentario">
+      <h3 class="avaliacao-secao-titulo">
+        <i class="pi pi-comment"></i>
+        Comentário a ser removido
+      </h3>
+
+      <div class="avaliacao-comentario">
+        {{ avaliacaoSelecionada.comentario }}
+      </div>
+    </section>
+
+    <div class="avaliacao-aviso">
+      <i class="pi pi-info-circle"></i>
+      <div>
+        <strong>Remoção parcial da avaliação</strong>
+        <p>A nota e a avaliação permanecerão. Apenas o comentário será removido.</p>
+      </div>
+    </div>
+
+  </div>
+</app-modal-confirmacao>
+
+<app-notificacao></app-notificacao>

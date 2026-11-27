@@ -1,4 +1,4 @@
-﻿.admin-layout {
+.admin-layout {
   display: flex;
   min-height: 100vh;
 }
@@ -72,29 +72,6 @@
 .filtro-header h3 i {
   color: #2a5298;
   font-size: 0.95rem;
-}
-
-.filtro-header .btn-limpar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 36px;
-  padding: 0.5rem 0.85rem;
-  background: #ffffff;
-  border: 1px solid #dfe2e6;
-  border-radius: 0;
-  color: #1a2332;
-  font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
-}
-
-.filtro-header .btn-limpar:hover:not(:disabled) {
-  background: #f6f7f8;
-  border-color: #b8c0ca;
 }
 
 .filtros-grid {
@@ -172,53 +149,6 @@
   flex-wrap: wrap;
   gap: 10px;
   width: 100%;
-}
-
-.filtro-actions button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  flex: 0 1 auto;
-  min-width: 120px;
-  min-height: 44px;
-  padding: 0.7rem 1.25rem;
-  border-radius: 0;
-  font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 700;
-  line-height: 1.4;
-  text-align: center;
-  cursor: pointer;
-  box-shadow: none;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
-}
-
-.btn-filtrar {
-  background: #1a2332;
-  border: 1px solid #1a2332;
-  color: #ffffff;
-}
-
-.btn-filtrar:hover:not(:disabled) {
-  background: #344258;
-  border-color: #344258;
-}
-
-.btn-limpar {
-  background: #ffffff;
-  border: 1px solid #dfe2e6;
-  color: #1a2332;
-}
-
-.btn-limpar:hover:not(:disabled) {
-  background: #f6f7f8;
-  border-color: #b8c0ca;
-}
-
-.btn-novo {
-  width: auto;
-  margin-bottom: 1.5rem;
 }
 
 .table-wrapper {
@@ -301,79 +231,6 @@
 .status-inativo {
   background: #fcebec;
   color: #b93d43;
-}
-
-.btn-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  background: #ffffff;
-  border: 1px solid #dfe2e6;
-  border-radius: 0;
-  color: #6f7680;
-  font-family: inherit;
-  font-size: 0.85rem;
-  cursor: pointer;
-  box-shadow: none;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
-}
-
-.btn-icon:hover:not(:disabled) {
-  background: #f6f7f8;
-  border-color: #b8c0ca;
-  color: #1a2332;
-}
-
-.btn-icon.btn-danger-icon {
-  background: #ffffff;
-  border-color: #e9c7ca;
-  color: #b93d43;
-}
-
-.btn-icon.btn-danger-icon:hover:not(:disabled) {
-  background: #fcebec;
-  border-color: #b93d43;
-  color: #b93d43;
-}
-
-.btn-icon.btn-success-icon {
-  background: #ffffff;
-  border-color: #c5dfce;
-  color: #247447;
-}
-
-.btn-icon.btn-success-icon:hover:not(:disabled) {
-  background: #e8f5ed;
-  border-color: #247447;
-  color: #247447;
-}
-
-.btn-icon.btn-chat-icon {
-  position: relative;
-  background: #ffffff;
-  border-color: #cbd6e7;
-  color: #2a5298;
-}
-
-.btn-icon.btn-chat-icon:hover:not(:disabled) {
-  background: #edf1f8;
-  border-color: #2a5298;
-  color: #2a5298;
-}
-
-.btn-icon:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn-icon:disabled:hover {
-  background: #ffffff;
-  border-color: #dfe2e6;
-  color: #6f7680;
 }
 
 .chat-badge-admin {
@@ -470,25 +327,9 @@
 
 .custom-modal-close {
   position: absolute;
-  top: 14px;
-  right: 16px;
+  top: 20px;
+  right: 20px;
   z-index: 10;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  color: #87919e;
-  font-size: 1rem;
-  cursor: pointer;
-}
-
-.custom-modal-close:hover {
-  color: #1a2332;
 }
 
 .custom-modal-header {
@@ -539,77 +380,6 @@
   display: flex;
   gap: 10px;
   width: 100%;
-}
-
-.modal-actions button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-  min-height: 44px;
-  padding: 0.7rem 1rem;
-  border-radius: 0;
-  font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 700;
-  line-height: 1.4;
-  text-align: center;
-  cursor: pointer;
-  box-shadow: none;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
-}
-
-.btn-primary {
-  background: #1a2332;
-  border: 1px solid #1a2332;
-  color: #ffffff;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 40px;
-    padding: 0.6rem 1rem;
-    border-radius: 0;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #344258;
-  border-color: #344258;
-}
-
-.btn-secondary {
-  background: #ffffff;
-  border: 1px solid #dfe2e6;
-  color: #1a2332;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background: #f6f7f8;
-  border-color: #b8c0ca;
-}
-
-.btn-danger {
-  background: #b93d43;
-  border: 1px solid #b93d43;
-  color: #ffffff;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background: #a33238;
-  border-color: #a33238;
-}
-
-.btn-primary:disabled,
-.btn-secondary:disabled,
-.btn-danger:disabled,
-.btn-filtrar:disabled,
-.btn-limpar:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .field {
@@ -866,23 +636,7 @@ fieldset legend {
   position: absolute;
   top: -8px;
   right: -8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  background: #b93d43;
-  border: 1px solid #ffffff;
-  border-radius: 50%;
-  color: #ffffff;
-  font-size: 0.7rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.preview-remove:hover {
-  background: #a33238;
+  z-index: 2;
 }
 
 @media (max-width: 1200px) {
@@ -908,11 +662,6 @@ fieldset legend {
 
   .table-wrapper {
     overflow-x: auto;
-  }
-
-  .filtro-actions button {
-    flex: 1;
-    min-width: 100px;
   }
 
   .page-title {
@@ -963,18 +712,8 @@ fieldset legend {
     gap: 0.75rem;
   }
 
-  .filtro-header .btn-limpar {
-    width: 100%;
-  }
-
   .filtro-actions {
     flex-direction: column;
-  }
-
-  .filtro-actions button {
-    flex: 1;
-    width: 100%;
-    min-width: 0;
   }
 
   .table-header {
@@ -994,10 +733,6 @@ fieldset legend {
 
   .modal-actions {
     flex-direction: column;
-  }
-
-  .modal-actions button {
-    width: 100%;
   }
 
   .custom-modal-content {
@@ -1029,11 +764,6 @@ fieldset legend {
 
   .auth-icon i {
     font-size: 1.2rem;
-  }
-
-  .btn-icon {
-    width: 32px;
-    height: 32px;
   }
 
   .actions-cell {
@@ -1109,11 +839,6 @@ fieldset legend {
 
   .table-count {
     font-size: 0.75rem;
-  }
-
-  .btn-icon {
-    width: 30px;
-    height: 30px;
   }
 
   .custom-modal-header h2 {

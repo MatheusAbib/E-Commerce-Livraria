@@ -1,29 +1,48 @@
+import { RelatorioService } from '../../../services/relatorio.service';
+import { PedidoService } from '../../../services/pedido.service';
+import { LivroService } from '../../../services/livro.service';
+import { inject } from '@angular/core';
+import { AvaliacaoService } from '../../../services/avaliacao.service';
+import { EstadoVazioComponent } from '../../../components/shared/feedback';
+import { CarregamentoComponent } from '../../../components/shared/feedback';
+import { CampoDirective, CampoSelecaoComponent, OpcaoSelecao } from '../../../components/shared/forms';
+import { BotaoComponent } from '../../../components/shared/buttons/botao/botao';
+import { GrupoAcoesComponent } from '../../../components/shared/buttons/grupo-acoes/grupo-acoes';
 import { Component, OnInit, AfterViewInit, ElementRef, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
-import { AdminService } from '../../../services/admin.service';
 import { AuthService } from '../../../services/auth';
 import { Router } from '@angular/router';
 import { AdminSidebarComponent } from '../../../components/admin-sidebar/admin-sidebar';
 import { PaginatorModule } from 'primeng/paginator';
-import { environment } from '../../../../environments/environment';
+
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [
+  imports: [EstadoVazioComponent, CarregamentoComponent, 
+    CampoDirective,
+    CampoSelecaoComponent,
     CommonModule,
     FormsModule,
     AdminSidebarComponent,
-    PaginatorModule
+    PaginatorModule,
+    BotaoComponent,
+    GrupoAcoesComponent
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css', '../admin-common.css']
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
+  private readonly relatorioService = inject(RelatorioService);
+  private readonly pedidoService = inject(PedidoService);
+  private readonly livroService = inject(LivroService);
+
+  private readonly avaliacaoService = inject(AvaliacaoService);
+
   @ViewChild('salesChart') salesChartRef!: ElementRef;
 
   loading: boolean = true;
@@ -49,6 +68,36 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   lucrosPaginados: any[] = [];
   filtroLivro: string = 'todos';
   livrosOptions: string[] = [];
+
+  readonly opcoesPeriodo: OpcaoSelecao<string>[] = [
+    { rotulo: 'Hoje', valor: 'day' },
+    { rotulo: 'Esta Semana', valor: 'week' },
+    { rotulo: 'Este Mês', valor: 'month' },
+    { rotulo: 'Este Ano', valor: 'year' }
+  ];
+
+  readonly opcoesStatus: OpcaoSelecao<string>[] = [
+    { rotulo: 'Todos', valor: 'todos' },
+    { rotulo: 'Entregues', valor: 'ENTREGUE' },
+    { rotulo: 'Em Processamento', valor: 'EM_PROCESSAMENTO' },
+    { rotulo: 'Em Trânsito', valor: 'EM_TRANSITO' },
+    { rotulo: 'Cancelados', valor: 'CANCELADO' },
+    { rotulo: 'Devolução', valor: 'DEVOLUCAO' }
+  ];
+
+  readonly opcoesTipoGrafico: OpcaoSelecao<string>[] = [
+    { rotulo: 'Linha', valor: 'line' },
+    { rotulo: 'Barras', valor: 'bar' }
+  ];
+
+  opcoesLivrosFiltro: OpcaoSelecao<string>[] = [
+    { rotulo: 'Todos', valor: '' }
+  ];
+
+  opcoesLivrosLucro: OpcaoSelecao<string>[] = [
+    { rotulo: 'Todos os livros', valor: 'todos' }
+  ];
+
   statusDistribuicao: any[] = [];
 
   rankingLivros: any[] = [];
@@ -78,7 +127,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   private maxLucro: number = 0;
 
   constructor(
-    private adminService: AdminService,
     private authService: AuthService,
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -122,7 +170,7 @@ ngAfterViewInit(): void {
     this.cdr.detectChanges();
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/avaliacoes/todas`, {
+      const response = await this.avaliacaoService.listarTodas({
         headers: {
           'Authorization': 'Bearer ' + token
         }
@@ -259,7 +307,7 @@ ngAfterViewInit(): void {
 
   async carregarLucros(): Promise<void> {
     try {
-      const data = await this.adminService.getLucros().toPromise();
+      const data = await this.relatorioService.consultarLucros().toPromise();
       if (Array.isArray(data)) {
         this.lucros = data;
         this.lucrosFiltrados = data;
@@ -300,9 +348,24 @@ ngAfterViewInit(): void {
 
   async carregarLivros(): Promise<void> {
     try {
-      const data = await this.adminService.getLivros().toPromise();
+      const data = await this.livroService.listarAdministrativo().toPromise();
       const livros = data?.livros || [];
       this.livrosOptions = livros.map((l: any) => l.titulo);
+
+      const opcoesLivros = this.livrosOptions.map(titulo => ({
+        rotulo: titulo,
+        valor: titulo
+      }));
+
+      this.opcoesLivrosFiltro = [
+        { rotulo: 'Todos', valor: '' },
+        ...opcoesLivros
+      ];
+
+      this.opcoesLivrosLucro = [
+        { rotulo: 'Todos os livros', valor: 'todos' },
+        ...opcoesLivros
+      ];
       this.stats.totalLivros = livros.length;
     } catch (error) {
       console.error('Erro ao carregar livros:', error);
@@ -311,7 +374,7 @@ ngAfterViewInit(): void {
 
   async carregarStatusDistribuicao(): Promise<void> {
     try {
-      const pedidos = await this.adminService.getVendas().toPromise();
+      const pedidos = await this.pedidoService.listarAdministrativo().toPromise();
       const statusMap: any = {};
       (pedidos || []).forEach((p: any) => {
         const status = p.status || 'DESCONHECIDO';
@@ -393,8 +456,7 @@ ngAfterViewInit(): void {
 
 async carregarGrafico(): Promise<void> {
   try {
-    const pedidos = await this.adminService.getVendas().toPromise();
-    console.log('Total de pedidos do backend:', pedidos?.length || 0);
+    const pedidos = await this.pedidoService.listarAdministrativo().toPromise();
     this.processarDadosGrafico(pedidos || []);
   } catch (error) {
     console.error('Erro ao carregar gráfico:', error);
@@ -408,8 +470,6 @@ processarDadosGrafico(pedidos: any[]): void {
   const status = this.filtros.status;
   const livro = this.filtros.livro;
 
-  console.log('Pedidos recebidos:', pedidos.length);
-  console.log('Filtros:', { period, status, livro });
 
   let filtered = status === 'todos' ? pedidos : pedidos.filter((p: any) => p.status === status);
 
@@ -421,7 +481,6 @@ processarDadosGrafico(pedidos: any[]): void {
     });
   }
 
-  console.log('Pedidos filtrados:', filtered.length);
 
   const grouped = this.agruparPorPeriodo(filtered, period);
   const labels = Object.keys(grouped);
@@ -429,8 +488,6 @@ processarDadosGrafico(pedidos: any[]): void {
     group.reduce((sum: number, pedido: any) => sum + (pedido.valorTotal || 0), 0)
   );
 
-  console.log('Labels:', labels);
-  console.log('Data:', data);
 
 if (data.length === 0 || data.every((v: number) => v === 0)) {
   this.destroyChart();
@@ -446,7 +503,6 @@ this.renderChart(labels, data);
 }
 
 renderChart(labels: string[], data: number[]): void {
-  console.log('renderChart chamado com:', { labels, data });
 
   if (!labels || labels.length === 0 || !data || data.length === 0) {
     this.temDados = false;
@@ -456,7 +512,6 @@ renderChart(labels: string[], data: number[]): void {
 
   setTimeout(() => {
     const canvas = document.getElementById('salesChart') as HTMLCanvasElement;
-    console.log('Canvas encontrado:', canvas);
 
     if (!canvas) {
       console.error('Canvas não encontrado');
@@ -532,7 +587,6 @@ renderChart(labels: string[], data: number[]): void {
     this.temDados = true;
     this.chart.update();
     this.cdr.detectChanges();
-    console.log('Gráfico renderizado com sucesso');
   }, 300);
 }
 

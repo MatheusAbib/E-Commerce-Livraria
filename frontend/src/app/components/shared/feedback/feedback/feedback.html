@@ -1,0 +1,20 @@
+<div
+  class="feedback"
+  [attr.data-tipo]="tipo"
+  [attr.role]="tipo === 'erro' ? 'alert' : 'status'">
+  <i [class]="icone" aria-hidden="true"></i>
+  <div class="feedback-conteudo">
+    @if (titulo) {
+      <strong>{{ titulo }}</strong>
+    }
+    @if (mensagem) {
+      <p>{{ mensagem }}</p>
+    }
+    <ng-content></ng-content>
+  </div>
+  @if (fechavel) {
+    <button type="button" aria-label="Fechar mensagem" (click)="fechar.emit()">
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  }
+</div>

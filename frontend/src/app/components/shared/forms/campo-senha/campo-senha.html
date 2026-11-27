@@ -1,0 +1,33 @@
+<div class="campo-senha-wrapper">
+  <input
+    appCampo
+    [aparencia]="aparencia"
+    [attr.id]="campoId || null"
+    [type]="visivel ? 'text' : 'password'"
+    [value]="valor"
+    [placeholder]="placeholder"
+    [attr.autocomplete]="autocomplete"
+    [attr.maxlength]="maxlength"
+    [attr.aria-label]="rotulo"
+    [descricaoId]="descricaoId"
+    [invalido]="invalido"
+    [required]="obrigatorio"
+    [disabled]="desabilitado"
+    [readOnly]="somenteLeitura"
+    (input)="atualizarValor($event)"
+    (blur)="marcarTocado()">
+
+  <button
+    type="button"
+    class="campo-senha-alternar"
+    [disabled]="desabilitado"
+    [attr.aria-label]="visivel ? 'Ocultar senha' : 'Mostrar senha'"
+    [attr.aria-pressed]="visivel"
+    [title]="visivel ? 'Ocultar senha' : 'Mostrar senha'"
+    (click)="alternarVisibilidade()">
+    <i
+      [class]="visivel ? 'pi pi-eye-slash' : 'pi pi-eye'"
+      aria-hidden="true">
+    </i>
+  </button>
+</div>

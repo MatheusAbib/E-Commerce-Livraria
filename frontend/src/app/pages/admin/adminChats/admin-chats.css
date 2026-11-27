@@ -1,4 +1,4 @@
-﻿.chats-container {
+.chats-container {
   display: flex;
   gap: 0;
   height: calc(100vh - 220px);
@@ -313,41 +313,6 @@
   flex-shrink: 0;
 }
 
-.chat-header-actions .btn-danger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-height: 36px;
-  padding: 0.5rem 0.85rem;
-  border-radius: 0;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.btn-fechar-chat {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  background: #ffffff;
-  border: 1px solid #dfe2e6;
-  border-radius: 0;
-  color: #6f7680;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
-}
-
-.btn-fechar-chat:hover {
-  background: #f6f7f8;
-  border-color: #b8c0ca;
-  color: #1a2332;
-}
-
 .pedido-info-admin {
   flex-shrink: 0;
   padding: 0.85rem 1.25rem;
@@ -652,34 +617,6 @@
   box-shadow: none;
 }
 
-.chat-send-btn-admin-page {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  gap: 6px;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  background: #1a2332;
-  border: 1px solid #1a2332;
-  border-radius: 0;
-  color: #ffffff;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
-}
-
-.chat-send-btn-admin-page:hover:not(:disabled) {
-  background: #344258;
-  border-color: #344258;
-}
-
-.chat-send-btn-admin-page:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .chat-encerrado-admin-page {
   display: flex;
   align-items: center;
@@ -693,31 +630,6 @@
 
 .chat-encerrado-admin-page i {
   color: #87919e;
-}
-
-.chat-reativar-btn-admin {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 44px;
-  margin-top: 0.5rem;
-  padding: 0.7rem 1rem;
-  background: #1a2332;
-  border: 1px solid #1a2332;
-  border-radius: 0;
-  color: #ffffff;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
-}
-
-.chat-reativar-btn-admin:hover:not(:disabled) {
-  background: #344258;
-  border-color: #344258;
 }
 
 @media (max-width: 1200px) {
@@ -917,17 +829,6 @@
     gap: 6px;
   }
 
-  .chat-header-actions .btn-danger {
-    min-height: 34px;
-    padding: 0.4rem 0.65rem;
-    font-size: 0.75rem;
-  }
-
-  .btn-fechar-chat {
-    width: 34px;
-    height: 34px;
-  }
-
   .pedido-info-admin {
     padding: 0.65rem 0.75rem;
   }
@@ -992,14 +893,6 @@
     gap: 8px;
   }
 
-  .chat-send-btn-admin-page {
-    width: 44px;
-    height: 44px;
-  }
-
-  .chat-reativar-btn-admin {
-    font-size: 0.8rem;
-  }
 }
 
 @media (max-width: 360px) {
@@ -1034,5 +927,24 @@
 
   .message-bubble-admin-page {
     max-width: 95%;
+  }
+}
+
+.chat-header-actions[appGrupoAcoes] {
+  --chat-acoes-gap: 8px;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 480px) {
+  .chat-header-actions[appGrupoAcoes] {
+    --chat-acoes-gap: 6px;
+  }
+}
+
+@media (max-width: 360px) {
+  .chat-header-actions[appGrupoAcoes] {
+    width: 100%;
+    justify-content: flex-end;
   }
 }

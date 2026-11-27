@@ -1,0 +1,30 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.campo-monetario-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.campo-monetario-wrapper input {
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+
+.campo-monetario-wrapper.com-simbolo input {
+  padding-left: 40px;
+}
+
+.campo-monetario-simbolo {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  color: var(--cor-texto-secundario);
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+}

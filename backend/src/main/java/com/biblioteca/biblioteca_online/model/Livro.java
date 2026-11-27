@@ -1,4 +1,3 @@
-
 package com.biblioteca.biblioteca_online.model;
 
 import jakarta.persistence.*;
@@ -61,6 +60,12 @@ public class Livro {
 
     @Transient
     private Long quantidadeVendida = 0L;
+
+    @Transient
+    private Integer estoqueReservado = 0;
+
+    @Transient
+    private Integer estoqueDisponivel;
 
     public Livro() {}
 
@@ -131,7 +136,24 @@ public class Livro {
     public void setImagemUrl(String imagemUrl) { this.imagemUrl = imagemUrl; }
 
     public Long getQuantidadeVendida() { return quantidadeVendida; }
+
     public void setQuantidadeVendida(Long quantidadeVendida) {
         this.quantidadeVendida = quantidadeVendida;
+    }
+
+    public Integer getEstoqueReservado() {
+        return estoqueReservado;
+    }
+
+    public void setEstoqueReservado(Integer estoqueReservado) {
+        this.estoqueReservado = estoqueReservado;
+    }
+
+    public Integer getEstoqueDisponivel() {
+        return estoqueDisponivel;
+    }
+
+    public void setEstoqueDisponivel(Integer estoqueDisponivel) {
+        this.estoqueDisponivel = estoqueDisponivel;
     }
 }

@@ -1,126 +1,139 @@
+<app-modal-base
+  [visivel]="displayPerfilModal"
+  largura="480px"
 
-<div class="custom-modal" [class.active]="displayPerfilModal">
-  <div class="custom-modal-overlay" (click)="fecharPerfil()"></div>
-  <div class="custom-modal-content" style="width: 480px; max-width: 95%;">
-    <button class="custom-modal-close" (click)="fecharPerfil()">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon">
-        <i class="pi pi-user"></i>
-      </div>
-      <h2>Meu Perfil</h2>
-      <p>Gerencie suas informações</p>
-    </div>
-    <div class="custom-modal-body">
-      <div class="field">
-        <label>Nome completo</label>
+  rotulo="Janela administrativa"
+  (fechar)="fecharPerfil()">
+
+  <app-modal-cabecalho
+    titulo="Meu Perfil"
+    subtitulo="Gerencie suas informações"
+    icone="pi pi-user"
+
+
+    (fechar)="fecharPerfil()">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo rolagemInterna>
+    <div class="perfil-admin">
+      <h3 class="admin-secao-titulo"><i class="pi pi-user"></i> Dados pessoais</h3>
+<div class="field">
+        <label for="admin-modal-usuario-nome">Nome completo</label>
         <div class="input-wrapper">
           <i class="pi pi-user input-icon"></i>
-          <input type="text" [(ngModel)]="usuario.nome" placeholder="Seu nome" class="auth-input with-icon">
+          <input id="admin-modal-usuario-nome" appCampo aparencia="autenticacao" type="text" [(ngModel)]="usuario.nome" placeholder="Seu nome" class="auth-input with-icon">
         </div>
       </div>
       <div class="field">
-        <label>E-mail</label>
+        <label for="admin-modal-usuario-email">E-mail</label>
         <div class="input-wrapper">
           <i class="pi pi-envelope input-icon"></i>
-          <input type="email" [(ngModel)]="usuario.email" placeholder="seu@email.com" class="auth-input with-icon">
+          <input id="admin-modal-usuario-email" appCampo aparencia="autenticacao" type="email" [(ngModel)]="usuario.email" placeholder="seu@email.com" class="auth-input with-icon">
         </div>
+      </div>
+      <h3 class="admin-secao-titulo admin-secao-separada"><i class="pi pi-lock"></i> Alteração de senha</h3>
+<div class="field">
+        <label for="admin-nova-senha">Nova senha</label>
+        <app-campo-senha
+          campoId="admin-nova-senha"
+          rotulo="Nova senha"
+          aparencia="autenticacao"
+          autocomplete="new-password"
+
+          [(ngModel)]="novaSenha" placeholder="Digite a nova senha" [disabled]="carregandoSalvarPerfil">
+        </app-campo-senha>
       </div>
       <div class="field">
-        <label>Nova senha</label>
-        <div class="input-wrapper password-wrapper">
-          <i class="pi pi-lock input-icon"></i>
-          <input type="password" [(ngModel)]="novaSenha" placeholder="Digite a nova senha" class="auth-input with-icon" id="admin-nova-senha">
-          <i class="pi pi-eye password-toggle" (click)="togglePassword('admin-nova-senha')"></i>
-        </div>
-      </div>
-      <div class="field">
-        <label>Confirmar senha</label>
-        <div class="input-wrapper password-wrapper">
-          <i class="pi pi-lock input-icon"></i>
-          <input type="password" [(ngModel)]="confirmarSenha" placeholder="Confirme a nova senha" class="auth-input with-icon" id="admin-confirmar-senha">
-          <i class="pi pi-eye password-toggle" (click)="togglePassword('admin-confirmar-senha')"></i>
-        </div>
-      </div>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="fecharPerfil()">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button class="btn-primary" (click)="salvarPerfil()" [disabled]="carregandoSalvarPerfil" [class.loading]="carregandoSalvarPerfil">
-          <i class="pi pi-save"></i> Salvar
-        </button>
+        <label for="admin-confirmar-senha">Confirmar senha</label>
+        <app-campo-senha
+          campoId="admin-confirmar-senha"
+          rotulo="Confirmar senha"
+          aparencia="autenticacao"
+          autocomplete="new-password"
+          [invalido]="!!confirmarSenha && novaSenha !== confirmarSenha" [descricaoId]="confirmarSenha ? 'admin-senha-validacao' : ''"
+          [(ngModel)]="confirmarSenha" placeholder="Confirme a nova senha" [disabled]="carregandoSalvarPerfil">
+        </app-campo-senha>
+        <app-mensagem-validacao
+          mensagemId="admin-senha-validacao"
+          [tipo]="novaSenha === confirmarSenha ? 'sucesso' : 'erro'"
+          [visivel]="!!confirmarSenha"
+          [mensagem]="novaSenha === confirmarSenha ? 'As senhas coincidem.' : 'As senhas não conferem.'">
+        </app-mensagem-validacao>
       </div>
     </div>
-  </div>
-</div>
-<div class="custom-modal" [class.active]="displayLogoutModal">
-  <div class="custom-modal-overlay" (click)="fecharLogout()"></div>
-  <div class="custom-modal-content" style="width: 380px; max-width: 95%;">
-    <div class="custom-modal-header">
-      <div class="auth-icon" style="background: #fee2e2;">
-        <i class="pi pi-sign-out" style="color: #dc2626;"></i>
+  </app-modal-corpo>
+
+  <app-modal-rodape separador>
+    <div appGrupoAcoes class="modal-actions" largurasIguais espacamento="var(--admin-acoes-gap)">
+        <button appBotao variante="secundario" aparencia="confirmacao" icone="pi pi-times" (click)="fecharPerfil()">Cancelar</button>
+        <button appBotao variante="primario" aparencia="confirmacao" icone="pi pi-save" textoCarregando="Salvando..." (click)="salvarPerfil()" [desabilitado]="carregandoSalvarPerfil" [carregando]="carregandoSalvarPerfil">Salvar</button>
       </div>
-      <h2>Sair da conta</h2>
-    </div>
-    <div class="custom-modal-body" style="text-align: center; padding-bottom: 0.5rem;">
-      <p style="color: #6b7a8f; font-size: 0.95rem;">Você será desconectado e precisará fazer login novamente.</p>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="fecharLogout()">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button class="btn-danger" (click)="confirmarLogout()">
-          <i class="pi pi-sign-out"></i> Sair
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="custom-modal" [class.active]="displayFormModal">
-  <div class="custom-modal-overlay" (click)="fecharFormulario()"></div>
-  <div class="custom-modal-content" style="width: 800px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
-    <button class="custom-modal-close" (click)="fecharFormulario()">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon"><i class="pi pi-book"></i></div>
-      <h2>{{ livroEditando?.id ? 'Editar Livro' : 'Cadastro de Livro' }}</h2>
-      <p>{{ livroEditando?.id ? 'Atualize as informações do livro' : 'Preencha os dados para cadastrar um novo livro' }}</p>
-    </div>
-    <div class="custom-modal-body">
-      <div class="form-row">
+  </app-modal-rodape>
+</app-modal-base>
+
+<app-modal-confirmacao
+  [visivel]="displayLogoutModal"
+  titulo="Sair da conta"
+  mensagem="Você será desconectado e precisará fazer login novamente."
+  icone="pi pi-sign-out"
+  variante="perigo"
+  textoConfirmar="Sair"
+  iconeConfirmar="pi pi-sign-out"
+  (cancelar)="fecharLogout()"
+  (confirmar)="confirmarLogout()">
+</app-modal-confirmacao>
+
+<app-modal-base
+  [visivel]="displayFormModal"
+  largura="800px"
+
+  rotulo="Janela administrativa"
+  (fechar)="fecharFormulario()">
+
+  <app-modal-cabecalho
+    [titulo]="livroEditando?.id ? 'Editar Livro' : 'Cadastro de Livro'"
+    [subtitulo]="livroEditando?.id ? 'Atualize as informações do livro' : 'Preencha os dados para cadastrar um novo livro'"
+    (fechar)="fecharFormulario()">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo rolagemInterna>
+    <div class="formulario-livro-admin">
+      <h3 class="admin-secao-titulo"><i class="pi pi-image"></i> Capa do livro</h3>
+<div appGrupoFormulario class="form-row" [colunas]="1" espacamento="16px">
         <div class="form-group">
           <label>Imagem do Livro</label>
-          <div class="file-upload-wrapper">
-            <input type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input">
-            <span class="file-label"><i class="pi pi-cloud-upload"></i> Selecionar imagem</span>
-          </div>
-          <div *ngIf="imagemPreview" class="preview-container">
-            <img [src]="imagemPreview" class="preview-img">
-            <button class="preview-remove" (click)="removerImagem()" title="Remover imagem">
-              <i class="pi pi-times"></i>
-            </button>
-          </div>
+          <app-campo-arquivo
+            rotulo="Selecionar imagem"
+            descricao="Selecione ou arraste a capa do livro"
+            aceitar="image/*"
+            [maximoArquivos]="1"
+            [tamanhoMaximoMB]="5"
+            [desabilitado]="carregandoSalvarLivro"
+            (arquivosSelecionados)="selecionarImagemLivro($event)"
+            (errosSelecao)="informarErroImagem($event)">
+          </app-campo-arquivo>
+          <app-imagem-preview
+            *ngIf="livroEditando.imagem || imagemPreview"
+            class="preview-capa-livro"
+            [origem]="livroEditando.imagem || imagemPreview"
+            descricao="Capa do livro"
+            ajuste="contain"
+            [desabilitado]="carregandoSalvarLivro"
+            (remover)="removerImagem()">
+          </app-imagem-preview>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Título *</label>
-          <input type="text" [(ngModel)]="livroEditando.titulo" class="auth-input" placeholder="Digite o título">
+      <h3 class="admin-secao-titulo admin-secao-separada"><i class="pi pi-book"></i> Informações bibliográficas</h3><div appGrupoFormulario class="form-row" [colunas]="2" espacamento="16px">
+        <div appGrupoCampo class="form-group grupo-admin-formulario" rotulo="Título" campoId="admin-modal-livroEditando-titulo" obrigatorio>
+          <input id="admin-modal-livroEditando-titulo" appCampo aparencia="autenticacao" type="text" [(ngModel)]="livroEditando.titulo" class="auth-input" placeholder="Digite o título">
         </div>
-        <div class="form-group">
-          <label>Autor *</label>
-          <input type="text" [(ngModel)]="livroEditando.autor" class="auth-input" placeholder="Digite o autor">
+        <div appGrupoCampo class="form-group grupo-admin-formulario" rotulo="Autor" campoId="admin-modal-livroEditando-autor" obrigatorio>
+          <input id="admin-modal-livroEditando-autor" appCampo aparencia="autenticacao" type="text" [(ngModel)]="livroEditando.autor" class="auth-input" placeholder="Digite o autor">
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Editora</label>
-          <input type="text" [(ngModel)]="livroEditando.editora" class="auth-input" placeholder="Digite a editora">
+      <div appGrupoFormulario class="form-row" [colunas]="2" espacamento="16px">
+        <div appGrupoCampo class="form-group grupo-admin-formulario" rotulo="Editora" campoId="admin-modal-livroEditando-editora">
+          <input id="admin-modal-livroEditando-editora" appCampo aparencia="autenticacao" type="text" [(ngModel)]="livroEditando.editora" class="auth-input" placeholder="Digite a editora">
         </div>
         <div class="form-group">
           <label>Categoria</label>
@@ -135,262 +148,298 @@
           </p-dropdown>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Edição</label>
-          <input type="number" [(ngModel)]="livroEditando.edicao" class="auth-input" min="1" placeholder="Ex: 1">
+      <div appGrupoFormulario class="form-row" [colunas]="2" espacamento="16px">
+        <div appGrupoCampo class="form-group grupo-admin-formulario" rotulo="Edição" campoId="admin-modal-livroEditando-edicao">
+          <input id="admin-modal-livroEditando-edicao" appCampo aparencia="autenticacao" type="number" [(ngModel)]="livroEditando.edicao" class="auth-input" min="1" placeholder="Ex: 1">
         </div>
-        <div class="form-group">
-          <label>ISBN</label>
-          <input type="text" [(ngModel)]="livroEditando.isbn" class="auth-input" placeholder="Digite o ISBN">
+        <div appGrupoCampo class="form-group grupo-admin-formulario" rotulo="ISBN" campoId="admin-modal-livroEditando-isbn">
+          <input id="admin-modal-livroEditando-isbn" appCampo aparencia="autenticacao" type="text" [(ngModel)]="livroEditando.isbn" class="auth-input" placeholder="Digite o ISBN">
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Páginas</label>
-          <input type="number" [(ngModel)]="livroEditando.paginas" class="auth-input" min="1" placeholder="Número de páginas">
+      <div appGrupoFormulario class="form-row" [colunas]="2" espacamento="16px">
+        <div appGrupoCampo class="form-group grupo-admin-formulario" rotulo="Páginas" campoId="admin-modal-livroEditando-paginas">
+          <input id="admin-modal-livroEditando-paginas" appCampo aparencia="autenticacao" type="number" [(ngModel)]="livroEditando.paginas" class="auth-input" min="1" placeholder="Número de páginas">
         </div>
-        <div class="form-group">
-          <label>Código de Barras</label>
-          <input type="text" [(ngModel)]="livroEditando.codigoBarras" class="auth-input" placeholder="Código de barras">
+        <div appGrupoCampo class="form-group grupo-admin-formulario" rotulo="Código de Barras" campoId="admin-modal-livroEditando-codigoBarras">
+          <input id="admin-modal-livroEditando-codigoBarras" appCampo aparencia="autenticacao" type="text" [(ngModel)]="livroEditando.codigoBarras" class="auth-input" placeholder="Código de barras">
         </div>
       </div>
-      <div class="form-group">
-        <label>Sinopse</label>
-        <textarea [(ngModel)]="livroEditando.sinopse" rows="3" class="auth-input" placeholder="Digite a sinopse do livro"></textarea>
+      <h3 class="admin-secao-titulo admin-secao-separada"><i class="pi pi-align-left"></i> Sinopse</h3><div appGrupoCampo class="form-group grupo-admin-formulario" rotulo="Sinopse" campoId="admin-modal-livroEditando-sinopse">
+        <textarea id="admin-modal-livroEditando-sinopse" appCampo aparencia="autenticacao" [(ngModel)]="livroEditando.sinopse" rows="3" class="auth-input" placeholder="Digite a sinopse do livro"></textarea>
       </div>
       <fieldset>
-        <legend>Dimensões</legend>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Altura (cm)</label>
-            <input type="number" step="0.01" [(ngModel)]="livroEditando.altura" class="auth-input" placeholder="0.0">
+        <legend><i class="pi pi-box"></i> Dimensões e peso</legend>
+        <div appGrupoFormulario class="form-row" [colunas]="2" espacamento="16px">
+          <div appGrupoCampo class="form-group grupo-admin-formulario" rotulo="Altura (cm)" campoId="admin-modal-livroEditando-altura">
+            <input id="admin-modal-livroEditando-altura" appCampo aparencia="autenticacao" type="number" step="0.01" [(ngModel)]="livroEditando.altura" class="auth-input" placeholder="0.0">
           </div>
-          <div class="form-group">
-            <label>Largura (cm)</label>
-            <input type="number" step="0.01" [(ngModel)]="livroEditando.largura" class="auth-input" placeholder="0.0">
+          <div appGrupoCampo class="form-group grupo-admin-formulario" rotulo="Largura (cm)" campoId="admin-modal-livroEditando-largura">
+            <input id="admin-modal-livroEditando-largura" appCampo aparencia="autenticacao" type="number" step="0.01" [(ngModel)]="livroEditando.largura" class="auth-input" placeholder="0.0">
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Profundidade (cm)</label>
-            <input type="number" step="0.01" [(ngModel)]="livroEditando.profundidade" class="auth-input" placeholder="0.0">
+        <div appGrupoFormulario class="form-row" [colunas]="2" espacamento="16px">
+          <div appGrupoCampo class="form-group grupo-admin-formulario" rotulo="Profundidade (cm)" campoId="admin-modal-livroEditando-profundidade">
+            <input id="admin-modal-livroEditando-profundidade" appCampo aparencia="autenticacao" type="number" step="0.01" [(ngModel)]="livroEditando.profundidade" class="auth-input" placeholder="0.0">
           </div>
-          <div class="form-group">
-            <label>Peso (g)</label>
-            <input type="number" step="0.01" [(ngModel)]="livroEditando.peso" class="auth-input" placeholder="0.0">
+          <div appGrupoCampo class="form-group grupo-admin-formulario" rotulo="Peso (g)" campoId="admin-modal-livroEditando-peso">
+            <input id="admin-modal-livroEditando-peso" appCampo aparencia="autenticacao" type="number" step="0.01" [(ngModel)]="livroEditando.peso" class="auth-input" placeholder="0.0">
           </div>
         </div>
       </fieldset>
-      <div class="form-row">
+      <h3 class="admin-secao-titulo admin-secao-separada"><i class="pi pi-wallet"></i> Preço e estoque</h3><div appGrupoFormulario class="form-row" [colunas]="2" espacamento="16px">
         <div class="form-group">
-          <label>Preço de Custo *</label>
-          <div class="input-wrapper price-wrapper">
-            <span class="price-symbol">R$</span>
-            <input type="text" (input)="formatarPreco($event)" [value]="livroEditando.precoCusto | number:'1.2-2'" class="auth-input price-input" placeholder="0,00">
+          <label for="admin-livro-preco-custo">Preço de Custo *</label>
+          <app-campo-monetario
+            campoId="admin-livro-preco-custo"
+            rotulo="Preço de custo"
+            aparencia="autenticacao"
+            placeholder="0,00"
+            [(ngModel)]="livroEditando.precoCusto"
+            [disabled]="carregandoSalvarLivro"
+            obrigatorio
+            exibirSimbolo>
+          </app-campo-monetario>
+        </div>
+        <div appGrupoCampo class="form-group grupo-admin-formulario" rotulo="Estoque físico" campoId="admin-modal-livroEditando-estoque" obrigatorio>
+          <input id="admin-modal-livroEditando-estoque" appCampo aparencia="autenticacao" type="number" [(ngModel)]="livroEditando.estoque" class="auth-input" [min]="livroEditando.id ? (livroEditando.estoqueReservado ?? 0) : 1" step="1" placeholder="Quantidade em estoque">
+          <div *ngIf="livroEditando.id" class="estoque-resumo-admin">
+            <div>Reservado: {{ livroEditando.estoqueReservado ?? '—' }}</div>
+            <div>Disponível atualmente: {{ livroEditando.estoqueDisponivel ?? '—' }}</div>
+            <div *ngIf="livroEditando.estoque < (livroEditando.estoqueReservado ?? 0)" style="color: #b93d43;">O estoque físico não pode ser inferior ao reservado.</div>
+            <div *ngIf="livroEditando.estoqueFisicoAtual !== livroEditando.estoqueOriginal" style="color: #b93d43;">O estoque mudou. Reabra o formulário antes de salvar.</div>
           </div>
         </div>
-        <div class="form-group">
-          <label>Estoque *</label>
-          <input type="number" [(ngModel)]="livroEditando.estoque" class="auth-input" min="0" placeholder="Quantidade em estoque">
-        </div>
       </div>
     </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="fecharFormulario()">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button class="btn-primary" (click)="salvarLivro()" [disabled]="carregandoSalvarLivro" [class.loading]="carregandoSalvarLivro">
-          <i class="pi pi-save"></i> Salvar
-        </button>
+  </app-modal-corpo>
+
+  <app-modal-rodape separador>
+    <div appGrupoAcoes class="modal-actions" largurasIguais espacamento="var(--admin-acoes-gap)">
+        <button appBotao variante="secundario" aparencia="confirmacao" icone="pi pi-times" (click)="fecharFormulario()">Cancelar</button>
+        <button appBotao variante="primario" aparencia="confirmacao" icone="pi pi-save" textoCarregando="Salvando..." (click)="salvarLivro()" [desabilitado]="carregandoSalvarLivro" [carregando]="carregandoSalvarLivro">Salvar</button>
       </div>
-    </div>
-  </div>
-</div>
-<div class="custom-modal" [class.active]="displayExcluirModal">
-  <div class="custom-modal-overlay" (click)="displayExcluirModal = false"></div>
-  <div class="custom-modal-content" style="width: 400px; max-width: 95%;">
-    <div class="custom-modal-header">
-      <div class="auth-icon" style="background: #fee2e2;">
-        <i class="pi pi-exclamation-triangle" style="color: #dc2626;"></i>
-      </div>
-      <h2>Confirmar Exclusão</h2>
-    </div>
-    <div class="custom-modal-body" style="text-align: center; padding-bottom: 0.5rem;">
-      <p style="color: #4a5a6a; font-size: 0.95rem;">
-        Tem certeza que deseja excluir este item?
-      </p>
-      <p style="color: #94a3b8; font-size: 0.85rem;">Esta ação não pode ser desfeita.</p>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="displayExcluirModal = false">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button class="btn-danger" (click)="confirmarExcluir()" [disabled]="carregandoExcluir" [class.loading]="carregandoExcluir">
-          <i class="pi pi-trash"></i> Excluir
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="custom-modal" [class.active]="displayStatusModal">
-  <div class="custom-modal-overlay" (click)="displayStatusModal = false"></div>
-  <div class="custom-modal-content" style="width: 420px; max-width: 95%;">
-    <div class="custom-modal-header">
-      <div class="auth-icon" [style.background]="statusAtivo ? '#dcfce7' : '#fee2e2'">
-        <i class="pi" [class.pi-check-circle]="statusAtivo" [class.pi-times-circle]="!statusAtivo" [style.color]="statusAtivo ? '#22c55e' : '#dc2626'"></i>
-      </div>
-      <h2>{{ statusAtivo ? 'Ativar' : 'Inativar' }}</h2>
-    </div>
-    <div class="custom-modal-body">
-      <p style="color: #4a5a6a; font-size: 0.95rem;">
+  </app-modal-rodape>
+</app-modal-base>
+
+<app-modal-confirmacao
+  [visivel]="displayExcluirModal"
+  titulo="Confirmar Exclusão"
+  mensagem="Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita."
+  largura="400px"
+  icone="pi pi-exclamation-triangle"
+  variante="perigo"
+  textoConfirmar="Excluir"
+  iconeConfirmar="pi pi-trash"
+  textoCarregamento="Excluindo..."
+  [carregando]="carregandoExcluir"
+  (cancelar)="displayExcluirModal = false"
+  (confirmar)="confirmarExcluir()">
+</app-modal-confirmacao>
+
+<app-modal-base
+  [visivel]="displayStatusModal"
+  largura="420px"
+  aparencia="confirmacao"
+  rotulo="Janela administrativa"
+  (fechar)="displayStatusModal = false">
+
+  <app-modal-cabecalho
+    [titulo]="statusAtivo ? 'Ativar' : 'Inativar'"
+
+    [icone]="statusAtivo ? 'pi pi-check-circle' : 'pi pi-times-circle'"
+    [variante]="statusAtivo ? 'sucesso' : 'perigo'"
+    [exibirFechar]="false"
+    (fechar)="displayStatusModal = false">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo rolagemInterna>
+    <div class="confirmacao-admin">
+      <p class="confirmacao-mensagem">
         Deseja {{ statusAtivo ? 'ativar' : 'inativar' }} este item?
       </p>
       <div class="field">
-        <label>Motivo *</label>
+        <label for="admin-modal-motivoStatus">Motivo *</label>
         <div class="input-wrapper">
           <i class="pi pi-pencil input-icon"></i>
-          <input type="text" [(ngModel)]="motivoStatus" placeholder="Informe o motivo" class="auth-input with-icon">
+          <input id="admin-modal-motivoStatus" appCampo aparencia="autenticacao" type="text" [(ngModel)]="motivoStatus" placeholder="Informe o motivo" class="auth-input with-icon">
         </div>
       </div>
     </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="displayStatusModal = false">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button class="btn-primary" (click)="confirmarStatus()" [disabled]="carregandoStatus" [class.loading]="carregandoStatus">
-          <i class="pi pi-check"></i> Confirmar
-        </button>
+  </app-modal-corpo>
+
+  <app-modal-rodape separador>
+    <div appGrupoAcoes class="modal-actions" largurasIguais espacamento="var(--admin-acoes-gap)">
+        <button appBotao variante="secundario" aparencia="confirmacao" icone="pi pi-times" (click)="displayStatusModal = false">Cancelar</button>
+        <button appBotao variante="primario" aparencia="confirmacao" icone="pi pi-check" textoCarregando="Confirmando..." (click)="confirmarStatus()" [desabilitado]="carregandoStatus" [carregando]="carregandoStatus">Confirmar</button>
       </div>
-    </div>
-  </div>
-</div>
-<div class="custom-modal" [class.active]="displayDetalhesModal">
-  <div class="custom-modal-overlay" (click)="displayDetalhesModal = false"></div>
-  <div class="custom-modal-content" style="width: 700px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
-    <button class="custom-modal-close" (click)="displayDetalhesModal = false">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon"><i class="pi pi-info-circle"></i></div>
-      <h2>Detalhes do Livro</h2>
-    </div>
-    <div class="custom-modal-body" *ngIf="detalhesItem">
-      <div class="detalhes-layout">
-        <div class="detalhes-imagem">
+  </app-modal-rodape>
+</app-modal-base>
+
+<app-modal-base
+  [visivel]="displayDetalhesModal"
+  largura="800px"
+
+  rotulo="Janela administrativa"
+  (fechar)="displayDetalhesModal = false">
+
+  <app-modal-cabecalho
+    titulo="Detalhes do Livro"
+    subtitulo="Informações bibliográficas e comerciais"
+    icone="pi pi-book"
+
+
+    (fechar)="displayDetalhesModal = false">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo *ngIf="detalhesItem" rolagemInterna>
+    <div class="livro-admin">
+      <div class="livro-apresentacao">
+  <div class="detalhes-imagem">
           <img *ngIf="detalhesItem.imagemUrl" [src]="'/uploads/' + detalhesItem.imagemUrl" alt="Capa do livro">
           <div *ngIf="!detalhesItem.imagemUrl" class="detalhes-sem-imagem">
             <i class="pi pi-book"></i>
             <span>Sem imagem</span>
           </div>
         </div>
-        <div class="detalhes-info">
-          <h3 class="detalhes-titulo">{{ detalhesItem.titulo }}</h3>
-          <p class="detalhes-autor"><i class="pi pi-user"></i> {{ detalhesItem.autor }}</p>
-          <div class="detalhes-meta-grid">
-            <div class="detalhes-meta-item">
-              <span class="detalhes-meta-label">Editora</span>
-              <span class="detalhes-meta-value">{{ detalhesItem.editora || '-' }}</span>
-            </div>
-            <div class="detalhes-meta-item">
-              <span class="detalhes-meta-label">Categoria</span>
-              <span class="detalhes-meta-value">{{ detalhesItem.categoria || '-' }}</span>
-            </div>
-            <div class="detalhes-meta-item">
-              <span class="detalhes-meta-label">Edição</span>
-              <span class="detalhes-meta-value">{{ detalhesItem.edicao || '-' }}</span>
-            </div>
-            <div class="detalhes-meta-item">
-              <span class="detalhes-meta-label">ISBN</span>
-              <span class="detalhes-meta-value">{{ detalhesItem.isbn || '-' }}</span>
-            </div>
-            <div class="detalhes-meta-item">
-              <span class="detalhes-meta-label">Páginas</span>
-              <span class="detalhes-meta-value">{{ detalhesItem.paginas || '-' }}</span>
-            </div>
-            <div class="detalhes-meta-item">
-              <span class="detalhes-meta-label">Código Barras</span>
-              <span class="detalhes-meta-value">{{ detalhesItem.codigoBarras || '-' }}</span>
-            </div>
-            <div class="detalhes-meta-item">
-              <span class="detalhes-meta-label">Altura</span>
-              <span class="detalhes-meta-value">{{ detalhesItem.altura ? detalhesItem.altura + ' cm' : '-' }}</span>
-            </div>
-            <div class="detalhes-meta-item">
-              <span class="detalhes-meta-label">Largura</span>
-              <span class="detalhes-meta-value">{{ detalhesItem.largura ? detalhesItem.largura + ' cm' : '-' }}</span>
-            </div>
-            <div class="detalhes-meta-item">
-              <span class="detalhes-meta-label">Profundidade</span>
-              <span class="detalhes-meta-value">{{ detalhesItem.profundidade ? detalhesItem.profundidade + ' cm' : '-' }}</span>
-            </div>
-            <div class="detalhes-meta-item">
-              <span class="detalhes-meta-label">Peso</span>
-              <span class="detalhes-meta-value">{{ detalhesItem.peso ? detalhesItem.peso + ' g' : '-' }}</span>
-            </div>
-            <div class="detalhes-meta-item">
-              <span class="detalhes-meta-label">Preço de Custo</span>
-              <span class="detalhes-meta-value">R$ {{ (detalhesItem.precoCusto || 0) | number:'1.2-2' }}</span>
-            </div>
-            <div class="detalhes-meta-item">
-              <span class="detalhes-meta-label">Preço de Venda</span>
-              <span class="detalhes-meta-value">R$ {{ (detalhesItem.precoVenda || 0) | number:'1.2-2' }}</span>
-            </div>
-            <div class="detalhes-meta-item">
-              <span class="detalhes-meta-label">Estoque</span>
-              <span class="detalhes-meta-value">{{ detalhesItem.estoque || 0 }}</span>
-            </div>
-            <div class="detalhes-meta-item">
+  <div class="livro-identidade">
+    <span class="admin-sobretitulo">Catálogo da livraria</span>
+    <h3 class="detalhes-titulo">{{ detalhesItem.titulo }}</h3>
+    <p class="detalhes-autor"><i class="pi pi-user"></i> {{ detalhesItem.autor }}</p>
+    <div class="livro-situacao">
+      <div class="detalhes-meta-item">
               <span class="detalhes-meta-label">Status</span>
               <span class="detalhes-status" [class.status-ativo]="detalhesItem.ativo" [class.status-inativo]="!detalhesItem.ativo">
                 <i [class]="detalhesItem.ativo ? 'pi pi-check-circle' : 'pi pi-times-circle'"></i>
                 {{ detalhesItem.ativo ? 'Ativo' : 'Inativo' }}
               </span>
             </div>
-          </div>
-          <div *ngIf="!detalhesItem.ativo && detalhesItem.motivoInativacao" class="detalhes-motivo">
+    </div>
+    <div class="livro-precos">
+      <div class="detalhes-meta-item">
+              <span class="detalhes-meta-label">Preço de Custo</span>
+              <span class="detalhes-meta-value">R$ {{ (detalhesItem.precoCusto || 0) | number:'1.2-2' }}</span>
+            </div>
+<div class="detalhes-meta-item">
+              <span class="detalhes-meta-label">Preço de Venda</span>
+              <span class="detalhes-meta-value">R$ {{ (detalhesItem.precoVenda || 0) | number:'1.2-2' }}</span>
+            </div>
+    </div>
+  </div>
+</div>
+
+<section class="admin-secao">
+  <h3 class="admin-secao-titulo"><i class="pi pi-box"></i> Controle de estoque</h3>
+  <div class="estoque-indicadores">
+    <div class="detalhes-meta-item">
+              <span class="detalhes-meta-label">Estoque físico</span>
+              <span class="detalhes-meta-value">{{ detalhesItem.estoque || 0 }}</span>
+            </div>
+<div class="detalhes-meta-item">
+              <span class="detalhes-meta-label">Estoque reservado</span>
+              <span class="detalhes-meta-value">{{ detalhesItem.estoqueReservado ?? '—' }}</span>
+            </div>
+<div class="detalhes-meta-item">
+              <span class="detalhes-meta-label">Estoque disponível</span>
+              <span class="detalhes-meta-value">{{ detalhesItem.estoqueDisponivel ?? '—' }}</span>
+            </div>
+  </div>
+</section>
+
+<section class="admin-secao">
+  <h3 class="admin-secao-titulo"><i class="pi pi-book"></i> Ficha bibliográfica</h3>
+  <div class="detalhes-meta-grid">
+    <div class="detalhes-meta-item">
+              <span class="detalhes-meta-label">Editora</span>
+              <span class="detalhes-meta-value">{{ detalhesItem.editora || '-' }}</span>
+            </div>
+<div class="detalhes-meta-item">
+              <span class="detalhes-meta-label">Categoria</span>
+              <span class="detalhes-meta-value">{{ detalhesItem.categoria || '-' }}</span>
+            </div>
+<div class="detalhes-meta-item">
+              <span class="detalhes-meta-label">Edição</span>
+              <span class="detalhes-meta-value">{{ detalhesItem.edicao || '-' }}</span>
+            </div>
+<div class="detalhes-meta-item">
+              <span class="detalhes-meta-label">ISBN</span>
+              <span class="detalhes-meta-value">{{ detalhesItem.isbn || '-' }}</span>
+            </div>
+<div class="detalhes-meta-item">
+              <span class="detalhes-meta-label">Páginas</span>
+              <span class="detalhes-meta-value">{{ detalhesItem.paginas || '-' }}</span>
+            </div>
+<div class="detalhes-meta-item">
+              <span class="detalhes-meta-label">Código Barras</span>
+              <span class="detalhes-meta-value">{{ detalhesItem.codigoBarras || '-' }}</span>
+            </div>
+  </div>
+</section>
+
+<section class="admin-secao">
+  <h3 class="admin-secao-titulo"><i class="pi pi-arrows-alt"></i> Dimensões e peso</h3>
+  <div class="detalhes-meta-grid dimensoes-grid">
+    <div class="detalhes-meta-item">
+              <span class="detalhes-meta-label">Altura</span>
+              <span class="detalhes-meta-value">{{ detalhesItem.altura ? detalhesItem.altura + ' cm' : '-' }}</span>
+            </div>
+<div class="detalhes-meta-item">
+              <span class="detalhes-meta-label">Largura</span>
+              <span class="detalhes-meta-value">{{ detalhesItem.largura ? detalhesItem.largura + ' cm' : '-' }}</span>
+            </div>
+<div class="detalhes-meta-item">
+              <span class="detalhes-meta-label">Profundidade</span>
+              <span class="detalhes-meta-value">{{ detalhesItem.profundidade ? detalhesItem.profundidade + ' cm' : '-' }}</span>
+            </div>
+<div class="detalhes-meta-item">
+              <span class="detalhes-meta-label">Peso</span>
+              <span class="detalhes-meta-value">{{ detalhesItem.peso ? detalhesItem.peso + ' g' : '-' }}</span>
+            </div>
+  </div>
+</section>
+
+<div *ngIf="!detalhesItem.ativo && detalhesItem.motivoInativacao" class="detalhes-motivo">
             <strong>Motivo da Inativação:</strong>
             <p>{{ detalhesItem.motivoInativacao }}</p>
           </div>
-        </div>
-      </div>
-      <div *ngIf="detalhesItem.sinopse" class="detalhes-sinopse">
+<div *ngIf="detalhesItem.sinopse" class="detalhes-sinopse">
         <strong>Sinopse:</strong>
         <p>{{ detalhesItem.sinopse }}</p>
       </div>
     </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions single">
-        <button class="btn-secondary" (click)="displayDetalhesModal = false">
-          <i class="pi pi-times"></i> Fechar
-        </button>
+  </app-modal-corpo>
+
+  <app-modal-rodape separador>
+    <div appGrupoAcoes class="modal-actions" largurasIguais espacamento="var(--admin-acoes-gap)">
+        <button appBotao variante="secundario" aparencia="confirmacao" icone="pi pi-times" (click)="displayDetalhesModal = false">Fechar</button>
       </div>
-    </div>
-  </div>
-</div>
-<div class="custom-modal" [class.active]="displayPedidoDetalhesModal">
-  <div class="custom-modal-overlay" (click)="displayPedidoDetalhesModal = false"></div>
-  <div class="custom-modal-content" style="width: 700px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
-    <button class="custom-modal-close" (click)="displayPedidoDetalhesModal = false">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon"><i class="pi pi-receipt"></i></div>
-      <h2>Detalhes do Pedido #{{ pedidoSelecionado?.id }}</h2>
-      <p>{{ pedidoSelecionado?.dataPedido | date:'dd/MM/yyyy HH:mm' }}</p>
-    </div>
-    <div class="custom-modal-body" *ngIf="pedidoSelecionado">
-      <div class="detalhes-grid">
-        <div class="detalhes-info">
+  </app-modal-rodape>
+</app-modal-base>
+
+<app-modal-base
+  [visivel]="displayPedidoDetalhesModal"
+  largura="800px"
+
+  rotulo="Janela administrativa"
+  (fechar)="displayPedidoDetalhesModal = false">
+
+  <app-modal-cabecalho
+    [titulo]="'Pedido #' + pedidoSelecionado?.id"
+    [subtitulo]="(pedidoSelecionado?.dataPedido | date:'dd/MM/yyyy HH:mm') || ''"
+    icone="pi pi-receipt"
+
+
+    (fechar)="displayPedidoDetalhesModal = false">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo *ngIf="pedidoSelecionado" rolagemInterna>
+    <div class="pedido-admin">
+      <div class="detalhes-grid pedido-detalhes-grid">
+        <div class="detalhes-info pedido-cliente">
           <h4><i class="pi pi-user"></i> Cliente</h4>
           <p>{{ pedidoSelecionado.cliente?.nome || pedidoSelecionado.clienteNome || 'N/D' }}</p>
           <p style="font-size: 0.85rem; color: #6b7a8f;">{{ pedidoSelecionado.cliente?.email || pedidoSelecionado.clienteEmail || '' }}</p>
         </div>
-        <div class="detalhes-info">
-          <h4><i class="pi pi-tag"></i> Status</h4>
+        <div class="detalhes-info pedido-situacao"><h4><i class="pi pi-tag"></i> Status</h4>
           <span class="status-badge" [class]="getStatusClass(pedidoSelecionado.status)">
             {{ getStatusLabel(pedidoSelecionado.status) }}
           </span>
@@ -437,8 +486,7 @@
             </p>
           </ng-template>
         </div>
-        <div class="detalhes-info full-width">
-          <h4><i class="pi pi-shopping-cart"></i> Itens</h4>
+        <div class="detalhes-info full-width pedido-itens"><h4><i class="pi pi-shopping-cart"></i> Produtos do pedido</h4><div class="pedido-itens-legenda"><span>Livro e quantidade</span><span>Preço unitário</span></div>
           <ng-container *ngIf="pedidoSelecionado.itens && pedidoSelecionado.itens.length > 0">
             <div *ngFor="let item of pedidoSelecionado.itens" class="item-linha">
               <span>{{ item.livro?.titulo || item.titulo || 'Livro' }} x {{ item.quantidade }}</span>
@@ -509,8 +557,8 @@
           </p>
         </div>
         <div class="detalhes-info full-width total">
-          <h4>Total</h4>
-          <p style="font-size: 1.2rem; font-weight: 700; color: #2a5298;">R$ {{ (pedidoSelecionado.valorTotal || 0) | number:'1.2-2' }}</p>
+          <h4><i class="pi pi-wallet"></i> Valor total do pedido</h4>
+          <p class="pedido-valor-total">R$ {{ (pedidoSelecionado.valorTotal || 0) | number:'1.2-2' }}</p>
         </div>
         <div *ngIf="pedidoSelecionado.status === 'DEVOLUCAO' && pedidoSelecionado.motivoDevolucao" class="detalhes-info full-width motivo">
           <h4><i class="pi pi-comment"></i> Motivo da Devolução</h4>
@@ -522,7 +570,7 @@
             <div *ngFor="let foto of pedidoSelecionado.fotosDevolucao; let i = index"
                  class="foto-devolucao-item-admin"
                  (click)="abrirFotoAmpliada(foto.caminho)">
-              <img [src]="'http://localhost:8081/' + foto.caminho" [alt]="'Foto da devolução ' + (i + 1)" class="foto-devolucao-img-admin">
+              <img [src]="'/' + foto.caminho" [alt]="'Foto da devolução ' + (i + 1)" class="foto-devolucao-img-admin">
               <span class="foto-badge-admin">Foto {{ i + 1 }}</span>
             </div>
           </div>
@@ -536,32 +584,40 @@
         </div>
       </div>
     </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions single">
-        <button class="btn-secondary" (click)="displayPedidoDetalhesModal = false">
-          <i class="pi pi-times"></i> Fechar
-        </button>
+  </app-modal-corpo>
+
+  <app-modal-rodape separador>
+    <div appGrupoAcoes class="modal-actions" largurasIguais espacamento="var(--admin-acoes-gap)">
+        <button appBotao variante="secundario" aparencia="confirmacao" icone="pi pi-times" (click)="displayPedidoDetalhesModal = false">Fechar</button>
       </div>
-    </div>
-  </div>
-</div>
-<div class="custom-modal" [class.active]="displayPedidoStatusModal">
-  <div class="custom-modal-overlay" (click)="displayPedidoStatusModal = false"></div>
-  <div class="custom-modal-content" style="width: 480px; max-width: 95%;">
-    <div class="custom-modal-header">
-      <div class="auth-icon" style="background: #dcfce7;">
-        <i class="pi pi-check-circle" style="color: #22c55e;"></i>
-      </div>
-      <h2>Confirmar Ação</h2>
-    </div>
-    <div class="custom-modal-body">
-      <p style="color: #4a5a6a; font-size: 0.95rem;">
+  </app-modal-rodape>
+</app-modal-base>
+
+<app-modal-base
+  [visivel]="displayPedidoStatusModal"
+  largura="480px"
+  aparencia="confirmacao"
+  rotulo="Janela administrativa"
+  (fechar)="displayPedidoStatusModal = false">
+
+  <app-modal-cabecalho
+    titulo="Confirmar Ação"
+
+    icone="pi pi-check-circle"
+    variante="sucesso"
+    [exibirFechar]="false"
+    (fechar)="displayPedidoStatusModal = false">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo rolagemInterna>
+    <div class="confirmacao-admin">
+      <p class="confirmacao-mensagem">
         Deseja alterar o status do pedido <strong>#{{ pedidoStatus?.id }}</strong> para <strong>{{ getStatusLabel(pedidoNovoStatus) }}</strong>?
       </p>
       <div *ngIf="pedidoNovoStatus === 'EM_TRANSITO'" class="rastreamento-section">
         <div class="rastreamento-config">
-          <label>Código de rastreamento *</label>
-          <input
+          <label for="admin-modal-codigoRastreamentoAdmin">Código de rastreamento *</label>
+          <input id="admin-modal-codigoRastreamentoAdmin" appCampo aparencia="autenticacao"
             type="text"
             [(ngModel)]="codigoRastreamentoAdmin"
             (ngModelChange)="validarRastreamentoAdmin()"
@@ -578,60 +634,44 @@
       </div>
       <div *ngIf="pedidoNovoStatus === 'DEVOLVIDO'" class="cupom-section">
         <div class="cupom-toggle">
-          <input type="checkbox" [(ngModel)]="gerarCupom" id="gerarCupom">
+          <input type="checkbox" [(ngModel)]="gerarCupom" id="gerarCupom" class="controle-selecao-compartilhado">
           <label for="gerarCupom">Gerar cupom de desconto para o cliente</label>
         </div>
         <div *ngIf="gerarCupom" class="cupom-config">
           <label>Porcentagem do desconto:</label>
           <div class="porcentagem-input">
-            <input type="number" [(ngModel)]="porcentagemCupom" min="5" max="100" class="auth-input" style="width: 120px;">
+            <input appCampo aparencia="autenticacao" type="number" [(ngModel)]="porcentagemCupom" min="5" max="100" class="auth-input" style="width: 120px;">
             <span>%</span>
           </div>
           <small style="color: #6b7a8f;">Valor sugerido: 10% a 20%</small>
         </div>
       </div>
     </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="displayPedidoStatusModal = false">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button
-          class="btn-primary"
-          (click)="confirmarPedidoStatus()"
-          [disabled]="(pedidoNovoStatus === 'EM_TRANSITO' && !rastreamentoAdminSalvo) || carregandoPedidoStatus"
-          [class.loading]="carregandoPedidoStatus">
-          <i class="pi pi-check"></i> Confirmar
-        </button>
+  </app-modal-corpo>
+
+  <app-modal-rodape separador>
+    <div appGrupoAcoes class="modal-actions" largurasIguais espacamento="var(--admin-acoes-gap)">
+        <button appBotao variante="secundario" aparencia="confirmacao" icone="pi pi-times" (click)="displayPedidoStatusModal = false">Cancelar</button>
+        <button appBotao variante="primario" aparencia="confirmacao" icone="pi pi-check" textoCarregando="Confirmando..." (click)="confirmarPedidoStatus()"
+          [desabilitado]="(pedidoNovoStatus === 'EM_TRANSITO' && !rastreamentoAdminSalvo) || carregandoPedidoStatus"
+          [carregando]="carregandoPedidoStatus">Confirmar</button>
       </div>
-    </div>
-  </div>
-</div>
-<div class="custom-modal" [class.active]="displayPedidoExcluirModal">
-  <div class="custom-modal-overlay" (click)="displayPedidoExcluirModal = false"></div>
-  <div class="custom-modal-content" style="width: 400px; max-width: 95%;">
-    <div class="custom-modal-header">
-      <div class="auth-icon" style="background: #fee2e2;">
-        <i class="pi pi-exclamation-triangle" style="color: #dc2626;"></i>
-      </div>
-      <h2>Confirmar Exclusão</h2>
-    </div>
-    <div class="custom-modal-body" style="text-align: center;">
-      <p style="color: #4a5a6a; font-size: 0.95rem;">
-        Tem certeza que deseja excluir o pedido <strong>#{{ pedidoExcluir?.id }}</strong>?
-      </p>
-      <p style="color: #94a3b8; font-size: 0.85rem;">Esta ação não pode ser desfeita.</p>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="displayPedidoExcluirModal = false">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button class="btn-danger" (click)="confirmarPedidoExcluir()" [disabled]="carregandoPedidoExcluir" [class.loading]="carregandoPedidoExcluir">
-          <i class="pi pi-trash"></i> Excluir
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-<p-toast position="top-right" [life]="2000"></p-toast>
+  </app-modal-rodape>
+</app-modal-base>
+
+<app-modal-confirmacao
+  [visivel]="displayPedidoExcluirModal"
+  titulo="Confirmar Exclusão"
+  [mensagem]="'Tem certeza que deseja excluir o pedido #' + pedidoExcluir?.id + '? Esta ação não pode ser desfeita.'"
+  largura="400px"
+  icone="pi pi-exclamation-triangle"
+  variante="perigo"
+  textoConfirmar="Excluir"
+  iconeConfirmar="pi pi-trash"
+  textoCarregamento="Excluindo..."
+  [carregando]="carregandoPedidoExcluir"
+  (cancelar)="displayPedidoExcluirModal = false"
+  (confirmar)="confirmarPedidoExcluir()">
+</app-modal-confirmacao>
+
+<app-notificacao></app-notificacao>

@@ -1,0 +1,121 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.forca-senha {
+  --forca-cor: var(--cor-perigo);
+  margin-top: 10px;
+}
+
+.forca-senha[data-forca="media"] {
+  --forca-cor: var(--cor-aviso);
+}
+
+.forca-senha[data-forca="boa"] {
+  --forca-cor: #658447;
+}
+
+.forca-senha[data-forca="forte"] {
+  --forca-cor: var(--cor-sucesso);
+}
+
+.forca-senha-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+  font-size: 11px;
+  color: var(--cor-texto-secundario);
+}
+
+.forca-senha-cabecalho strong {
+  color: var(--forca-cor);
+  font-weight: 700;
+}
+
+.forca-senha-trilha {
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  background: var(--cor-borda-suave);
+}
+
+.forca-senha-preenchimento {
+  height: 100%;
+  background: var(--forca-cor);
+  transition: width .25s ease, background-color .25s ease;
+}
+
+.forca-senha-requisitos {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.forca-senha-requisitos li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--cor-texto-secundario);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.forca-senha-requisitos li.requisito-atendido {
+  color: var(--cor-sucesso);
+}
+
+.forca-senha-requisitos i {
+  flex-shrink: 0;
+  font-size: 11px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forca-senha-preenchimento {
+    transition: none;
+  }
+}
+
+.forca-senha-trilha {
+  display: flex;
+  gap: 4px;
+  height: 4px;
+  background: transparent;
+}
+
+.forca-senha-segmento {
+  flex: 1;
+  background: var(--cor-borda-suave);
+  transition: background-color var(--transicao-rapida);
+}
+
+.forca-senha-segmento.ativo {
+  background: var(--cor-sucesso);
+}
+
+:host(.forca-autenticacao) .forca-senha-requisitos {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px 12px;
+}
+
+@media (max-width: 420px) {
+  :host(.forca-autenticacao) .forca-senha-requisitos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

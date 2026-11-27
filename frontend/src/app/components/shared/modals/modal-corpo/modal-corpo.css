@@ -1,0 +1,21 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.modal-corpo {
+  padding: var(--modal-corpo-padding);
+  box-sizing: border-box;
+  background: var(--cor-superficie);
+  min-width: 0;
+}
+
+.modal-corpo.sem-espacamento {
+  padding: 0;
+}
+
+.modal-corpo.rolagem-interna {
+  overflow: visible;
+  height: auto;
+  max-height: none;
+}

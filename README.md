@@ -1,42 +1,41 @@
-
-# 📚 Livraria Online - Sistema Completo de E-commerce
+# 📚 Livraria Online — Sistema Completo de E-commerce
 
 [![GitHub license](https://img.shields.io/github/license/MatheusAbib/e-commerce-livraria)](https://github.com/MatheusAbib/e-commerce-livraria/blob/main/LICENSE)
 [![Java](https://img.shields.io/badge/Java-17-blue.svg)](https://adoptium.net/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.3-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![Angular](https://img.shields.io/badge/Angular-21-red.svg)](https://angular.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg)](https://www.mysql.com/)
 [![Vercel](https://img.shields.io/badge/Frontend-Vercel-black.svg)](https://vercel.com/)
 [![DigitalOcean](https://img.shields.io/badge/Backend-DigitalOcean-0080FF.svg)](https://www.digitalocean.com/)
 
-Sistema completo de livraria online desenvolvido com **Spring Boot** no backend e **Angular** no frontend. Permite gerenciar catálogo de livros, carrinho de compras, pedidos, pagamentos, devoluções, cupons de desconto, avaliações, notificações, atendimento em tempo real e relatórios administrativos.
+Sistema completo de livraria online desenvolvido com **Spring Boot** no backend e **Angular** no frontend. Reúne catálogo literário, recomendações personalizadas, gerenciamento de autores, carrinho com reserva temporária de estoque, pedidos, pagamentos simulados, devoluções, cupons, avaliações, notificações, atendimento em tempo real e relatórios administrativos.
 
-> 🔗 **Acesse o projeto online:** (https://livrariaonline-gold.vercel.app/)
+> 🔗 **Acesse o projeto online:** [Livraria Online](https://livrariaonline-gold.vercel.app/)
 
 ---
 
 ## 📋 Visão Geral
 
-O sistema foi desenvolvido para oferecer uma experiência completa de e-commerce, atendendo tanto clientes quanto administradores.
+O sistema foi desenvolvido para oferecer uma experiência completa de comércio eletrônico, atendendo visitantes, clientes e administradores.
 
-Com uma interface responsiva, permite navegação pelo catálogo, gerenciamento de compras, acompanhamento de pedidos, solicitação de devoluções e comunicação entre clientes e administradores.
+Com uma identidade visual inspirada no universo editorial, a aplicação permite explorar gêneros literários, conhecer autores, descobrir novas leituras e realizar compras por meio de uma interface responsiva.
 
-A aplicação também oferece um ambiente administrativo com gerenciamento de produtos, clientes, pedidos, estoque, devoluções, relatórios financeiros, indicadores de vendas e histórico de operações.
-
-O projeto utiliza uma arquitetura separada entre frontend, backend e banco de dados, com comunicação por API REST e WebSocket.
+O ambiente administrativo centraliza o gerenciamento de livros, autores, clientes, pedidos, estoque, devoluções, indicadores financeiros e histórico de operações.
 
 ### Principais características
 
-- Interface responsiva desenvolvida com Angular.
-- API REST construída com Spring Boot.
+- Interface responsiva com identidade visual editorial.
+- API REST desenvolvida com Spring Boot.
 - Autenticação e autorização utilizando JWT.
 - Persistência de dados com MySQL e Spring Data JPA.
 - Comunicação em tempo real com WebSocket e STOMP.
-- Gerenciamento de pedidos, pagamentos, cupons e devoluções.
+- Catálogo com filtros avançados e informações bibliográficas.
+- Sistema interativo de recomendação literária.
+- Carrinho persistente com reserva de estoque.
 - Dashboard administrativo com indicadores financeiros.
-- Relatórios de vendas considerando cancelamentos e devoluções.
-- Sistema de notificações e atendimento por chat.
-- Hospedagem do frontend na Vercel e backend na DigitalOcean.
+- Componentes compartilhados e serviços especializados.
+- Hospedagem na Vercel e DigitalOcean.
 
 ---
 
@@ -52,7 +51,7 @@ O projeto utiliza uma arquitetura separada entre frontend, backend e banco de da
 | Spring Data JPA | 3.5.x | Persistência e consultas |
 | Spring WebSocket | 3.5.x | Comunicação em tempo real |
 | Hibernate | Integrado ao Spring Boot | Mapeamento objeto-relacional |
-| MySQL | 8.0 | Banco de dados relacional |
+| MySQL | 8.0 | Banco de dados de produção |
 | JWT | 0.12.x | Tokens de autenticação |
 | Maven | 3.9.x | Gerenciamento de dependências |
 
@@ -60,13 +59,15 @@ O projeto utiliza uma arquitetura separada entre frontend, backend e banco de da
 
 | Tecnologia | Versão | Descrição |
 |------------|--------|-----------|
-| Angular | 21 | Framework frontend com componentes standalone |
-| PrimeNG | 17.18.x | Biblioteca de componentes UI |
+| Angular | 21.2.x | Framework com componentes standalone |
+| PrimeNG | 17.18.x | Biblioteca de componentes |
 | PrimeIcons | 7.0.x | Biblioteca de ícones |
-| Chart.js | 4.5.x | Gráficos e visualizações |
-| STOMP | 7.3.x | Protocolo de comunicação WebSocket |
+| Chart.js | 4.5.x | Gráficos e indicadores |
+| STOMP | 7.3.x | Comunicação WebSocket |
 | RxJS | 7.8.x | Programação reativa |
 | TypeScript | 5.9.x | Linguagem frontend |
+| jsPDF | — | Geração de documentos PDF |
+| html2canvas | — | Captura de elementos para exportação |
 | HTML5 | — | Estrutura das interfaces |
 | CSS3 | — | Estilização e responsividade |
 
@@ -74,99 +75,124 @@ O projeto utiliza uma arquitetura separada entre frontend, backend e banco de da
 
 | Tecnologia | Finalidade |
 |------------|------------|
-| DigitalOcean | Hospedagem do backend Spring Boot |
-| Vercel | Hospedagem do frontend Angular |
-| MySQL | Armazenamento persistente dos dados |
-| PM2 | Gerenciamento do processo Java no servidor |
-| Apache Maven | Compilação e empacotamento do backend |
-| Angular CLI | Compilação do frontend para produção |
+| DigitalOcean | Hospedagem do backend |
+| Vercel | Hospedagem do frontend |
+| MySQL | Armazenamento persistente |
+| PM2 | Gerenciamento do processo Java |
+| Apache Maven | Compilação do backend |
+| Angular CLI | Compilação do frontend |
 | Git e GitHub | Versionamento do código-fonte |
 
 ---
 
 ## ✨ Funcionalidades
 
+### 📖 Página Inicial
+
+- Apresentação com composição dinâmica de capas de livros.
+- Rotação automática de títulos e seleção diária de obras.
+- Exploração do acervo por autores e gêneros literários.
+- Ranking dos cinco livros mais vendidos.
+- Questionário interativo de recomendação literária.
+- Carrossel de autores com fotografias e links para biografias.
+- Catálogo completo com filtros e ordenação.
+- Cabeçalho e rodapé responsivos.
+
+### 🧭 Descoberta Literária
+
+Sistema de recomendação que apresenta livros compatíveis com as preferências do leitor, considerando três critérios:
+
+| Critério | Opções |
+|----------|--------|
+| Gênero | Categorias disponíveis no catálogo |
+| Páginas | Até 150, de 151 a 350, acima de 350 ou indiferente |
+| Preço | Até R$ 30, R$ 60, R$ 100 ou sem limite |
+
+As recomendações consideram exclusivamente livros ativos e disponíveis, priorizando os títulos mais vendidos. O questionário permite navegar entre etapas, reiniciar escolhas e consultar os detalhes das obras recomendadas.
+
 ### 👤 Para Clientes
 
 #### Autenticação e Perfil
 
-- ✅ Login e cadastro com validação.
-- ✅ Recuperação de senha.
-- ✅ Edição de perfil, incluindo nome, telefone e dados pessoais.
-- ✅ Alteração de senha criptografada.
-- ✅ Gerenciamento de múltiplos endereços de entrega.
-- ✅ Gerenciamento de múltiplos cartões de crédito.
+- Login e cadastro com validação.
+- Recuperação e alteração de senha.
+- Edição de informações pessoais.
+- Gerenciamento de múltiplos endereços de entrega e cobrança.
+- Gerenciamento de cartões para pagamentos simulados.
+- Identificação de pendências cadastrais.
+- Encerramento automático de sessões expiradas.
 
 #### Catálogo de Livros
 
-- ✅ Navegação por categoria.
-- ✅ Busca por título, autor e editora.
-- ✅ Filtros por preço e categoria.
-- ✅ Paginação de resultados.
-- ✅ Visualização de detalhes do livro.
-- ✅ Avaliações e comentários de clientes.
-- ✅ Consulta de disponibilidade e estoque.
+- Busca por título, autor e editora.
+- Filtros por categoria, preço e avaliação.
+- Ordenação por título, preço, avaliação e quantidade vendida.
+- Paginação configurável.
+- Visualização de sinopse e informações bibliográficas.
+- Consulta de ISBN, edição, páginas, dimensões e peso.
+- Exibição de avaliações e quantidade de vendas.
+- Identificação de livros esgotados e com estoque baixo.
 
-#### Favoritos
+#### Favoritos e Avaliações
 
-- ✅ Adicionar e remover livros dos favoritos.
-- ✅ Visualização da lista de favoritos.
-- ✅ Badge com contador no cabeçalho.
+- Adição e remoção de livros favoritos.
+- Lista personalizada de favoritos.
+- Contador de favoritos no cabeçalho.
+- Avaliação de livros por estrelas.
+- Registro e consulta de comentários.
+- Exibição da média e quantidade de avaliações.
 
 #### Carrinho de Compras
 
-- ✅ Adicionar e remover itens.
-- ✅ Ajuste de quantidade.
-- ✅ Validação de estoque em tempo real.
-- ✅ Cálculo automático de frete.
-- ✅ Aplicação de cupons de desconto.
-- ✅ Atualização dos valores da compra.
+- Adição, remoção e alteração de quantidade dos produtos.
+- Persistência do carrinho no banco de dados.
+- Reserva temporária de estoque por 10 minutos.
+- Contagem regressiva do período de reserva.
+- Validação de disponibilidade em tempo real.
+- Liberação automática de reservas expiradas.
+- Cálculo de frete, descontos e valores da compra.
 
 #### Checkout e Pagamento
 
-- ✅ Seleção de endereço de entrega.
-- ✅ Pagamento com múltiplos cartões.
-- ✅ Aplicação de cupons promocionais.
-- ✅ Utilização de cupons de troca.
-- ✅ Finalização de pedido.
-- ✅ Cálculo dos valores da compra.
+- Seleção de endereço de entrega.
+- Simulação de pagamento com múltiplos cartões.
+- Aplicação de cupons promocionais e de troca.
+- Validação das informações cadastrais.
+- Conversão da reserva de estoque em venda.
+- Finalização do pedido.
 
-#### Pedidos
+#### Pedidos e Transações
 
-- ✅ Histórico completo de pedidos.
-- ✅ Acompanhamento de status em tempo real.
-- ✅ Detalhamento de cada pedido.
-- ✅ Consulta de informações de entrega.
-- ✅ Acompanhamento de devoluções vinculadas aos pedidos.
+- Histórico completo de pedidos e transações.
+- Acompanhamento das etapas de processamento e entrega.
+- Visualização detalhada dos produtos adquiridos.
+- Consulta de códigos de rastreamento.
+- Confirmação de recebimento.
+- Acompanhamento de cancelamentos e devoluções.
 
 #### Devoluções
 
-- ✅ Solicitação de devolução parcial ou total.
-- ✅ Upload de múltiplas fotos na devolução.
-- ✅ Acompanhamento do status da solicitação.
-- ✅ Recebimento de cupom de troca.
-- ✅ Consulta do histórico de devoluções.
-- ✅ Acompanhamento do processo de recebimento e reembolso.
+- Solicitação de devolução parcial ou total.
+- Seleção dos itens e quantidades.
+- Upload de múltiplas fotografias.
+- Acompanhamento do status da solicitação.
+- Recebimento de cupons de troca.
+- Histórico de devoluções e acompanhamento de reembolsos.
 
 #### Cupons
 
-- ✅ Cupons promocionais para clientes.
-- ✅ Cupons de troca gerados automaticamente.
-- ✅ Visualização de cupons disponíveis.
-- ✅ Aplicação de cupons durante a compra.
+- Consulta de cupons promocionais.
+- Consulta de cupons de troca.
+- Aplicação de cupons durante a compra.
+- Validação das condições de utilização.
 
-#### Notificações
+#### Notificações e Chat
 
-- ✅ Notificações em tempo real via WebSocket.
-- ✅ Alertas sobre pedidos e devoluções.
-- ✅ Badge com contador de notificações.
-
-#### Chat
-
-- ✅ Chat em tempo real com o vendedor.
-- ✅ Histórico de conversas.
-- ✅ Notificação de novas mensagens.
-- ✅ Comunicação vinculada ao atendimento de pedidos.
+- Notificações em tempo real via WebSocket.
+- Alertas sobre pedidos, devoluções e reservas.
+- Atendimento em tempo real com o vendedor.
+- Histórico de conversas vinculadas aos pedidos.
+- Contadores de notificações e mensagens.
 
 ---
 
@@ -174,169 +200,230 @@ O projeto utiliza uma arquitetura separada entre frontend, backend e banco de da
 
 #### Dashboard
 
-- ✅ Métricas de vendas totais, mensais e diárias.
-- ✅ Indicadores de faturamento e lucro.
-- ✅ Gráficos de desempenho financeiro.
-- ✅ Quantidade de pedidos por status.
-- ✅ Produtos mais vendidos.
-- ✅ Clientes com maior volume de compras.
-- ✅ Acompanhamento dos resultados comerciais.
-- ✅ Indicadores ajustados para considerar cancelamentos e devoluções concluídas.
+- Métricas de vendas totais, mensais e diárias.
+- Indicadores de faturamento e lucro.
+- Gráficos de desempenho financeiro.
+- Quantidade de pedidos por status.
+- Ranking de produtos mais vendidos.
+- Ranking de clientes por volume de compras.
+- Indicadores ajustados por cancelamentos e devoluções.
+- Exportação de relatórios em PDF.
 
-#### Gerenciamento de Livros (CRUD)
+#### Gerenciamento de Livros
 
-- ✅ Cadastro de novos livros.
-- ✅ Upload de imagem de capa.
-- ✅ Edição de dados do livro.
-- ✅ Ativação e inativação com justificativa.
-- ✅ Reposição de estoque.
-- ✅ Busca e filtros avançados.
-- ✅ Exclusão de livros.
-- ✅ Controle de disponibilidade dos produtos.
+- Cadastro, edição e exclusão de livros.
+- Upload de imagens de capa.
+- Gerenciamento de informações bibliográficas.
+- Definição dos preços de custo e venda.
+- Ativação e inativação com justificativa.
+- Reposição e controle de estoque.
+- Busca, filtros e paginação.
+
+#### Gerenciamento de Autores
+
+- Cadastro independente de autores.
+- Importação de autores existentes no catálogo.
+- Upload de fotografias.
+- Cadastro de links externos para biografias.
+- Edição, ativação e inativação de registros.
+- Indicadores de cadastros completos e incompletos.
+- Contagem de livros associados a cada autor.
+- Busca, filtros e paginação.
+- Restrição de exclusão de autores associados a livros.
+- Integração com o carrossel público de autores.
+
+#### Gerenciamento de Estoque
+
+- Controle de estoque físico, reservado e disponível.
+- Consulta das unidades reservadas em carrinhos.
+- Identificação de produtos esgotados e com estoque baixo.
+- Baixa de estoque durante a finalização de compras.
+- Liberação de reservas expiradas.
+- Reposição decorrente de cancelamentos e devoluções.
+- Controle de disponibilidade em compras simultâneas.
 
 #### Gerenciamento de Pedidos
 
-- ✅ Visualização de todos os pedidos.
-- ✅ Atualização de status: Em Processamento → Em Trânsito → Entregue.
-- ✅ Inserção de código de rastreamento de envio.
-- ✅ Inserção de código de rastreamento de devolução.
-- ✅ Detalhamento completo do pedido.
-- ✅ Acompanhamento de pedidos cancelados e devolvidos.
+- Visualização e detalhamento dos pedidos.
+- Atualização das etapas de processamento e entrega.
+- Inserção de códigos de rastreamento.
+- Acompanhamento de pedidos cancelados e devolvidos.
+- Consulta de produtos e valores associados às compras.
 
 #### Gerenciamento de Clientes
 
-- ✅ Visualização de todos os clientes.
-- ✅ Ativação e inativação de clientes.
-- ✅ Edição de dados do cliente.
-- ✅ Visualização de histórico de compras.
+- Visualização dos clientes cadastrados.
+- Ativação e inativação de contas.
+- Edição de informações cadastrais.
+- Consulta do histórico de compras.
+- Classificação por volume de compras.
 
 #### Gestão de Devoluções
 
-- ✅ Visualização de solicitações de devolução.
-- ✅ Aprovação ou reprovação de devoluções.
-- ✅ Geração automática de cupom de troca.
-- ✅ Confirmação de recebimento dos itens.
-- ✅ Gerenciamento de fotos de devolução.
-- ✅ Acompanhamento das etapas de devolução.
-- ✅ Tratamento de devoluções parciais e totais.
+- Análise e aprovação ou reprovação de solicitações.
+- Consulta das fotografias anexadas.
+- Gerenciamento de devoluções parciais e totais.
+- Geração de cupons de troca.
+- Confirmação de recebimento dos produtos.
+- Atualização do estoque e dos indicadores financeiros.
 
-#### Relatórios e Análises
+#### Relatórios e Atendimento
 
-- ✅ Log completo de operações de inserção e alteração.
-- ✅ Ranking de clientes por compras.
-- ✅ Gráficos de vendas por período.
-- ✅ Análise de produtos mais vendidos.
-- ✅ Indicadores financeiros por produto.
-- ✅ Apuração de quantidades efetivamente vendidas.
-- ✅ Cálculo de lucro considerando cancelamentos e devoluções concluídas.
-- ✅ Consolidação de informações para acompanhamento administrativo.
+- Histórico de operações administrativas.
+- Gráficos de vendas por período.
+- Indicadores financeiros por produto.
+- Apuração de quantidades efetivamente vendidas.
+- Visualização e resposta às conversas dos clientes.
+- Encerramento e reativação de atendimentos.
+- Gerenciamento de conversas ativas e encerradas.
 
-#### Chats
+---
 
-- ✅ Visualização de todas as conversas.
-- ✅ Resposta a mensagens dos clientes.
-- ✅ Encerramento e reativação de atendimentos.
-- ✅ Histórico de conversas.
-- ✅ Gerenciamento de atendimentos ativos e encerrados.
+## 📦 Reserva e Controle de Estoque
+
+O carrinho utiliza reservas temporárias persistidas no banco de dados, permitindo controlar a disponibilidade dos produtos durante compras simultâneas.
+
+| Tipo de estoque | Descrição |
+|-----------------|-----------|
+| Físico | Quantidade total de unidades registradas |
+| Reservado | Unidades comprometidas em carrinhos válidos |
+| Disponível | Unidades que podem ser adquiridas por outros clientes |
+
+```text
+Estoque disponível = Estoque físico - Estoque reservado
+```
+
+### Funcionamento
+
+1. O cliente adiciona o primeiro produto ao carrinho.
+2. O backend valida e reserva as unidades solicitadas.
+3. É iniciado um período de reserva de 10 minutos.
+4. Outros clientes visualizam a disponibilidade descontando as reservas.
+5. A inclusão de novos produtos não reinicia o prazo.
+6. A finalização da compra converte a reserva em venda.
+7. A remoção de itens ou expiração do prazo libera as unidades.
+
+O controle transacional busca impedir vendas acima da disponibilidade e reposições duplicadas em cancelamentos e devoluções.
 
 ---
 
 ## 📊 Relatórios Financeiros e Regras de Apuração
 
-O sistema possui relatórios administrativos destinados ao acompanhamento das vendas, do desempenho dos produtos e dos resultados financeiros.
+Os relatórios administrativos consideram as vendas efetivas, descontando operações canceladas e devoluções concluídas.
 
-Os cálculos foram ajustados para diferenciar pedidos efetivamente vendidos de operações canceladas ou devolvidas.
+- Pedidos cancelados não contribuem para os indicadores de vendas.
+- Devoluções concluídas descontam os valores e quantidades correspondentes.
+- Devoluções parciais afetam somente os itens envolvidos.
+- O lucro considera os preços de custo e venda dos produtos.
+- Os rankings utilizam as quantidades efetivamente comercializadas.
+- Os cálculos são realizados no backend.
+- Os relatórios podem ser exportados em PDF.
 
-### Cancelamentos
+```text
+Quantidade efetivamente vendida =
+Quantidade vendida em pedidos válidos - Quantidade devolvida
+```
 
-Pedidos originais cancelados não devem contribuir para os indicadores de vendas efetivas.
+---
 
-A exclusão desses pedidos dos cálculos evita que operações não concluídas sejam contabilizadas como receita ou quantidade vendida.
+## 🧩 Arquitetura e Componentização
 
-### Devoluções
+A aplicação utiliza uma arquitetura cliente-servidor com separação entre interface, regras de negócio e persistência.
 
-O sistema considera as devoluções concluídas e vinculadas aos pedidos originais.
+### Backend
 
-Quando uma devolução é concluída, os valores e as quantidades correspondentes são descontados dos indicadores aplicáveis.
+- Controllers responsáveis pelos endpoints da API REST.
+- Services responsáveis pelas regras de negócio.
+- Repositories responsáveis pelas operações de persistência.
+- Entidades e DTOs para representação e transferência de dados.
+- Configurações de segurança e comunicação WebSocket.
 
-Esse tratamento permite considerar devoluções parciais, nas quais apenas determinados itens ou quantidades são devolvidos.
+### Frontend
 
-### Quantidade efetivamente vendida
+- Componentes standalone do Angular.
+- Páginas públicas, autenticadas e administrativas.
+- Serviços especializados por domínio.
+- Modelos TypeScript para tipagem dos dados.
+- Interceptores de autenticação e tratamento de sessão.
+- Configurações separadas por ambiente.
+- Seções independentes na página inicial.
 
-A quantidade efetivamente vendida considera os itens de pedidos válidos e desconta as unidades associadas a devoluções concluídas.
+### Componentes Compartilhados
 
-Dessa forma, os rankings e relatórios de produtos podem refletir melhor o volume de vendas após os ajustes.
+| Grupo | Componentes |
+|-------|-------------|
+| Botões | Botões de ação, botões de ícone e grupos de ações |
+| Formulários | Campos de texto, senha, seleção, quantidade e valores monetários |
+| Validação | Máscaras, mensagens de erro e indicador de força de senha |
+| Arquivos | Campos de upload e pré-visualização de imagens |
+| Avaliações | Componente reutilizável de avaliação por estrelas |
+| Modais | Estrutura base, cabeçalho, conteúdo, rodapé e confirmação |
+| Notificações | Mensagens de sucesso, erro, aviso e informação |
 
-### Lucro e resultados
-
-Os relatórios financeiros foram ajustados para:
-
-- Desconsiderar pedidos originais cancelados.
-- Identificar devoluções concluídas vinculadas aos pedidos.
-- Descontar os valores correspondentes às devoluções.
-- Evitar a contabilização integral de produtos parcialmente devolvidos.
-- Manter a consistência entre quantidade vendida e indicadores financeiros.
-
-Essas regras são aplicadas na camada de backend, por meio das consultas de persistência e dos serviços responsáveis pelos relatórios.
+A componentização reduz duplicações, facilita a manutenção e mantém a consistência visual e funcional entre as interfaces.
 
 ---
 
 ## 🗄️ Estrutura do Banco de Dados
 
-O sistema utiliza MySQL como banco de dados relacional, com persistência realizada por Spring Data JPA e Hibernate.
+O sistema utiliza MySQL com persistência realizada por Spring Data JPA e Hibernate.
 
 ### Principais Tabelas
 
 | Tabela | Descrição |
 |--------|-----------|
-| `cliente` | Dados dos usuários, incluindo nome, e-mail, senha, CPF e perfil |
-| `livros` | Catálogo de livros, incluindo título, autor, preço, estoque e disponibilidade |
-| `pedidos` | Pedidos realizados pelos clientes, incluindo status, valores e informações de entrega |
-| `itens_pedido` | Itens de cada pedido, incluindo livro, quantidade, preço unitário e status |
-| `cartao` | Cartões cadastrados pelos clientes |
-| `pagamentos_pedido` | Pagamentos vinculados aos pedidos, incluindo cartões utilizados e valores |
-| `carteira` | Informações financeiras e créditos associados aos clientes |
-| `endereco` | Endereços de entrega e cobrança dos clientes |
-| `cliente_favoritos` | Relacionamento entre clientes e seus livros favoritos |
+| `cliente` | Dados cadastrais dos usuários |
+| `livros` | Catálogo, informações bibliográficas, preços e estoque |
+| `autores` | Fotografias, biografias e informações dos autores |
+| `carrinhos` | Carrinhos persistentes e períodos de reserva |
+| `itens_carrinho` | Produtos e quantidades reservadas |
+| `pedidos` | Pedidos, status, valores e informações de entrega |
+| `itens_pedido` | Produtos e quantidades de cada pedido |
+| `cartao` | Cartões cadastrados para pagamentos simulados |
+| `pagamentos_pedido` | Pagamentos vinculados aos pedidos |
+| `carteira` | Informações financeiras e créditos |
+| `endereco` | Endereços de entrega e cobrança |
+| `cliente_favoritos` | Relacionamento entre clientes e livros favoritos |
 | `cupons` | Cupons promocionais e de troca |
-| `avaliacoes` | Avaliações e comentários dos livros realizados pelos clientes |
-| `logs` | Histórico de operações e atividades administrativas |
-| `devolucao_fotos` | Fotos anexadas às solicitações de devolução |
-| `mensagens_chat` | Mensagens e informações dos atendimentos em tempo real |
-| `notificacoes` | Notificações enviadas aos clientes |
-| `icones` | Ícones armazenados no sistema, incluindo seus formatos e conteúdos |
+| `avaliacoes` | Avaliações e comentários dos livros |
+| `logs` | Histórico de operações administrativas |
+| `devolucao_fotos` | Fotografias anexadas às devoluções |
+| `mensagens_chat` | Mensagens dos atendimentos |
+| `notificacoes` | Notificações dos clientes |
+| `icones` | Ícones armazenados no sistema |
 
-### Relacionamentos e persistência
+### Catálogo Literário
 
-O banco de dados mantém os relacionamentos necessários para representar clientes, pedidos, produtos, pagamentos, avaliações, devoluções e atendimentos.
+O acervo contempla diferentes gêneros, autores, editoras, faixas de preço e extensões de leitura.
 
-Entre as principais relações estão:
+Entre as categorias disponíveis estão Romance, Terror, Ficção, Ficção Científica, Fantasia, Clássico, Infantil, Quadrinhos, Filosofia, Não-ficção, Suspense e Realismo Mágico.
 
-- Clientes e seus endereços.
-- Clientes e seus cartões.
-- Clientes e seus pedidos.
-- Pedidos e seus respectivos itens.
-- Livros e suas avaliações.
-- Pedidos e processos de devolução.
-- Devoluções e fotos anexadas.
-- Clientes e mensagens de atendimento.
+Os registros incluem informações bibliográficas, características físicas, sinopses, imagens de capa e dados comerciais.
 
+---
 
-## 🔒 Autenticação e Perfis
+## 🔒 Autenticação e Segurança
 
-### JWT Token
-
-- Tokens com expiração de 24 horas.
-- Armazenamento local no frontend.
-- Interceptor para adicionar o token automaticamente às requisições.
-- Controle de acesso de acordo com o perfil do usuário.
+- Autenticação JWT com tokens assinados.
+- Tokens com validade de 24 horas.
+- Hash de senhas utilizando BCrypt.
+- Interceptor para inclusão automática do token nas requisições.
+- Monitoramento da validade da sessão.
+- Encerramento automático de sessões expiradas.
+- Tratamento de respostas HTTP 401 e 403.
+- Configuração de CORS para origens autorizadas.
+- Separação de permissões por perfil.
+- Validação de dados no frontend e backend.
+- Consultas parametrizadas com JPA e Hibernate.
+- Registro de operações administrativas.
 
 ### Perfis de Usuário
 
 | Perfil | Permissões |
 |--------|------------|
-| **CLIENTE** | Catálogo, carrinho, pedidos, devoluções, favoritos e perfil |
-| **ADMIN** | Dashboard, gestão de livros, pedidos, clientes, devoluções, logs, rankings e chats |
+| Visitante | Catálogo, autores, recomendações e detalhes dos livros |
+| CLIENTE | Compras, carrinho, pedidos, devoluções, favoritos, avaliações e perfil |
+| ADMIN | Dashboard, livros, autores, estoque, pedidos, clientes, devoluções, relatórios e chats |
 
 ---
 
@@ -344,98 +431,95 @@ Entre as principais relações estão:
 
 ### 🛒 Fluxo de Compra
 
-1. Cliente navega pelo catálogo.
-2. Adiciona livros ao carrinho.
-3. Seleciona o endereço de entrega.
-4. Adiciona cartões de crédito.
-5. Aplica cupons de desconto.
-6. Finaliza o pedido (`EM_PROCESSAMENTO`).
-7. Administrador aprova e altera o status para `EM_TRANSPORTE`.
-8. Administrador insere o código de rastreamento.
-9. Cliente confirma o recebimento (`ENTREGUE`).
+1. Cliente seleciona os livros desejados.
+2. Sistema reserva as unidades por 10 minutos.
+3. Cliente seleciona o endereço e os cartões.
+4. Aplica cupons, quando disponíveis.
+5. Finaliza o pedido e efetiva a baixa de estoque.
+6. Administrador processa o pedido e registra o rastreamento.
+7. Pedido é encaminhado para entrega.
+8. Cliente confirma o recebimento.
 
 ### 🔄 Fluxo de Devolução
 
-1. Cliente solicita a devolução do pedido (`DEVOLUCAO`).
-2. Seleciona os itens envolvidos na solicitação.
-3. Anexa fotos para documentar a devolução.
-4. Administrador analisa e autoriza (`DEVOLUCAO_AUTORIZADA`).
-5. Administrador gera um cupom de troca, quando aplicável.
-6. Cliente envia o pacote com código de rastreamento.
-7. Administrador confirma o recebimento (`DEVOLVIDO`).
-8. Cliente confirma o reembolso.
+1. Cliente solicita a devolução de um pedido entregue.
+2. Seleciona os itens e anexa fotografias.
+3. Administrador analisa a solicitação.
+4. Cliente realiza o envio dos produtos autorizados.
+5. Administrador confirma o recebimento.
+6. Sistema processa o cupom de troca ou reembolso.
+7. Estoque e indicadores financeiros são atualizados conforme a operação.
 
 ### 💬 Fluxo de Chat
 
-1. Cliente inicia uma conversa sobre um pedido.
-2. Administrador visualiza os chats pendentes.
-3. Cliente e administrador trocam mensagens em tempo real via **WebSocket**.
-4. Administrador encerra o atendimento e o chat é arquivado.
-5. Cliente pode reabrir o chat.
-
----
-
-## 🐛 Tratamento de Erros
-
-- ✅ Validações em formulários.
-- ✅ Mensagens amigáveis via **Toast (PrimeNG)**.
-- ✅ Logs das ações importantes.
-- ✅ Fallbacks para situações de erro.
-- ✅ Tratamento global de exceções no backend.
-- ✅ Validação das operações antes da persistência.
-- ✅ Tratamento de respostas da API no frontend.
-
----
-
-## 🔐 Segurança
-
-- 🔑 Autenticação **JWT** com tokens assinados.
-- 🔒 Senhas criptografadas com **BCrypt**.
-- 🌐 **CORS** configurado para origens autorizadas.
-- 📋 Logs de operações de escrita.
-- ✅ Validação de dados nas diferentes camadas da aplicação.
-- 🛡️ Utilização de **JPA/Hibernate** para persistência e consultas parametrizadas.
-- 🧹 Tratamento e sanitização de entradas no frontend.
-- 🔐 Separação de permissões entre clientes e administradores.
+1. Cliente inicia um atendimento relacionado a um pedido.
+2. Administrador visualiza a conversa.
+3. As mensagens são transmitidas em tempo real via WebSocket.
+4. Administrador encerra o atendimento.
+5. A conversa permanece disponível no histórico e pode ser reativada.
 
 ---
 
 ## 📝 Regras de Negócio
 
-### 📚 Livros
+### Livros e Autores
 
-- Dados obrigatórios: **autor, categoria, ano, título, editora, edição, ISBN, páginas, sinopse, dimensões e código de barras**.
-- Inativação automática de livros sem estoque.
-- Justificativa obrigatória para inativação manual.
+- A ativação dos livros é independente da disponibilidade em estoque.
+- Livros ativos e esgotados podem permanecer visíveis no catálogo.
+- Estoque disponível entre uma e três unidades é identificado como baixo.
+- A inativação manual exige justificativa.
+- Recomendações consideram apenas livros ativos e disponíveis.
+- Autores precisam estar ativos e possuir fotografia e biografia para exibição pública.
+- Autores associados a livros possuem restrições de exclusão.
 
-### 👤 Clientes
+### Clientes
 
-- Senha com no mínimo **8 caracteres**, contendo:
-  - Letras maiúsculas.
-  - Letras minúsculas.
-  - Caracteres especiais.
-- Pelo menos um endereço de **cobrança** e um de **entrega**.
-- Ranking numérico baseado no perfil de compras.
+- Senha com no mínimo oito caracteres, incluindo letras maiúsculas, minúsculas e caracteres especiais.
+- Preenchimento dos dados cadastrais necessários para realizar compras.
+- Endereços de entrega e cobrança cadastrados.
+- Classificação baseada no histórico de compras.
 
-### 💰 Vendas
+### Carrinho e Vendas
 
-- Apenas **um cupom promocional** por compra.
+- Reserva de estoque com duração de 10 minutos.
+- Limite de três unidades por produto no carrinho.
+- Novos itens não reiniciam o prazo da reserva.
+- Apenas um cupom promocional por compra.
 - Pagamento pode ser dividido entre múltiplos cartões.
-- Valor mínimo de **R$ 10,00 por cartão**.
-- Troca permitida apenas para pedidos com status `ENTREGUE`.
-- Cupom de troca gerado automaticamente após o recebimento da devolução.
-
-### 📊 Relatórios
-
-- Pedidos cancelados não são considerados vendas efetivas.
-- Devoluções concluídas são descontadas dos indicadores financeiros aplicáveis.
-- Devoluções parciais devem descontar apenas os itens e quantidades correspondentes.
-- Quantidades efetivamente vendidas consideram os ajustes por devolução.
-- Os cálculos são realizados no backend para manter a consistência dos relatórios.
+- Valor mínimo de R$ 10,00 por cartão.
+- Devoluções destinadas a pedidos entregues.
+- Reposição de estoque sem duplicação de operações.
 
 ---
 
-### Arquitetura de Produção
+## 🐛 Tratamento de Erros
+
+- Validação de formulários e máscaras de entrada.
+- Mensagens de retorno via Toast.
+- Indicadores de carregamento e estados vazios.
+- Tratamento de imagens indisponíveis.
+- Tratamento de sessões expiradas.
+- Validação de disponibilidade e reservas.
+- Tratamento de exceções no backend.
+- Registro de operações relevantes.
+
+---
+
+## 📱 Responsividade
+
+A aplicação possui interfaces adaptadas para computadores, tablets e celulares.
+
+- Cabeçalho com menu responsivo.
+- Catálogo com quantidade dinâmica de colunas.
+- Filtros adaptados à largura da tela.
+- Carrosséis com navegação horizontal.
+- Formulários e modais responsivos.
+- Tipografia e espaçamentos adaptáveis.
+- Componentes de interface padronizados.
+
+---
+
+## 🌐 Arquitetura de Produção
 
 ```text
                    USUÁRIO
@@ -444,7 +528,7 @@ Entre as principais relações estão:
               FRONTEND ANGULAR
                     VERCEL
                       |
-                      | HTTP / API REST
+                      | HTTPS / API REST
                       | WEBSOCKET
                       v
               BACKEND SPRING BOOT
@@ -453,8 +537,18 @@ Entre as principais relações estão:
                       | SPRING DATA JPA
                       | HIBERNATE
                       v
-                  MYSQL
-                 biblioteca
+                    MYSQL
+                  biblioteca
 ```
+
+O frontend é hospedado na Vercel, enquanto o backend é executado em um servidor DigitalOcean, utilizando PM2 para gerenciamento do processo Java e MySQL para persistência dos dados.
+
+---
+
+## 📌 Sobre o Projeto
+
+Projeto desenvolvido para demonstrar a implementação de um sistema de comércio eletrônico completo, explorando desenvolvimento full stack, arquitetura de software, persistência relacional, comunicação em tempo real, componentização e regras de negócio.
+
+Os preços, estoques e pagamentos possuem finalidade demonstrativa. O sistema não utiliza uma integração certificada para processamento de pagamentos reais.
 
 ---

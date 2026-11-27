@@ -1,0 +1,21 @@
+<div
+  class="carregamento"
+  [attr.data-tamanho]="tamanho"
+  [attr.data-direcao]="direcao"
+  [class.compacto]="compacto"
+  role="status"
+  aria-live="polite"
+  [attr.aria-label]="texto">
+  @if (modelo === 'aneis') {
+    <div class="carregamento-aneis" aria-hidden="true">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  } @else {
+    <i class="pi pi-spin pi-spinner carregamento-icone" aria-hidden="true"></i>
+  }
+  @if (exibirTexto) {
+    <span class="carregamento-texto">{{ texto }}</span>
+  }
+</div>

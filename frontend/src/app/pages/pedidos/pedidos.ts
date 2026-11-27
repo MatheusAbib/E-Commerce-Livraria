@@ -1,42 +1,51 @@
+import { EnderecoService } from '../../services/endereco.service';
+import { PedidoService } from '../../services/pedido.service';
+import { AvaliacaoService } from '../../services/avaliacao.service';
+import { inject } from '@angular/core';
+import { CupomService } from '../../services/cupom.service';
+import { NotificacaoComponent } from '../../components/shared/feedback';
+import { ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent, ModalRodapeComponent, ModalConfirmacaoComponent } from '../../components/shared/modals';
+import { ImagemPreviewComponent } from '../../components/shared/forms';
+import { CampoArquivoComponent } from '../../components/shared/forms';
+import { EstadoVazioComponent } from '../../components/shared/feedback';
+import { CarregamentoComponent } from '../../components/shared/feedback';
+import { CampoAvaliacaoComponent } from '../../components/shared/forms';
+import { CampoDirective } from '../../components/shared/forms';
+import { BotaoComponent } from '../../components/shared/buttons/botao/botao';
+import { BotaoIconeComponent } from '../../components/shared/buttons/botao-icone/botao-icone';
+import { GrupoAcoesComponent } from '../../components/shared/buttons/grupo-acoes/grupo-acoes';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
-import { InputTextareaModule } from 'primeng/inputtextarea';
-import { CheckboxModule } from 'primeng/checkbox';
-import { InputNumberModule } from 'primeng/inputnumber';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { AuthService } from '../../services/auth';
-import { RatingModule } from 'primeng/rating';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ChatService } from '../../services/chat.service';
-import { environment } from '../../../environments/environment';
+
 
 @Component({
   selector: 'app-pedidos',
   standalone: true,
-  imports: [
+  imports: [NotificacaoComponent, ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent, ModalRodapeComponent, ModalConfirmacaoComponent, ImagemPreviewComponent, CampoArquivoComponent, EstadoVazioComponent, CarregamentoComponent, CampoAvaliacaoComponent, CampoDirective, 
     CommonModule,
     FormsModule,
     RouterModule,
-    ButtonModule,
-    RatingModule,
-    DialogModule,
-    InputTextareaModule,
-    CheckboxModule,
-    InputNumberModule,
-    ToastModule,
-    ProgressSpinnerModule
+    BotaoComponent,
+    BotaoIconeComponent,
+    GrupoAcoesComponent
   ],
   providers: [MessageService],
   templateUrl: './pedidos.html',
   styleUrls: ['./pedidos.css']
 })
 export class PedidosComponent implements OnInit, OnDestroy {
+  private readonly enderecoService = inject(EnderecoService);
+  private readonly pedidoService = inject(PedidoService);
+  private readonly avaliacaoService = inject(AvaliacaoService);
+
+  private readonly cupomService = inject(CupomService);
+
   pedidos: any[] = [];
   filteredPedidos: any[] = [];
   loading: boolean = true;
@@ -74,7 +83,6 @@ export class PedidosComponent implements OnInit, OnDestroy {
   pedidoEntrega: any = null;
 
   fotosDevolucao: File[] = [];
-  fotosDevolucaoPreview: string[] = [];
 
   displayAvaliacaoModal: boolean = false;
   pedidoAvaliacao: any = null;
@@ -231,14 +239,11 @@ export class PedidosComponent implements OnInit, OnDestroy {
 
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `${environment.apiUrl}/clientes/${user.id}/enderecos`,
-        {
+      const response = await this.enderecoService.listarPorCliente(user.id, {
           headers: {
             'Authorization': 'Bearer ' + token
           }
-        }
-      );
+        });
 
       if (!response.ok) {
         throw new Error('Não foi possível carregar os endereços cadastrados.');
@@ -314,9 +319,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
     try {
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `${environment.apiUrl}/pedidos/${this.pedidoAlterarEndereco.id}/endereco-entrega`,
-        {
+      const response = await this.pedidoService.alterarEndereco(this.pedidoAlterarEndereco.id, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -325,8 +328,7 @@ export class PedidosComponent implements OnInit, OnDestroy {
           body: JSON.stringify({
             enderecoId: endereco.id
           })
-        }
-      );
+        });
 
       if (!response.ok) {
         const erro = await response.json().catch(() => ({}));
@@ -564,14 +566,11 @@ abrirModalFotos(fotos: any[], index: number): void {
 
       const token = this.authService.getToken();
 
-      const avaliacoesResponse = await fetch(
-        `${environment.apiUrl}/avaliacoes/cliente/${user.id}`,
-        {
+      const avaliacoesResponse = await this.avaliacaoService.listarPorCliente(user.id, {
           headers: {
             'Authorization': 'Bearer ' + token
           }
-        }
-      );
+        });
 
       let avaliacoesExistentes: any[] = [];
 
@@ -655,14 +654,7 @@ abrirModalFotos(fotos: any[], index: number): void {
         avaliacao.avaliacaoId !== null &&
         avaliacao.avaliacaoId !== undefined;
 
-      const url = isEdit
-        ? `${environment.apiUrl}/avaliacoes/${avaliacao.avaliacaoId}?clienteId=${user.id}`
-        : `${environment.apiUrl}/avaliacoes?clienteId=${user.id}`;
-
-      const method = isEdit ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method: method,
+      const response = await this.avaliacaoService.salvar(user.id, avaliacao.avaliacaoId, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + token
@@ -753,14 +745,11 @@ abrirModalFotos(fotos: any[], index: number): void {
 
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `${environment.apiUrl}/avaliacoes/verificar?clienteId=${user.id}&pedidoId=${pedidoId}&livroId=${livroId}`,
-        {
+      const response = await this.avaliacaoService.verificar(user.id, pedidoId, livroId, {
           headers: {
             'Authorization': 'Bearer ' + token
           }
-        }
-      );
+        });
 
       if (response.ok) {
         const data = await response.json();
@@ -797,14 +786,11 @@ abrirModalFotos(fotos: any[], index: number): void {
     let avaliacoesExistentes: any[] = [];
 
     try {
-      const response = await fetch(
-        `${environment.apiUrl}/avaliacoes/cliente/${user.id}`,
-        {
+      const response = await this.avaliacaoService.listarPorCliente(user.id, {
           headers: {
             'Authorization': 'Bearer ' + token
           }
-        }
-      );
+        });
 
       if (response.ok) {
         avaliacoesExistentes = await response.json();
@@ -864,15 +850,12 @@ abrirModalFotos(fotos: any[], index: number): void {
 
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `${environment.apiUrl}/pedidos?clienteId=${user.id}`,
-        {
+      const response = await this.pedidoService.listarPorCliente(user.id, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + token
           }
-        }
-      );
+        });
 
       if (!response.ok) {
         throw new Error('Erro ao carregar pedidos');
@@ -883,22 +866,16 @@ abrirModalFotos(fotos: any[], index: number): void {
       );
 
       const [disponiveisRes, usadosRes] = await Promise.all([
-        fetch(
-          `${environment.apiUrl}/cupons/cliente/${user.id}/disponiveis`,
-          {
+        this.cupomService.listarDisponiveis(user.id, {
             headers: {
               'Authorization': 'Bearer ' + token
             }
-          }
-        ),
-        fetch(
-          `${environment.apiUrl}/cupons/cliente/${user.id}/usados`,
-          {
+          }),
+        this.cupomService.listarUsados(user.id, {
             headers: {
               'Authorization': 'Bearer ' + token
             }
-          }
-        )
+          })
       ]);
 
       let todosCupons: any[] = [];
@@ -999,48 +976,23 @@ abrirModalFotos(fotos: any[], index: number): void {
     }
   }
 
-    onFotosDevolucaoSelected(event: any): void {
-    const files = event.target.files;
-    const maxFiles = 3;
+  adicionarFotosDevolucao(arquivos: File[]): void {
+    const disponiveis = Math.max(0, 3 - this.fotosDevolucao.length);
+    this.fotosDevolucao.push(...arquivos.slice(0, disponiveis));
+  }
 
-    if (this.fotosDevolucao.length + files.length > maxFiles) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro',
-        detail: `Máximo de ${maxFiles} fotos permitidas`
-      });
-      return;
-    }
+  informarErrosFotos(erros: unknown[]): void {
+    if (erros.length === 0) return;
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-
-      if (file.size > 5 * 1024 * 1024) {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Cada imagem deve ter no máximo 5MB'
-        });
-        continue;
-      }
-
-      this.fotosDevolucao.push(file);
-
-      const reader = new FileReader();
-
-      reader.onload = (e: any) => {
-        this.fotosDevolucaoPreview.push(e.target.result);
-      };
-
-      reader.readAsDataURL(file);
-    }
-
-    event.target.value = '';
+    this.messageService.add({
+      severity: 'error',
+      summary: 'Erro',
+      detail: 'Selecione até 3 imagens válidas, com no máximo 5MB cada.'
+    });
   }
 
   removerFotoDevolucao(index: number): void {
     this.fotosDevolucao.splice(index, 1);
-    this.fotosDevolucaoPreview.splice(index, 1);
   }
 
   async carregarPedidosSilenciosamente(): Promise<void> {
@@ -1053,15 +1005,12 @@ abrirModalFotos(fotos: any[], index: number): void {
 
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `${environment.apiUrl}/pedidos?clienteId=${user.id}`,
-        {
+      const response = await this.pedidoService.listarPorCliente(user.id, {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + token
           }
-        }
-      );
+        });
 
       if (response.ok) {
         const novosPedidos = await response.json();
@@ -1071,22 +1020,16 @@ abrirModalFotos(fotos: any[], index: number): void {
         );
 
         const [disponiveisRes, usadosRes] = await Promise.all([
-          fetch(
-            `${environment.apiUrl}/cupons/cliente/${user.id}/disponiveis`,
-            {
+          this.cupomService.listarDisponiveis(user.id, {
               headers: {
                 'Authorization': 'Bearer ' + token
               }
-            }
-          ),
-          fetch(
-            `${environment.apiUrl}/cupons/cliente/${user.id}/usados`,
-            {
+            }),
+          this.cupomService.listarUsados(user.id, {
               headers: {
                 'Authorization': 'Bearer ' + token
               }
-            }
-          )
+            })
         ]);
 
         let todosCupons: any[] = [];
@@ -1373,16 +1316,13 @@ abrirModalFotos(fotos: any[], index: number): void {
     try {
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `${environment.apiUrl}/pedidos/${this.pedidoCancelamentoId}/cancelar`,
-        {
+      const response = await this.pedidoService.cancelar(this.pedidoCancelamentoId, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + token
           }
-        }
-      );
+        });
 
       if (!response.ok) {
         const data = await response.json();
@@ -1443,17 +1383,14 @@ abrirModalFotos(fotos: any[], index: number): void {
         body.codigoRastreamentoDevolucao = codigoRastreamento;
       }
 
-      const response = await fetch(
-        `${environment.apiUrl}/pedidos/${pedidoId}/status`,
-        {
+      const response = await this.pedidoService.alterarStatus(pedidoId, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + token
           },
           body: JSON.stringify(body)
-        }
-      );
+        });
 
       if (!response.ok) {
         const error = await response.json();
@@ -1738,16 +1675,13 @@ abrirModalFotos(fotos: any[], index: number): void {
         }
       }
 
-      const response = await fetch(
-        `${environment.apiUrl}/pedidos/${this.pedidoDevolucaoId}/devolucao`,
-        {
+      const response = await this.pedidoService.solicitarDevolucao(this.pedidoDevolucaoId, {
           method: 'POST',
           headers: {
             'Authorization': 'Bearer ' + token
           },
           body: formData
-        }
-      );
+        });
 
       if (!response.ok) {
         const error = await response.json();
@@ -1757,13 +1691,13 @@ abrirModalFotos(fotos: any[], index: number): void {
         );
       }
 
-      const data = await response.json();
+      await response.json();
       const pedidoLabel = `Pedido #${this.pedidoDevolucaoId}`;
 
       this.messageService.add({
         severity: 'success',
         summary: 'Sucesso',
-        detail: `Devolução do ${pedidoLabel} solicitada!`
+        detail: `A solicitação de devolução do ${pedidoLabel} foi enviada para análise.`
       });
 
       this.authService.adicionarNotificacao(
@@ -1774,7 +1708,6 @@ abrirModalFotos(fotos: any[], index: number): void {
 
       this.displayDevolucaoModal = false;
       this.fotosDevolucao = [];
-      this.fotosDevolucaoPreview = [];
 
       await this.carregarPedidos();
     } catch (error: any) {
@@ -1834,16 +1767,13 @@ abrirModalFotos(fotos: any[], index: number): void {
     try {
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `${environment.apiUrl}/pedidos/${this.pedidoReembolso.id}/confirmar-reembolso`,
-        {
+      const response = await this.pedidoService.confirmarReembolso(this.pedidoReembolso.id, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + token
           }
-        }
-      );
+        });
 
       if (!response.ok) {
         throw new Error('Erro ao confirmar reembolso');
@@ -1903,9 +1833,7 @@ abrirModalFotos(fotos: any[], index: number): void {
     try {
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `${environment.apiUrl}/pedidos/${this.pedidoEntrega.id}/status`,
-        {
+      const response = await this.pedidoService.alterarStatus(this.pedidoEntrega.id, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -1914,8 +1842,7 @@ abrirModalFotos(fotos: any[], index: number): void {
           body: JSON.stringify({
             novoStatus: 'ENTREGUE'
           })
-        }
-      );
+        });
 
       if (!response.ok) {
         throw new Error('Erro ao confirmar entrega');

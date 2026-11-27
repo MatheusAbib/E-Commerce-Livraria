@@ -1,0 +1,30 @@
+:host {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  min-width: 0;
+}
+
+:host([data-alinhamento="inicio"]) {
+  justify-content: flex-start;
+}
+
+:host([data-alinhamento="centro"]) {
+  justify-content: center;
+}
+
+:host([data-alinhamento="fim"]) {
+  justify-content: flex-end;
+}
+
+:host([data-alinhamento="distribuido"]) {
+  justify-content: space-between;
+}
+
+@media (max-width: 480px) {
+  :host(.acoes-empilhadas) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

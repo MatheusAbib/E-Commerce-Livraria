@@ -1,0 +1,347 @@
+<app-modal-base
+  [visivel]="displayDialog"
+  largura="96vw"
+  larguraMaxima="1040px"
+  alturaMaxima="92dvh"
+  rotulo="Detalhes do livro"
+  telaInteiraMobile
+  (fechar)="fecharModal()">
+  <app-modal-cabecalho
+    titulo="Detalhes do livro"
+    subtitulo="Conheça melhor sua próxima leitura."
+    (fechar)="fecharModal()">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo rolagemInterna>
+    <div *ngIf="selectedLivro" class="detalhes-container">
+      <div class="detalhes-corpo">
+
+        <div class="detalhes-grid">
+          <div class="detalhes-imagem-wrapper">
+            <div class="detalhes-imagem"
+                 (mouseenter)="ativarZoom()"
+                 (mouseleave)="desativarZoom()"
+                 (mousemove)="moverZoom($event)">
+              <img
+                #imagemLivro
+                [src]="selectedLivro.imagemUrl ? '/uploads/' + selectedLivro.imagemUrl : '/images/livro.png'"
+                [alt]="selectedLivro.titulo"
+              />
+            </div>
+
+            <div class="imagem-badges">
+              <span
+                *ngIf="selectedLivro.ativo && estoqueDisponivel(selectedLivro) > 0"
+                class="badge-estoque"
+              >
+                <i class="pi pi-check-circle"></i>
+                Em estoque
+              </span>
+
+              <span
+                *ngIf="selectedLivro.ativo && estoqueDisponivel(selectedLivro) <= 0"
+                class="badge-esgotado"
+              >
+                Esgotado
+              </span>
+
+              <span *ngIf="!selectedLivro.ativo" class="badge-inativo">
+                Inativo
+              </span>
+            </div>
+          </div>
+
+          <div class="detalhes-info">
+            <div class="detalhes-identificacao">
+              <span class="detalhes-categoria">
+                {{ selectedLivro.categoria || 'LIVRO' }}
+              </span>
+
+              <div class="detalhes-header">
+                <h2 class="detalhes-titulo">
+                  {{ selectedLivro.titulo }}
+                </h2>
+
+                <button appBotaoIcone
+                  class="favorito-detalhes"
+                  variante="neutro"
+                  [icone]="selectedIsFavorited ? 'pi pi-heart-fill' : 'pi pi-heart'"
+                  [rotulo]="selectedIsFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'"
+                  [selecionado]="selectedIsFavorited"
+                  [carregando]="carregandoFavoritoModal"
+                  (click)="favoritarDoModal()">
+                </button>
+              </div>
+
+              <p class="detalhes-autor">
+                <i class="pi pi-user"></i>
+                {{ selectedLivro.autor || 'Autor desconhecido' }}
+              </p>
+            </div>
+
+            <div class="detalhes-metas">
+              <div class="meta-item">
+                <span class="meta-label">EDITORA</span>
+                <span class="meta-value">{{ selectedLivro.editora || '-' }}</span>
+              </div>
+
+              <div class="meta-item">
+                <span class="meta-label">ISBN</span>
+                <span class="meta-value">{{ selectedLivro.isbn || '-' }}</span>
+              </div>
+
+              <div class="meta-item">
+                <span class="meta-label">PÁGINAS</span>
+                <span class="meta-value">{{ selectedLivro.paginas || '-' }}</span>
+              </div>
+
+              <div class="meta-item">
+                <span class="meta-label">CATEGORIA</span>
+                <span class="meta-value">{{ selectedLivro.categoria || '-' }}</span>
+              </div>
+            </div>
+
+            <div class="detalhes-social">
+              <div
+                class="modal-avaliacao"
+                *ngIf="selectedLivro?.avaliacao && selectedLivro.avaliacao.totalAvaliacoes > 0"
+              >
+                <div class="avaliacao-resumo-modal">
+                  <app-campo-avaliacao
+                    [ngModel]="selectedLivro.avaliacao.media"
+                    tamanho="pequeno"
+                    somenteLeitura
+                    permitirMeiaEstrela>
+                  </app-campo-avaliacao>
+
+                  <span class="avaliacao-nota-modal">
+                    {{ formatarNota(selectedLivro.avaliacao.media) }}
+                  </span>
+
+                  <span class="avaliacao-total-modal">
+                    {{ selectedLivro.avaliacao.totalAvaliacoes }} avaliações
+                  </span>
+                </div>
+              </div>
+
+              <div class="livro-vendas-modal">
+                <i class="pi pi-shopping-bag"></i>
+                <span>
+                  {{ selectedLivro.quantidadeVendida || 0 }}
+                  {{ selectedLivro.quantidadeVendida === 1 ? 'unidade vendida' : 'unidades vendidas' }}
+                </span>
+              </div>
+
+              <div
+                class="modal-sem-avaliacao"
+                *ngIf="!selectedLivro?.avaliacao || selectedLivro.avaliacao.totalAvaliacoes === 0"
+              >
+                <i class="pi pi-star"></i>
+                Este livro ainda não possui avaliações
+              </div>
+            </div>
+
+            <div class="detalhes-compra">
+              <div class="detalhes-preco">
+                <span class="detalhes-preco-label">PREÇO</span>
+                <span class="preco-atual">
+                  R$ {{ selectedLivro.precoVenda || 0 | number:'1.2-2' }}
+                </span>
+                <span class="preco-parcelado">
+                  ou até 3x de R$ {{ (selectedLivro.precoVenda / 3) || 0 | number:'1.2-2' }} sem juros
+                </span>
+              </div>
+
+              <div *ngIf="selectedLivro.ativo && estoqueDisponivel(selectedLivro) > 0">
+                <div class="detalhes-quantidade">
+                  <label>QUANTIDADE</label>
+
+                  <div class="quantidade-controles">
+                    <app-campo-quantidade
+                      [(ngModel)]="quantidadeSelecionada"
+                      [minimo]="1"
+                      [maximo]="limiteAdicao(selectedLivro)"
+                      [bloquearIncremento]="quantidadeSelecionada >= limiteAdicao(selectedLivro)"
+                      [disabled]="carregandoCarrinhoModal"
+                      rotulo="Quantidade de livros">
+                    </app-campo-quantidade>
+
+                    <span class="qtd-estoque">
+                      {{ estoqueDisponivel(selectedLivro) }} disponíveis
+                    </span>
+                  </div>
+                </div>
+
+                <button appBotao
+                  *ngIf="!isLoggedIn"
+                  variante="primario"
+                  icone="pi pi-shopping-cart"
+                  larguraTotal
+                  desabilitado
+                  pTooltip="Faça login para comprar"
+                  tooltipPosition="top">
+                  Adicionar ao carrinho
+                </button>
+
+                <button appBotao
+                  *ngIf="isLoggedIn"
+                  variante="primario"
+                  icone="pi pi-shopping-cart"
+                  larguraTotal
+                  [carregando]="carregandoCarrinhoModal"
+                  [desabilitado]="quantidadeSelecionada > limiteAdicao(selectedLivro)"
+                  textoCarregando="Adicionando..."
+                  (click)="adicionarAoCarrinhoComQuantidade(selectedLivro.id)">
+                  Adicionar ao carrinho
+                </button>
+              </div>
+
+              <p
+                *ngIf="selectedLivro.ativo && estoqueDisponivel(selectedLivro) <= 0"
+                class="text-danger"
+              >
+                <i class="pi pi-exclamation-circle"></i>
+                Produto esgotado
+              </p>
+
+              <div *ngIf="!selectedLivro.ativo" class="produto-inativo-msg">
+                <i class="pi pi-exclamation-triangle"></i>
+                <div>
+                  <strong>Produto indisponível</strong>
+                  <p>Este produto está inativo no momento.</p>
+                  <p
+                    *ngIf="selectedLivro.motivoInativacao"
+                    class="motivo-inativacao-texto"
+                  >
+                    {{ selectedLivro.motivoInativacao }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="selectedLivro.sinopse" class="sinopse-texto">
+          <div class="detalhes-secao-cabecalho">
+            <span>01 / SOBRE A OBRA</span>
+            <h3>Sinopse</h3>
+          </div>
+
+          <p>{{ selectedLivro.sinopse }}</p>
+        </div>
+
+        <div class="comentarios-section">
+          <button
+            appBotao
+            variante="secundario"
+            larguraTotal
+            class="comentarios-header"
+            (click)="toggleComentarios()"
+            [attr.aria-expanded]="comentariosExpandido"
+          >
+            <div class="comentarios-header-left">
+              <i class="pi pi-comments"></i>
+              <span>Comentários e avaliações</span>
+              <span
+                class="comentarios-count"
+                *ngIf="selectedLivro?.avaliacao?.totalAvaliacoes > 0"
+              >
+                {{ selectedLivro.avaliacao.totalAvaliacoes }}
+              </span>
+            </div>
+
+            <div class="comentarios-header-right">
+              <span class="comentarios-toggle-text">
+                {{ comentariosExpandido ? 'Ocultar' : 'Ver comentários' }}
+              </span>
+              <i
+                class="pi"
+                [class.pi-chevron-down]="!comentariosExpandido"
+                [class.pi-chevron-up]="comentariosExpandido"
+              ></i>
+            </div>
+          </button>
+
+          <div *ngIf="comentariosExpandido" class="comentarios-body">
+            <div *ngIf="comentariosLoading" class="comentarios-loading">
+              <app-carregamento modelo="simples" compacto tamanho="pequeno" direcao="horizontal" texto="Carregando comentários..."></app-carregamento>
+            </div>
+
+            <div
+              *ngIf="!comentariosLoading && comentariosPaginados.length === 0"
+              class="comentarios-empty">
+              <app-estado-vazio
+                icone="pi pi-comment"
+                titulo="Nenhum comentário"
+                descricao="Seja o primeiro a avaliar este livro.">
+              </app-estado-vazio>
+            </div>
+
+            <div
+              *ngIf="!comentariosLoading && comentariosPaginados.length > 0"
+              class="comentarios-list"
+            >
+              <div
+                *ngFor="let comentario of comentariosPaginados"
+                class="comentario-item"
+              >
+                <div class="comentario-avatar">
+                  <span>{{ getIniciais(comentario.cliente?.nome) }}</span>
+                </div>
+
+                <div class="comentario-content">
+                  <div class="comentario-header">
+                    <span class="comentario-nome">
+                      {{ comentario.cliente?.nome || 'Cliente' }}
+                    </span>
+                    <span class="comentario-data">
+                      {{ formatarDataComentario(comentario.dataAvaliacao) }}
+                    </span>
+                  </div>
+
+                  <div class="comentario-estrelas">
+                    <app-campo-avaliacao
+                      [ngModel]="comentario.nota"
+                      tamanho="pequeno"
+                      somenteLeitura
+                      permitirMeiaEstrela>
+                    </app-campo-avaliacao>
+
+                    <span class="nota-texto-comentario">
+                      {{ formatarNota(comentario.nota) }}
+                    </span>
+                  </div>
+
+                  <p
+                    class="comentario-texto"
+                    *ngIf="comentario.comentario"
+                  >
+                    {{ comentario.comentario }}
+                  </p>
+
+                  <p
+                    class="comentario-sem-texto"
+                    *ngIf="!comentario.comentario"
+                  >
+                    Sem comentário escrito
+                  </p>
+                </div>
+              </div>
+
+              <p-paginator
+                *ngIf="comentariosTotal > comentariosRows"
+                [first]="comentariosFirst"
+                [rows]="comentariosRows"
+                [totalRecords]="comentariosTotal"
+                (onPageChange)="onComentariosPageChange($event)"
+                [rowsPerPageOptions]="[5, 10, 20]"
+                styleClass="comentarios-paginator"
+              >
+              </p-paginator>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </app-modal-corpo>
+</app-modal-base>

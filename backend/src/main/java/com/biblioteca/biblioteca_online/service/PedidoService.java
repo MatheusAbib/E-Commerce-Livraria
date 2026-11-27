@@ -10,6 +10,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.biblioteca.biblioteca_online.repository.CarrinhoRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
@@ -37,6 +42,10 @@ public class PedidoService {
     @Autowired
     private CarteiraService carteiraService;
     @Autowired
+    private CarrinhoService carrinhoService;
+    @Autowired
+    private CarrinhoRepository carrinhoRepository;
+    @Autowired
     public PedidoService(
             PedidoRepository pedidoRepository,
             LivroService livroService,
@@ -51,9 +60,11 @@ public class PedidoService {
         this.pedidoAccessService = pedidoAccessService;
         this.notificacaoService = notificacaoService;
     }
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Pedido criarPedido(
             Long clienteId,
+            Long carrinhoId,
+            Long carrinhoRevisao,
             List<ItemPedidoDTO> itensDTO,
             Long enderecoId,
             List<PagamentoDTO> pagamentosDTO,
@@ -72,8 +83,22 @@ public class PedidoService {
         if (pagamentosDTO == null || pagamentosDTO.isEmpty()) {
             throw new IllegalArgumentException("Selecione pelo menos um cartão");
         }
-        Cliente cliente = clienteService.buscarPorId(clienteId)
-            .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado"));
+        Carrinho carrinho = carrinhoService.validarCarrinhoParaCompra(clienteId, carrinhoId, carrinhoRevisao);
+        Cliente cliente = carrinho.getCliente();
+        Map<Long, Integer> reservados = new java.util.TreeMap<>();
+        for (ItemCarrinho item : carrinho.getItens()) {
+            reservados.put(item.getLivro().getId(), item.getQuantidade());
+        }
+        Map<Long, Integer> solicitados = new java.util.TreeMap<>();
+        for (ItemPedidoDTO item : itensDTO) {
+            if (item == null || item.getLivroId() == null || item.getQuantidade() == null || item.getQuantidade() <= 0 || item.getQuantidade() > 3) {
+                throw new IllegalArgumentException("Item do pedido inválido");
+            }
+            solicitados.merge(item.getLivroId(), item.getQuantidade(), Math::addExact);
+        }
+        if (!reservados.equals(solicitados)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Os itens do pedido não correspondem à reserva do carrinho.");
+        }
         Pedido pedido = Pedido.builder()
             .cliente(cliente)
             .status(StatusPedido.EM_PROCESSAMENTO)
@@ -83,36 +108,12 @@ public class PedidoService {
             .valorDesconto(BigDecimal.ZERO)
             .reembolsoConfirmado(false)
             .build();
-        Map<Long, Integer> quantidadesPorLivro = new HashMap<>();
-        for (ItemPedidoDTO itemDTO : itensDTO) {
-            if (itemDTO == null ||
-                    itemDTO.getLivroId() == null ||
-                    itemDTO.getQuantidade() == null ||
-                    itemDTO.getQuantidade() <= 0) {
-                throw new IllegalArgumentException("Item do pedido inválido");
+        for (ItemCarrinho item : carrinho.getItens()) {
+            Livro livro = item.getLivro();
+            if (livro.getPrecoVenda() == null || livro.getPrecoVenda().compareTo(BigDecimal.ZERO) < 0) {
+                throw new IllegalArgumentException("Preço inválido para o livro: " + livro.getTitulo());
             }
-            Livro livro = livroService.buscarPorId(itemDTO.getLivroId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                    "Livro não encontrado: " + itemDTO.getLivroId()
-                ));
-            int quantidadeAcumulada = quantidadesPorLivro.getOrDefault(
-                livro.getId(),
-                0
-            ) + itemDTO.getQuantidade();
-            if (livro.getEstoque() == null ||
-                    livro.getEstoque() < quantidadeAcumulada) {
-                throw new IllegalArgumentException(
-                    "Estoque insuficiente para o livro: " + livro.getTitulo()
-                );
-            }
-            if (livro.getPrecoVenda() == null ||
-                    livro.getPrecoVenda().compareTo(BigDecimal.ZERO) < 0) {
-                throw new IllegalArgumentException(
-                    "Preço inválido para o livro: " + livro.getTitulo()
-                );
-            }
-            quantidadesPorLivro.put(livro.getId(), quantidadeAcumulada);
-            pedido.adicionarItem(livro, itemDTO.getQuantidade());
+            pedido.adicionarItem(livro, item.getQuantidade());
         }
         Endereco endereco = cliente.getEnderecos().stream()
             .filter(e -> e.getId().equals(enderecoId))
@@ -220,12 +221,10 @@ public class PedidoService {
             );
         }
         Pedido pedidoSalvo = pedidoRepository.saveAndFlush(pedido);
-        for (Map.Entry<Long, Integer> entry : quantidadesPorLivro.entrySet()) {
-            livroRepository.atualizarEstoque(
-                entry.getKey(),
-                entry.getValue()
-            );
+        for (ItemCarrinho item : carrinho.getItens()) {
+            livroService.consumirEstoqueReservado(item.getLivro(), item.getQuantidade());
         }
+        carrinhoService.consumirCarrinho(carrinho);
         String detalhesLog = "Pedido #" + pedidoSalvo.getId()
             + " - R$ " + pedidoSalvo.getValorTotal()
             + " - " + pedidoSalvo.getItens().size() + " itens"
@@ -256,7 +255,7 @@ public class PedidoService {
         }
         return pedidoSalvo;
     }
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Pedido atualizarEnderecoEntrega(Long pedidoId, Long enderecoId) {
         if (enderecoId == null) {
             throw new org.springframework.web.server.ResponseStatusException(
@@ -264,7 +263,7 @@ public class PedidoService {
                 "Selecione um endereço de entrega"
             );
         }
-        Pedido pedido = pedidoRepository.findById(pedidoId)
+        Pedido pedido = pedidoRepository.buscarPorIdComBloqueio(pedidoId)
             .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
                 org.springframework.http.HttpStatus.NOT_FOUND,
                 "Pedido não encontrado"
@@ -286,16 +285,70 @@ public class PedidoService {
         pedido.setEnderecoEntrega(novoEndereco);
         return pedidoRepository.save(pedido);
     }
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Pedido atualizarStatus(
             Long pedidoId,
             StatusPedido novoStatus,
             String motivoDevolucao,
             String codigoRastreamentoEnvio,
             String codigoRastreamentoDevolucao) {
-        Pedido pedido = pedidoRepository.findById(pedidoId)
+        Pedido pedido = pedidoRepository.buscarPorIdComBloqueio(pedidoId)
             .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
         StatusPedido statusAnterior = pedido.getStatus();
+
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Usuário não autenticado."
+            );
+        }
+
+        boolean admin = auth.getAuthorities().stream()
+            .anyMatch(authority ->
+                "ROLE_ADMIN".equals(authority.getAuthority()) ||
+                "ADMIN".equals(authority.getAuthority())
+            );
+
+        if (!admin) {
+            pedidoAccessService.validarProprietario(pedido);
+
+            if (novoStatus != StatusPedido.ENTREGUE) {
+                throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Você não tem permissão para realizar esta alteração."
+                );
+            }
+
+            if (statusAnterior != StatusPedido.EM_TRANSITO ||
+                    pedido.getPedidoOriginalId() != null) {
+                throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Apenas pedidos em trânsito podem ter a entrega confirmada."
+                );
+            }
+
+            if (motivoDevolucao != null ||
+                    codigoRastreamentoEnvio != null ||
+                    codigoRastreamentoDevolucao != null) {
+                throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Não é permitido alterar informações administrativas."
+                );
+            }
+        }
+        if (novoStatus == null) throw new IllegalArgumentException("Status inválido");
+        if ((statusAnterior == StatusPedido.CANCELADO || statusAnterior == StatusPedido.DEVOLVIDO) && novoStatus != statusAnterior) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Não é possível alterar um pedido encerrado.");
+        }
+        if (novoStatus == StatusPedido.DEVOLVIDO && statusAnterior != StatusPedido.DEVOLVIDO &&
+                (pedido.getPedidoOriginalId() == null || statusAnterior != StatusPedido.ENVIADO_DEVOLUCAO)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "A devolução precisa estar enviada para ser concluída.");
+        }
+        if (novoStatus == StatusPedido.CANCELADO && statusAnterior != StatusPedido.CANCELADO && pedido.getPedidoOriginalId() == null && statusAnterior != StatusPedido.EM_PROCESSAMENTO) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Apenas pedidos em processamento podem ser cancelados.");
+        }
         if (novoStatus == StatusPedido.DEVOLUCAO &&
                 (motivoDevolucao == null || motivoDevolucao.trim().isEmpty())) {
             throw new IllegalArgumentException("Motivo da devolução é obrigatório");
@@ -311,20 +364,12 @@ public class PedidoService {
                 !codigoRastreamentoDevolucao.isEmpty()) {
             pedido.setCodigoRastreamentoDevolucao(codigoRastreamentoDevolucao);
         }
-        if (pedido.getStatus() == StatusPedido.ENVIADO_DEVOLUCAO &&
-                novoStatus == StatusPedido.DEVOLVIDO) {
-            for (ItemPedido item : pedido.getItens()) {
-                Livro livro = item.getLivro();
-                livro.setEstoque(livro.getEstoque() + item.getQuantidade());
-                livroRepository.save(livro);
-            }
+        if (statusAnterior == StatusPedido.ENVIADO_DEVOLUCAO && novoStatus == StatusPedido.DEVOLVIDO) {
+            reporItensPedido(pedido, "Devolução concluída");
         }
         if (novoStatus == StatusPedido.CANCELADO && statusAnterior != StatusPedido.CANCELADO) {
-            for (ItemPedido item : pedido.getItens()) {
-                Livro livro = item.getLivro();
-                livro.setEstoque(livro.getEstoque() + item.getQuantidade());
-                livroRepository.save(livro);
-            }
+            if (pedido.getPedidoOriginalId() == null) reporItensPedido(pedido, "Pedido cancelado");
+            pedido.getItens().forEach(item -> item.setStatus(StatusPedido.CANCELADO));
         }
         pedido.setStatus(novoStatus);
         if (novoStatus == StatusPedido.DEVOLUCAO ||
@@ -391,9 +436,9 @@ public class PedidoService {
         return pedidoRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
     }
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Pedido confirmarReembolso(Long pedidoId) {
-        Pedido pedido = pedidoRepository.findById(pedidoId)
+        Pedido pedido = pedidoRepository.buscarPorIdComBloqueio(pedidoId)
             .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
         pedido.setReembolsoConfirmado(true);
         try {
@@ -409,14 +454,33 @@ public class PedidoService {
         }
         return pedidoRepository.save(pedido);
     }
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void excluirClienteComPedidos(Long clienteId) {
-        Cliente cliente = clienteRepository.findById(clienteId)
+        Cliente cliente = clienteRepository.buscarPorIdComBloqueio(clienteId)
             .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado"));
+        carrinhoRepository.buscarPorClienteComBloqueio(clienteId).ifPresent(carrinho -> {
+            carrinhoRepository.delete(carrinho);
+            carrinhoRepository.flush();
+        });
         notificacaoService.excluirTodas(clienteId);
         pedidoRepository.deleteByCliente(cliente);
         clienteRepository.delete(cliente);
     }
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
+    private void reporItensPedido(Pedido pedido, String motivo) {
+        Map<Long, Integer> quantidades = new java.util.TreeMap<>();
+        for (ItemPedido item : pedido.getItens()) {
+            quantidades.merge(item.getLivro().getId(), item.getQuantidade(), Math::addExact);
+        }
+        for (Map.Entry<Long, Integer> entrada : quantidades.entrySet()) {
+            Livro livro = livroRepository.buscarPorIdComBloqueio(entrada.getKey()).orElseThrow();
+            entityManager.refresh(livro, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+            livroService.reporEstoque(entrada.getKey(), entrada.getValue(), motivo + " #" + pedido.getId());
+        }
+    }
+
     private BigDecimal calcularFrete(BigDecimal subtotal, String estado) {
         Map<String, BigDecimal> acrescimosPorEstado = Map.ofEntries(
             entry("AC", new BigDecimal("9.75")),
@@ -465,9 +529,9 @@ public class PedidoService {
         );
         return freteBase.add(acrescimoEstado);
     }
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void cancelarPedido(Long id) {
-        Pedido pedido = pedidoRepository.findById(id)
+        Pedido pedido = pedidoRepository.buscarPorIdComBloqueio(id)
             .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
         if (pedido.getStatus() == StatusPedido.CANCELADO) {
             throw new RuntimeException("Pedido já está cancelado.");
@@ -477,15 +541,11 @@ public class PedidoService {
                 "Apenas pedidos em processamento podem ser cancelados."
             );
         }
-        for (ItemPedido item : pedido.getItens()) {
-            Livro livro = livroRepository.findById(item.getLivro().getId())
-                .orElseThrow(() -> new RuntimeException(
-                    "Livro não encontrado ao cancelar pedido"
-                ));
-            livro.setEstoque(livro.getEstoque() + item.getQuantidade());
-            livroRepository.save(livro);
-            item.setStatus(StatusPedido.CANCELADO);
-        }
+        boolean admin = SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+            .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()) || "ADMIN".equals(authority.getAuthority()));
+        if (!admin) pedidoAccessService.validarProprietario(pedido);
+        if (pedido.getPedidoOriginalId() == null) reporItensPedido(pedido, "Pedido cancelado");
+        pedido.getItens().forEach(item -> item.setStatus(StatusPedido.CANCELADO));
         pedido.setStatus(StatusPedido.CANCELADO);
         pedidoRepository.save(pedido);
         registrarNotificacaoStatus(pedido, StatusPedido.CANCELADO);
@@ -501,7 +561,7 @@ public class PedidoService {
             log.error("Erro ao registrar cancelamento do pedido {}", id, e);
         }
     }
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public void excluirPedido(Long id) {
         Pedido pedido = pedidoRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
@@ -543,7 +603,7 @@ public class PedidoService {
         });
         return pedidos;
     }
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Pedido solicitarDevolucao(
             Long pedidoId,
             String motivo,
@@ -599,15 +659,32 @@ public class PedidoService {
         }
         return pedidoOriginal;
     }
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public Pedido criarPedidoDevolucao(
             Long pedidoOriginalId,
             String motivo,
             List<ItemDevolucao> itensDevolucao) {
-        Pedido pedidoOriginal = pedidoRepository.findById(pedidoOriginalId)
+        Pedido pedidoOriginal = pedidoRepository.buscarPorIdComBloqueio(pedidoOriginalId)
             .orElseThrow(() -> new RuntimeException(
                 "Pedido original não encontrado"
             ));
+        pedidoAccessService.validarProprietario(pedidoOriginal);
+        if (pedidoOriginal.getStatus() != StatusPedido.ENTREGUE || itensDevolucao == null || itensDevolucao.isEmpty()) {
+            throw new IllegalArgumentException("Devolução inválida.");
+        }
+        Map<Long, Integer> saldo = new HashMap<>();
+        for (ItemPedido item : pedidoOriginal.getItens()) saldo.merge(item.getLivro().getId(), item.getQuantidade(), Math::addExact);
+        for (Pedido anterior : pedidoRepository.findByPedidoOriginalId(pedidoOriginalId)) {
+            if (anterior.getStatus() != StatusPedido.CANCELADO) {
+                for (ItemPedido item : anterior.getItens()) saldo.merge(item.getLivro().getId(), -item.getQuantidade(), Math::addExact);
+            }
+        }
+        for (ItemDevolucao item : itensDevolucao) {
+            ItemPedido original = pedidoOriginal.getItens().stream().filter(i -> i.getId().equals(item.getItemPedidoId())).findFirst().orElseThrow();
+            if (item.getQuantidade() <= 0 || item.getQuantidade() > original.getQuantidade() || saldo.merge(original.getLivro().getId(), -item.getQuantidade(), Math::addExact) < 0) {
+                throw new IllegalArgumentException("Quantidade de devolução excede o saldo disponível.");
+            }
+        }
         Pedido pedidoDevolucao = new Pedido();
         pedidoDevolucao.setCliente(pedidoOriginal.getCliente());
         pedidoDevolucao.setEnderecoEntrega(pedidoOriginal.getEnderecoEntrega());

@@ -1,0 +1,57 @@
+<app-modal-base
+  [visivel]="visivel"
+  [largura]="largura"
+  aparencia="confirmacao"
+  [tituloId]="tituloId"
+  [bloqueado]="carregando"
+  [carregando]="carregando && bloquearComOverlay"
+  [textoCarregamento]="textoCarregando"
+  [fecharAoClicarFora]="fecharAoClicarFora"
+  [fecharComEscape]="fecharComEscape"
+  (fechar)="solicitarCancelamento()">
+
+  <app-modal-cabecalho
+    [titulo]="titulo"
+    [tituloId]="tituloId"
+    [subtitulo]="subtitulo"
+    [icone]="icone"
+    [variante]="variante"
+    [exibirFechar]="exibirFechar"
+    [desabilitarFechar]="carregando"
+    (fechar)="solicitarCancelamento()">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo>
+    @if (mensagem) {
+      <p class="modal-confirmacao-mensagem">{{ mensagem }}</p>
+    }
+
+    <ng-content></ng-content>
+  </app-modal-corpo>
+
+  <app-modal-rodape>
+    <div appGrupoAcoes largurasIguais espacamento="10px">
+      <button
+        appBotao
+        variante="secundario"
+        aparencia="confirmacao"
+        [icone]="iconeCancelar"
+        [desabilitado]="carregando"
+        (click)="solicitarCancelamento()">
+        {{ textoCancelar }}
+      </button>
+
+      <button
+        appBotao
+        aparencia="confirmacao"
+        [variante]="varianteBotao"
+        [icone]="iconeConfirmar"
+        [textoCarregando]="textoCarregando"
+        [carregando]="carregando"
+        [desabilitado]="desabilitado"
+        (click)="solicitarConfirmacao()">
+        {{ textoConfirmar }}
+      </button>
+    </div>
+  </app-modal-rodape>
+</app-modal-base>

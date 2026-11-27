@@ -20,23 +20,10 @@
   </div>
   <div class="pedidos-wrapper">
   <div *ngIf="loading" class="loader-overlay" style="position: relative; min-height: 300px;">
-    <div class="loader-container">
-      <div class="loader-spinner">
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
-      </div>
-      <p class="loader-text">Carregando seus pedidos...</p>
-    </div>
+    <app-carregamento texto="Carregando seus pedidos..." modelo="aneis"></app-carregamento>
   </div>
-  <div *ngIf="!loading && filteredPedidos.length === 0" class="empty-state">
-    <i class="pi pi-inbox"></i>
-    <h3>Nenhum pedido encontrado</h3>
-    <p>Não há pedidos com o status selecionado</p>
-    <button class="p-button-outlined" (click)="voltar()">
-      <i class="pi pi-arrow-left"></i> Voltar às compras
-    </button>
-  </div>
+  <div *ngIf="!loading && filteredPedidos.length === 0" class="empty-state"><app-estado-vazio icone="pi pi-inbox" titulo="Nenhum pedido encontrado" descricao="Não há pedidos com o status selecionado"><button appBotao class="acao-pedido" variante="secundario" icone="pi pi-arrow-left" (click)="voltar()">Voltar às compras</button>
+  </app-estado-vazio></div>
   <div *ngIf="!loading && filteredPedidos.length > 0" class="pedidos-grid">
     <div *ngFor="let pedido of filteredPedidos" class="pedido-card">
         <div class="pedido-header">
@@ -119,9 +106,7 @@
           <section class="pedido-endereco" style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 10px;">
             <h4 style="display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.75rem;"><i class="pi pi-map-marker"></i> Endereço de entrega</h4>
             <p style="margin: 0; line-height: 1.6;">{{ formatarEnderecoEntrega(pedido) }}</p>
-            <button *ngIf="podeAlterarEndereco(pedido)" type="button" class="btn-secondary" style="margin-top: 0.85rem;" (click)="abrirAlterarEndereco(pedido)">
-              <i class="pi pi-pencil"></i> Alterar endereço
-            </button>
+            <button appBotao class="acao-pedido" variante="secundario" icone="pi pi-pencil" *ngIf="podeAlterarEndereco(pedido)" style="margin-top: 0.85rem;" (click)="abrirAlterarEndereco(pedido)">Alterar endereço</button>
           </section>
         </div>
         <div class="pedido-total">
@@ -256,9 +241,7 @@
                       <small *ngIf="!pedido.cupomDisponivel && pedido.cupomDataUso" class="cupom-usado-em">
                         Usado em: {{ pedido.cupomDataUso | date:'dd/MM/yyyy' }}
                       </small>
-                      <button *ngIf="pedido.cupomDisponivel" class="p-button-outlined" (click)="copiarCupom(pedido.cupomGerado)">
-                        <i class="pi pi-copy"></i> Copiar
-                      </button>
+                      <button appBotao class="acao-pedido" variante="secundario" icone="pi pi-copy" *ngIf="pedido.cupomDisponivel" (click)="copiarCupom(pedido.cupomGerado)">Copiar</button>
                     </div>
                   </div>
                 </div>
@@ -285,115 +268,75 @@
             <span *ngIf="pedido.status === 'DEVOLVIDO' && !pedido.reembolsoConfirmado" class="reembolso-pendente-label">(Aguardando reembolso)</span>
           </div>
         </div>
-        <div class="pedido-acoes">
-          <button
-            *ngIf="pedido.status === 'EM_PROCESSAMENTO'"
-            class="btn-danger"
+        <div appGrupoAcoes class="pedido-acoes" alinhamento="inicio" espacamento="var(--pedido-acoes-gap)">
+          <button appBotao class="acao-pedido acao-pedido-perigo" variante="perigo" textoCarregando="Cancelando..." icone="pi pi-times" *ngIf="pedido.status === 'EM_PROCESSAMENTO'"
             (click)="cancelarPedido(pedido.id)"
-            [disabled]="carregandoCancelar"
-            [class.loading]="carregandoCancelar">
-            <i class="pi pi-times"></i> Cancelar Pedido
-          </button>
-          <button
-            *ngIf="pedido.status === 'EM_TRANSITO'"
-            class="btn-primary"
+            [desabilitado]="carregandoCancelar"
+            [carregando]="carregandoCancelar">Cancelar Pedido</button>
+          <button appBotao class="acao-pedido" variante="primario" textoCarregando="Confirmando..." icone="pi pi-check" *ngIf="pedido.status === 'EM_TRANSITO'"
             (click)="abrirConfirmarEntrega(pedido.id)"
-            [disabled]="carregandoEntrega"
-            [class.loading]="carregandoEntrega">
-            <i class="pi pi-check"></i> Marcar como Entregue
-          </button>
-          <button
-            *ngIf="pedido.status === 'ENTREGUE' && !verificarPrazoDevolucao(pedido.dataEntrega) && pedido.temItemDisponivelParaDevolucao"
-            class="btn-devolucao"
-            (click)="abrirDevolucao(pedido.id)">
-            <i class="pi pi-undo"></i> Solicitar Devolução
-          </button>
-                    <button
-            *ngIf="pedido.status === 'ENTREGUE' && verificarPrazoDevolucao(pedido.dataEntrega)"
-            class="btn-devolucao disabled"
-            disabled
-            title="Prazo de devolução expirado">
-            <i class="pi pi-undo"></i> Devolução indisponível
-          </button>
-          <button
-            *ngIf="pedido.status === 'ENTREGUE'"
-            class="btn-avaliar"
-            (click)="abrirAvaliacao(pedido)">
-            <i class="pi pi-star"></i>
-            {{ pedido.temAvaliacao ? 'Ver Avaliação' : 'Avaliar Produtos' }}
-          </button>
-          <button
-            *ngIf="pedido.status === 'AUTORIZADO_DEVOLUCAO'"
-            class="btn-enviar-devolucao"
-            (click)="abrirInstrucoesEnvio(pedido.id)">
-            <i class="pi pi-send"></i> Ver instruções de envio
-          </button>
-          <button
-            *ngIf="pedido.status === 'EM_TRANSITO' || pedido.status === 'AUTORIZADO_DEVOLUCAO' || pedido.status === 'DEVOLVIDO'"
-            class="btn-falar-vendedor"
-            (click)="abrirChatVendedor(pedido.id)">
-            <i class="pi pi-comment"></i> Falar com vendedor
-          </button>
-          <button
-            *ngIf="pedido.status === 'DEVOLVIDO' && !pedido.reembolsoConfirmado"
-            class="btn-confirmar-reembolso"
+            [desabilitado]="carregandoEntrega"
+            [carregando]="carregandoEntrega">Marcar como Entregue</button>
+          <button appBotao class="acao-pedido" variante="secundario" icone="pi pi-undo" *ngIf="pedido.status === 'ENTREGUE' && !verificarPrazoDevolucao(pedido.dataEntrega) && pedido.temItemDisponivelParaDevolucao"
+            (click)="abrirDevolucao(pedido.id)">Solicitar Devolução</button>
+                    <button appBotao class="acao-pedido" variante="secundario" icone="pi pi-undo" *ngIf="pedido.status === 'ENTREGUE' && verificarPrazoDevolucao(pedido.dataEntrega)"
+            desabilitado
+            title="Prazo de devolução expirado">Devolução indisponível</button>
+          <button appBotao class="acao-pedido" variante="secundario" icone="pi pi-star" *ngIf="pedido.status === 'ENTREGUE'"
+            (click)="abrirAvaliacao(pedido)">{{ pedido.temAvaliacao ? 'Ver Avaliação' : 'Avaliar Produtos' }}</button>
+          <button appBotao class="acao-pedido" variante="primario" icone="pi pi-send" *ngIf="pedido.status === 'AUTORIZADO_DEVOLUCAO'"
+            (click)="abrirInstrucoesEnvio(pedido.id)">Ver instruções de envio</button>
+          <button appBotao class="acao-pedido" variante="secundario" icone="pi pi-comment" *ngIf="pedido.status === 'EM_TRANSITO' || pedido.status === 'AUTORIZADO_DEVOLUCAO' || pedido.status === 'DEVOLVIDO'"
+            (click)="abrirChatVendedor(pedido.id)">Falar com vendedor</button>
+          <button appBotao class="acao-pedido" variante="primario" textoCarregando="Confirmando..." icone="pi pi-check-circle" *ngIf="pedido.status === 'DEVOLVIDO' && !pedido.reembolsoConfirmado"
             (click)="confirmarReembolso(pedido.id)"
-            [disabled]="carregandoReembolso"
-            [class.loading]="carregandoReembolso">
-            <i class="pi pi-check-circle"></i> Confirmar reembolso
-          </button>
+            [desabilitado]="carregandoReembolso"
+            [carregando]="carregandoReembolso">Confirmar reembolso</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="custom-modal" [class.active]="displayCancelamentoModal">
-  <div class="custom-modal-overlay" (click)="displayCancelamentoModal = false"></div>
-  <div class="custom-modal-content" style="width: 400px; max-width: 95%;">
-    <div class="custom-modal-header">
-      <div class="auth-icon auth-icon-warning">
-        <i class="pi pi-exclamation-triangle"></i>
-      </div>
-      <h2>Cancelar Pedido</h2>
-    </div>
-    <div class="custom-modal-body" style="text-align: center;">
-      <p style="color: #4a5a6a; font-size: 0.95rem;">
+<app-modal-confirmacao
+  [visivel]="displayCancelamentoModal"
+  titulo="Cancelar Pedido"
+  subtitulo=""
+  icone="pi pi-exclamation-triangle"
+  variante="perigo"
+  largura="400px"
+  textoCancelar="Voltar"
+  textoConfirmar="Sim, Cancelar"
+  textoCarregamento="Cancelando..."
+  [carregando]="carregandoCancelar"
+  (cancelar)="displayCancelamentoModal = false"
+  (confirmar)="confirmarCancelamento()">
+  <div class="pedido-confirmacao-conteudo">
+    <p style="color: #4a5a6a; font-size: 0.95rem;">
         Tem certeza que deseja cancelar o pedido <strong>#{{ pedidoCancelamentoId }}</strong>?
       </p>
       <p style="color: #94a3b8; font-size: 0.85rem;">Esta ação não pode ser desfeita.</p>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="displayCancelamentoModal = false">
-          <i class="pi pi-times"></i> Voltar
-        </button>
-        <button
-          class="btn-danger"
-          (click)="confirmarCancelamento()"
-          [disabled]="carregandoCancelar"
-          [class.loading]="carregandoCancelar">
-          <i class="pi pi-check"></i> Sim, Cancelar
-        </button>
-      </div>
-    </div>
   </div>
-</div>
+</app-modal-confirmacao>
+<app-modal-base
+  [visivel]="displayDevolucaoModal"
+  largura="550px"
+  alturaMaxima="90vh"
+  rotulo="Solicitar Devolução"
+  [bloqueado]="carregandoDevolucao"
+  (fechar)="displayDevolucaoModal = false">
 
-<div class="custom-modal" [class.active]="displayDevolucaoModal">
-  <div class="custom-modal-overlay" (click)="displayDevolucaoModal = false"></div>
-  <div class="custom-modal-content" style="width: 550px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
-    <button class="custom-modal-close" (click)="displayDevolucaoModal = false">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon auth-icon-devolucao">
-        <i class="pi pi-undo"></i>
-      </div>
-      <h2>Solicitar Devolução</h2>
-      <p>Selecione os itens para devolução</p>
-    </div>
-    <div class="custom-modal-body">
+  <app-modal-cabecalho
+    titulo="Solicitar Devolução"
+    subtitulo="Selecione os itens para devolução"
+    icone="pi pi-undo"
+    variante="aviso"
+    [desabilitarFechar]="carregandoDevolucao"
+    (fechar)="displayDevolucaoModal = false">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo rolagemInterna>
+    <div class="pedido-modal-conteudo">
       <div class="form-group">
         <label>Itens do pedido:</label>
         <div class="itens-container">
@@ -403,7 +346,7 @@
                 type="checkbox"
                 [(ngModel)]="item.selecionado"
                 id="item-{{item.id}}"
-                [disabled]="item.jaDevolvido">
+                [disabled]="item.jaDevolvido" class="controle-selecao-compartilhado">
               <label for="item-{{item.id}}">
                 <span>{{ item.livro?.titulo || 'Livro desconhecido' }}</span>
                 <span> - Quantidade: {{ item.quantidade }}</span>
@@ -413,84 +356,83 @@
             </div>
             <div class="quantidade-devolucao" *ngIf="item.selecionado">
               <label>Quantidade a devolver:</label>
-              <input
+              <input appCampo aparencia="autenticacao"
                 type="number"
                 [(ngModel)]="item.quantidadeDevolver"
                 [min]="1"
                 [max]="item.quantidadeDisponivel"
                 (change)="validarQuantidade(item)"
                 class="auth-input"
-                style="width: 80px;">
+                style="width: 80px;" [attr.aria-label]="'Quantidade a devolver'">
             </div>
           </div>
         </div>
       </div>
       <div class="field">
-        <label>Motivo da devolução:</label>
-        <textarea
+        <label for="pedidos-motivo-devolucao">Motivo da devolução:</label>
+        <textarea appCampo aparencia="autenticacao"
           [(ngModel)]="motivoDevolucao"
           rows="4"
           placeholder="Descreva o motivo da devolução..."
-          class="auth-input">
+          class="auth-input" id="pedidos-motivo-devolucao">
         </textarea>
       </div>
       <div class="field">
         <label>Fotos (opcional - até 3)</label>
-        <div class="file-upload-wrapper">
-          <input
-            type="file"
-            (change)="onFotosDevolucaoSelected($event)"
-            accept="image/*"
-            multiple
-            class="file-input">
-          <span class="file-label">
-            <i class="pi pi-cloud-upload"></i> Selecionar fotos
-          </span>
-        </div>
-        <div *ngIf="fotosDevolucaoPreview.length > 0" class="preview-container-multiple">
-          <div *ngFor="let preview of fotosDevolucaoPreview; let j = index" class="preview-item">
-            <img [src]="preview" class="preview-img">
-            <button
-              class="preview-remove"
-              (click)="removerFotoDevolucao(j)"
-              title="Remover foto">
-              <i class="pi pi-times"></i>
-            </button>
-          </div>
+        <app-campo-arquivo
+          rotulo="Selecionar fotos"
+          aceitar="image/*"
+          [maximoArquivos]="3"
+          [tamanhoMaximoMB]="5"
+          [quantidadeExistente]="fotosDevolucao.length"
+          [desabilitado]="carregandoDevolucao"
+          (arquivosSelecionados)="adicionarFotosDevolucao($event)"
+          (errosSelecao)="informarErrosFotos($event)"
+          multiplo>
+        </app-campo-arquivo>
+        <div *ngIf="fotosDevolucao.length > 0" class="preview-container-multiple">
+          <app-imagem-preview
+            *ngFor="let foto of fotosDevolucao; let j = index"
+            [origem]="foto"
+            [descricao]="'Foto da devolução ' + (j + 1)"
+            [desabilitado]="carregandoDevolucao"
+            ajuste="cover"
+            (remover)="removerFotoDevolucao(j)">
+          </app-imagem-preview>
         </div>
       </div>
     </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="displayDevolucaoModal = false">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button
-          class="btn-primary"
-          (click)="confirmarDevolucao()"
-          [disabled]="carregandoDevolucao"
-          [class.loading]="carregandoDevolucao">
-          <i class="pi pi-check"></i> Solicitar Devolução
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+  </app-modal-corpo>
 
-<div class="custom-modal" [class.active]="displayInstrucoesEnvio">
-  <div class="custom-modal-overlay" (click)="fecharInstrucoesEnvio()"></div>
-  <div class="custom-modal-content" style="width: 650px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
-    <button class="custom-modal-close" (click)="fecharInstrucoesEnvio()">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon auth-icon-info">
-        <i class="pi pi-send"></i>
+  <app-modal-rodape separador>
+    <div appGrupoAcoes class="pedido-modal-acoes" largurasIguais espacamento="var(--pedido-modal-gap)">
+        <button appBotao variante="secundario" aparencia="confirmacao" icone="pi pi-times" (click)="displayDevolucaoModal = false">Cancelar</button>
+        <button appBotao variante="primario" aparencia="confirmacao" textoCarregando="Solicitando..." icone="pi pi-check" (click)="confirmarDevolucao()"
+          [desabilitado]="carregandoDevolucao"
+          [carregando]="carregandoDevolucao">Solicitar Devolução</button>
       </div>
-      <h2>Instruções de Envio</h2>
-      <p>Siga os passos abaixo para enviar seu pacote de devolução</p>
-    </div>
-    <div class="custom-modal-body">
+  </app-modal-rodape>
+
+</app-modal-base>
+<app-modal-base
+  [visivel]="displayInstrucoesEnvio"
+  largura="650px"
+  alturaMaxima="90vh"
+  rotulo="Instruções de Envio"
+  [bloqueado]="carregandoRastreamento"
+  (fechar)="fecharInstrucoesEnvio()">
+
+  <app-modal-cabecalho
+    titulo="Instruções de Envio"
+    subtitulo="Siga os passos abaixo para enviar seu pacote de devolução"
+    icone="pi pi-send"
+    variante="neutro"
+    [desabilitarFechar]="carregandoRastreamento"
+    (fechar)="fecharInstrucoesEnvio()">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo rolagemInterna>
+    <div class="pedido-modal-conteudo">
       <div class="instrucoes-envio">
         <div class="instrucao-item">
           <div class="instrucao-numero">1</div>
@@ -532,20 +474,16 @@
             <h4>Rastreamento</h4>
             <p>Após postar, registre o código de rastreamento no campo abaixo.</p>
             <div class="campo-rastreamento">
-              <input
+              <input appCampo aparencia="autenticacao"
                 type="text"
                 [(ngModel)]="codigoRastreamento"
                 (input)="validarCodigoRastreamentoInput($any($event.target).value)"
                 placeholder="Ex: AA123456789BR"
                 class="auth-input"
-                style="text-transform: uppercase;">
-              <button
-                class="btn-primary btn-sm"
-                (click)="salvarRastreamento()"
-                [disabled]="!codigoRastreamento || !codigoRastreamentoValido || carregandoRastreamento"
-                [class.loading]="carregandoRastreamento">
-                <i class="pi pi-save"></i> Salvar
-              </button>
+                style="text-transform: uppercase;" aria-label="Código de rastreamento">
+              <button appBotao class="acao-formulario" variante="primario" tamanho="pequeno" textoCarregando="Salvando..." icone="pi pi-save" (click)="salvarRastreamento()"
+                [desabilitado]="!codigoRastreamento || !codigoRastreamentoValido || carregandoRastreamento"
+                [carregando]="carregandoRastreamento">Salvar</button>
             </div>
             <small style="color: #6b7a8f; font-size: 0.75rem;">
               Formato: 2 letras + 9 números + 2 letras (ex: AA123456789BR)
@@ -554,34 +492,32 @@
         </div>
       </div>
     </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="fecharInstrucoesEnvio()">
-          <i class="pi pi-times"></i> Fechar
-        </button>
-        <button
-          class="btn-primary"
-          (click)="fecharInstrucoesEnvio(); atualizarStatus(pedidoEnvioId, 'ENVIADO_DEVOLUCAO', codigoRastreamento)"
-          [disabled]="!rastreamentoSalvo">
-          <i class="pi pi-check"></i> Já enviei o pacote
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+  </app-modal-corpo>
 
-<div class="custom-modal" [class.active]="displayConfirmarReembolso">
-  <div class="custom-modal-overlay" (click)="displayConfirmarReembolso = false"></div>
-  <div class="custom-modal-content" style="width: 450px; max-width: 95%;">
-    <div class="custom-modal-header">
-      <div class="auth-icon auth-icon-success">
-        <i class="pi pi-check-circle"></i>
+  <app-modal-rodape separador>
+    <div appGrupoAcoes class="pedido-modal-acoes" largurasIguais espacamento="var(--pedido-modal-gap)">
+        <button appBotao variante="secundario" aparencia="confirmacao" icone="pi pi-times" (click)="fecharInstrucoesEnvio()">Fechar</button>
+        <button appBotao variante="primario" aparencia="confirmacao" icone="pi pi-check" (click)="fecharInstrucoesEnvio(); atualizarStatus(pedidoEnvioId, 'ENVIADO_DEVOLUCAO', codigoRastreamento)"
+          [desabilitado]="!rastreamentoSalvo">Já enviei o pacote</button>
       </div>
-      <h2>Confirmar Reembolso</h2>
-      <p>Confirme que você recebeu o reembolso</p>
-    </div>
-    <div class="custom-modal-body" style="text-align: center;">
-      <p style="color: #4a5a6a; font-size: 0.95rem;">
+  </app-modal-rodape>
+
+</app-modal-base>
+<app-modal-confirmacao
+  [visivel]="displayConfirmarReembolso"
+  titulo="Confirmar Reembolso"
+  subtitulo="Confirme que você recebeu o reembolso"
+  icone="pi pi-check-circle"
+  variante="sucesso"
+  largura="450px"
+  textoCancelar="Cancelar"
+  textoConfirmar="Sim, Confirmar"
+  textoCarregamento="Confirmando..."
+  [carregando]="carregandoReembolso"
+  (cancelar)="displayConfirmarReembolso = false"
+  (confirmar)="confirmarReembolsoFinal()">
+  <div class="pedido-confirmacao-conteudo">
+    <p style="color: #4a5a6a; font-size: 0.95rem;">
         Você confirma que recebeu o reembolso de <strong>{{ formatarMoeda(pedidoReembolso?.valorTotal || 0) }}</strong>
         <br><br>
         <span style="color: #94a3b8; font-size: 0.85rem;">Pedido #{{ pedidoReembolso?.id }}</span>
@@ -593,36 +529,23 @@
           — {{ formatarMoeda(pagamento.valor || 0) }}
         </div>
       </div>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="displayConfirmarReembolso = false">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button
-          class="btn-primary"
-          (click)="confirmarReembolsoFinal()"
-          [disabled]="carregandoReembolso"
-          [class.loading]="carregandoReembolso">
-          <i class="pi pi-check"></i> Sim, Confirmar
-        </button>
-      </div>
-    </div>
   </div>
-</div>
-
-<div class="custom-modal" [class.active]="displayConfirmarEntrega">
-  <div class="custom-modal-overlay" (click)="fecharConfirmarEntrega()"></div>
-  <div class="custom-modal-content" style="width: 450px; max-width: 95%;">
-    <div class="custom-modal-header">
-      <div class="auth-icon auth-icon-info">
-        <i class="pi pi-check-circle"></i>
-      </div>
-      <h2>Confirmar Entrega</h2>
-      <p>Confirme que você recebeu o pedido</p>
-    </div>
-    <div class="custom-modal-body" style="text-align: center;">
-      <p style="color: #4a5a6a; font-size: 0.95rem;">
+</app-modal-confirmacao>
+<app-modal-confirmacao
+  [visivel]="displayConfirmarEntrega"
+  titulo="Confirmar Entrega"
+  subtitulo="Confirme que você recebeu o pedido"
+  icone="pi pi-check-circle"
+  variante="neutro"
+  largura="450px"
+  textoCancelar="Cancelar"
+  textoConfirmar="Sim, Confirmar"
+  textoCarregamento="Confirmando..."
+  [carregando]="carregandoEntrega"
+  (cancelar)="fecharConfirmarEntrega()"
+  (confirmar)="confirmarEntregaFinal()">
+  <div class="pedido-confirmacao-conteudo">
+    <p style="color: #4a5a6a; font-size: 0.95rem;">
         Você confirma que recebeu o pedido <strong>#{{ pedidoEntrega?.id }}</strong>?
       </p>
       <p style="color: #94a3b8; font-size: 0.85rem;">
@@ -643,55 +566,36 @@
           Código de rastreamento: {{ pedidoEntrega.codigoRastreamentoEnvio }}
                   </p>
       </div>
-    </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions">
-        <button class="btn-secondary" (click)="fecharConfirmarEntrega()">
-          <i class="pi pi-times"></i> Cancelar
-        </button>
-        <button
-          class="btn-primary"
-          (click)="confirmarEntregaFinal()"
-          [disabled]="carregandoEntrega"
-          [class.loading]="carregandoEntrega">
-          <i class="pi pi-check"></i> Sim, Confirmar
-        </button>
-      </div>
-    </div>
   </div>
-</div>
+</app-modal-confirmacao>
+<app-modal-base
+  [visivel]="displayFotosModal"
+  largura="600px"
+  alturaMaxima="90vh"
+  rotulo="Fotos da Devolução"
+  [bloqueado]="false"
+  (fechar)="fecharModalFotos()">
 
-<div class="custom-modal" [class.active]="displayFotosModal">
-  <div class="custom-modal-overlay" (click)="fecharModalFotos()"></div>
-  <div class="custom-modal-content" style="width: 600px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
-    <button class="custom-modal-close" (click)="fecharModalFotos()">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon auth-icon-primary">
-        <i class="pi pi-image"></i>
-      </div>
-      <h2>Fotos da Devolução</h2>
-      <p>Visualize as imagens anexadas à solicitação de devolução</p>
-    </div>
-    <div class="custom-modal-body" style="text-align: center;">
+  <app-modal-cabecalho
+    titulo="Fotos da Devolução"
+    subtitulo="Visualize as imagens anexadas à solicitação de devolução"
+    icone="pi pi-image"
+    variante="neutro"
+    [desabilitarFechar]="false"
+    (fechar)="fecharModalFotos()">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo rolagemInterna>
+    <div class="pedido-modal-conteudo">
       <div class="fotos-carousel">
-        <button
-          class="carousel-btn carousel-prev"
-          (click)="fotoAnterior()"
-          *ngIf="fotosDevolucaoList.length > 1">
-          <i class="pi pi-chevron-left"></i>
-        </button>
+        <button appBotaoIcone class="acao-pedido-carousel carousel-prev" variante="transparente" rotulo="Foto anterior" icone="pi pi-chevron-left" (click)="fotoAnterior()"
+          *ngIf="fotosDevolucaoList.length > 1"></button>
         <img
           [src]="fotoAtual"
           class="foto-modal-img"
           alt="Foto da devolução">
-        <button
-          class="carousel-btn carousel-next"
-          (click)="fotoProxima()"
-          *ngIf="fotosDevolucaoList.length > 1">
-          <i class="pi pi-chevron-right"></i>
-        </button>
+        <button appBotaoIcone class="acao-pedido-carousel carousel-next" variante="transparente" rotulo="Próxima foto" icone="pi pi-chevron-right" (click)="fotoProxima()"
+          *ngIf="fotosDevolucaoList.length > 1"></button>
       </div>
 <div class="fotos-thumbnails" *ngIf="fotosDevolucaoList.length > 1">
   <div
@@ -706,30 +610,34 @@
         {{ fotoIndexAtual + 1 }} de {{ fotosDevolucaoList.length }}
       </div>
     </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions single">
-        <button class="btn-secondary" (click)="fecharModalFotos()">
-          <i class="pi pi-times"></i> Fechar
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
+  </app-modal-corpo>
 
-<div class="custom-modal" [class.active]="displayAvaliacaoModal">
-  <div class="custom-modal-overlay" (click)="fecharAvaliacao()"></div>
-  <div class="custom-modal-content" style="width: 600px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
-    <button class="custom-modal-close" (click)="fecharAvaliacao()">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon auth-icon-avaliacao">
-        <i class="pi pi-star"></i>
+  <app-modal-rodape separador>
+    <div appGrupoAcoes class="pedido-modal-acoes single" largurasIguais espacamento="var(--pedido-modal-gap)">
+        <button appBotao variante="secundario" aparencia="confirmacao" icone="pi pi-times" (click)="fecharModalFotos()">Fechar</button>
       </div>
-      <h2>Avaliar Produtos</h2>
-      <p>Avalie os produtos do pedido #{{ pedidoAvaliacao?.id }}</p>
-    </div>
-    <div class="custom-modal-body">
+  </app-modal-rodape>
+
+</app-modal-base>
+<app-modal-base
+  [visivel]="displayAvaliacaoModal"
+  largura="600px"
+  alturaMaxima="90vh"
+  rotulo="Avaliar Produtos"
+  [bloqueado]="false"
+  (fechar)="fecharAvaliacao()">
+
+  <app-modal-cabecalho
+    titulo="Avaliar Produtos"
+    [subtitulo]="'Avalie os produtos do pedido #' + (pedidoAvaliacao?.id || '')"
+    icone="pi pi-star"
+    variante="aviso"
+    [desabilitarFechar]="false"
+    (fechar)="fecharAvaliacao()">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo rolagemInterna>
+    <div class="pedido-modal-conteudo">
       <div *ngFor="let avaliacao of avaliacoes; let i = index" class="avaliacao-item">
         <div class="avaliacao-produto">
           <img
@@ -745,107 +653,76 @@
         </div>
         <div *ngIf="!avaliacao.avaliado" class="avaliacao-inputs">
           <div class="estrelas-container">
-            <span
-              *ngFor="let star of [0,1,2,3,4]"
-              class="estrela-wrapper"
-              (click)="alternarEstrela(i, star)">
-              <i
-                *ngIf="getTipoEstrela(avaliacao, star) === 'cheia'"
-                class="pi pi-star-fill"
-                style="color: #fbbf24; font-size: 1.8rem;"></i>
-              <i
-                *ngIf="getTipoEstrela(avaliacao, star) === 'vazia'"
-                class="pi pi-star"
-                style="color: #d1d5db; font-size: 1.8rem;"></i>
-              <span
-                *ngIf="getTipoEstrela(avaliacao, star) === 'meia'"
-                class="estrela-meia-wrapper">
-                <i
-                  class="pi pi-star-fill"
-                  style="color: #fbbf24; font-size: 1.8rem; clip-path: inset(0 50% 0 0);"></i>
-                <i
-                  class="pi pi-star-fill"
-                  style="color: #d1d5db; font-size: 1.8rem; clip-path: inset(0 0 0 50%); position: absolute; top: 0; left: 0;"></i>
-              </span>
-            </span>
-            <span class="avaliacao-nota-texto">{{ avaliacao.nota.toFixed(1) }}</span>
-          </div>
-          <textarea
+  <app-campo-avaliacao
+    [(ngModel)]="avaliacao.nota"
+    [disabled]="carregandoAvaliacao[i]"
+    tamanho="grande"
+    rotulo="Nota do livro"
+    permitirMeiaEstrela
+    permitirLimpar
+    alternanciaProgressiva>
+  </app-campo-avaliacao>
+  <span class="avaliacao-nota-texto">{{ avaliacao.nota.toFixed(1) }}</span>
+</div>
+          <textarea appCampo aparencia="autenticacao"
             [(ngModel)]="avaliacao.comentario"
             placeholder="Deixe um comentário (opcional)"
             class="auth-input"
-            rows="2">
+            rows="2" aria-label="Comentário da avaliação">
           </textarea>
-          <button
-            class="btn-primary btn-salvar-avaliacao"
-            (click)="salvarAvaliacao(i)"
-            [disabled]="carregandoAvaliacao[i]"
-            [class.loading]="carregandoAvaliacao[i]">
-            <i class="pi pi-check"></i>
-            {{ avaliacao.avaliacaoId ? 'Atualizar Avaliação' : 'Salvar Avaliação' }}
-          </button>
+          <button appBotao class="acao-formulario" variante="primario" textoCarregando="Salvando..." icone="pi pi-check" (click)="salvarAvaliacao(i)"
+            [desabilitado]="carregandoAvaliacao[i]"
+            [carregando]="carregandoAvaliacao[i]">{{ avaliacao.avaliacaoId ? 'Atualizar Avaliação' : 'Salvar Avaliação' }}</button>
                   </div>
         <div *ngIf="avaliacao.avaliado" class="avaliacao-concluida">
           <div class="estrelas-container">
-            <span *ngFor="let star of [0,1,2,3,4]" class="estrela-wrapper-readonly">
-              <i
-                *ngIf="getTipoEstrela(avaliacao, star) === 'cheia'"
-                class="pi pi-star-fill"
-                style="color: #fbbf24; font-size: 1.4rem;"></i>
-              <i
-                *ngIf="getTipoEstrela(avaliacao, star) === 'vazia'"
-                class="pi pi-star"
-                style="color: #d1d5db; font-size: 1.4rem;"></i>
-              <span
-                *ngIf="getTipoEstrela(avaliacao, star) === 'meia'"
-                class="estrela-meia-wrapper">
-                <i
-                  class="pi pi-star-fill"
-                  style="color: #fbbf24; font-size: 1.4rem; clip-path: inset(0 50% 0 0);"></i>
-                <i
-                  class="pi pi-star-fill"
-                  style="color: #d1d5db; font-size: 1.4rem; clip-path: inset(0 0 0 50%); position: absolute; top: 0; left: 0;"></i>
-              </span>
-            </span>
+            <app-campo-avaliacao
+  [ngModel]="avaliacao.nota"
+  tamanho="medio"
+  rotulo="Nota da avaliação"
+  somenteLeitura
+  permitirMeiaEstrela>
+</app-campo-avaliacao>
             <span class="avaliacao-nota-texto">{{ avaliacao.nota.toFixed(1) }}</span>
           </div>
           <p *ngIf="avaliacao.comentario" class="avaliacao-comentario">
             {{ avaliacao.comentario }}
           </p>
-          <button
-            class="btn-secondary btn-editar-avaliacao"
-            (click)="editarAvaliacao(i)">
-            <i class="pi pi-pencil"></i> Editar Avaliação
-          </button>
+          <button appBotao class="acao-formulario" variante="secundario" icone="pi pi-pencil" (click)="editarAvaliacao(i)">Editar Avaliação</button>
         </div>
       </div>
     </div>
-    <div class="custom-modal-footer">
-      <div class="modal-actions single">
-        <button class="btn-secondary" (click)="fecharAvaliacao()">
-          <i class="pi pi-times"></i> Fechar
-        </button>
+  </app-modal-corpo>
+
+  <app-modal-rodape separador>
+    <div appGrupoAcoes class="pedido-modal-acoes single" largurasIguais espacamento="var(--pedido-modal-gap)">
+        <button appBotao variante="secundario" aparencia="confirmacao" icone="pi pi-times" (click)="fecharAvaliacao()">Fechar</button>
       </div>
-    </div>
-  </div>
-</div>
+  </app-modal-rodape>
 
-<p-dialog
-  header="Alterar endereço de entrega"
-  [(visible)]="displayAlterarEnderecoModal"
-  [modal]="true"
-  [draggable]="false"
-  [resizable]="false"
-  [dismissableMask]="!salvandoEndereco"
-  [closable]="!salvandoEndereco"
-  [style]="{ width: '540px', maxWidth: '95vw' }"
-  [contentStyle]="{ overflow: 'auto', maxHeight: '65vh' }"
-  (onHide)="fecharAlterarEndereco()">
+</app-modal-base>
+<app-modal-base
+  [visivel]="displayAlterarEnderecoModal"
+  largura="540px"
+  alturaMaxima="90vh"
+  rotulo="Alterar endereço de entrega"
+  [bloqueado]="salvandoEndereco"
+  (fechar)="fecharAlterarEndereco()">
 
-  <div class="alterar-endereco-modal">
+  <app-modal-cabecalho
+    titulo="Alterar endereço de entrega"
+    subtitulo="Selecione o endereço para receber seu pedido"
+    icone="pi pi-map-marker"
+    [desabilitarFechar]="salvandoEndereco"
+    (fechar)="fecharAlterarEndereco()">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo rolagemInterna>
+    <div class="pedido-modal-conteudo">
+      <div class="alterar-endereco-modal">
     <div
       *ngIf="pedidoAlterarEndereco"
-      style="display: flex; align-items: flex-start; gap: 0.75rem; padding: 1rem; margin-bottom: 1.25rem; border: 1px solid #e2e8f0; border-radius: 10px;">
+      style="display: flex; align-items: flex-start; gap: 0.75rem; padding: 1rem; margin-bottom: 1.25rem; border: 1px solid #e2e8f0; border-radius: 0;">
 
       <i
         class="pi pi-info-circle"
@@ -864,16 +741,7 @@
       </div>
     </div>
 
-    <div *ngIf="carregandoEnderecos" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 2.5rem 1rem;">
-      <i
-        class="pi pi-spin pi-spinner"
-        style="font-size: 1.75rem; color: #64748b;">
-      </i>
-
-      <span style="font-size: 0.875rem; color: #64748b;">
-        Carregando endereços cadastrados...
-      </span>
-    </div>
+    <div *ngIf="carregandoEnderecos" class="pedido-endereco-carregamento"><app-carregamento texto="Carregando endereços cadastrados..." modelo="aneis"></app-carregamento></div>
 
     <div *ngIf="!carregandoEnderecos">
       <div style="margin-bottom: 1rem;">
@@ -888,7 +756,7 @@
 
       <div
         *ngIf="enderecosDisponiveis.length === 0"
-        style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 2rem 1rem; text-align: center; border: 1px solid #e2e8f0; border-radius: 10px;">
+        style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 2rem 1rem; text-align: center; border: 1px solid #e2e8f0; border-radius: 0;">
 
         <i
           class="pi pi-map-marker"
@@ -909,7 +777,7 @@
         <label
           *ngFor="let endereco of enderecosDisponiveis"
           [for]="'endereco-entrega-' + endereco.id"
-          style="display: flex; align-items: flex-start; gap: 0.85rem; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 10px; cursor: pointer;"
+          style="display: flex; align-items: flex-start; gap: 0.85rem; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 0; cursor: pointer;"
           [style.borderColor]="enderecoSelecionadoId == endereco.id ? '#475569' : '#e2e8f0'"
           [style.background]="enderecoSelecionadoId == endereco.id ? '#f8fafc' : 'transparent'">
 
@@ -920,7 +788,7 @@
             [value]="endereco.id"
             [(ngModel)]="enderecoSelecionadoId"
             [disabled]="salvandoEndereco"
-            style="margin-top: 0.25rem; cursor: pointer; accent-color: #475569;">
+            style="margin-top: 0.25rem; cursor: pointer; accent-color: #475569;" class="controle-selecao-compartilhado">
 
           <div style="flex: 1; min-width: 0;">
             <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.45rem;">
@@ -930,7 +798,7 @@
 
               <span
                 *ngIf="pedidoAlterarEndereco?.enderecoEntrega?.id == endereco.id"
-                style="padding: 0.2rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.7rem; color: #475569;">
+                style="padding: 0.2rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 0; font-size: 0.7rem; color: #475569;">
                 Endereço atual
               </span>
 
@@ -950,39 +818,27 @@
       </div>
     </div>
   </div>
+    </div>
+  </app-modal-corpo>
 
-  <ng-template pTemplate="footer">
+  <app-modal-rodape separador>
     <div style="display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 0.75rem; width: 100%;">
 
-      <button
-        type="button"
-        class="btn-secondary"
-        (click)="fecharAlterarEndereco()"
-        [disabled]="salvandoEndereco">
-        <i class="pi pi-times"></i>
-        Cancelar
-      </button>
+      <button appBotao variante="secundario" aparencia="confirmacao" icone="pi pi-times" (click)="fecharAlterarEndereco()"
+        [desabilitado]="salvandoEndereco">Cancelar</button>
 
-      <button
-        type="button"
-        class="btn-primary"
-        (click)="salvarAlteracaoEndereco()"
-        [disabled]="
+      <button appBotao variante="primario" aparencia="confirmacao" [carregando]="salvandoEndereco" textoCarregando="Salvando..." icone="pi pi-check" (click)="salvarAlteracaoEndereco()"
+        [desabilitado]="
           salvandoEndereco ||
           carregandoEnderecos ||
           enderecoSelecionadoId == null ||
           enderecosDisponiveis.length === 0 ||
           !podeAlterarEndereco(pedidoAlterarEndereco) ||
           pedidoAlterarEndereco?.enderecoEntrega?.id == enderecoSelecionadoId
-        ">
-
-        <i
-          class="pi"
-          [ngClass]="salvandoEndereco ? 'pi-spin pi-spinner' : 'pi-check'">
-        </i>
-
-        {{ salvandoEndereco ? 'Salvando...' : 'Salvar endereço' }}
-      </button>
+        ">Salvar endereço</button>
     </div>
-  </ng-template>
-</p-dialog>
+  </app-modal-rodape>
+
+</app-modal-base>
+
+<app-notificacao></app-notificacao>

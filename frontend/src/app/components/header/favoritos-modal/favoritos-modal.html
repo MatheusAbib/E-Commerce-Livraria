@@ -1,71 +1,101 @@
-<div class="custom-modal" [class.active]="visible">
-  <div class="custom-modal-overlay" (click)="fechar()"></div>
-  <div class="custom-modal-content" style="width: 600px; max-width: 95%; max-height: 85vh;">
-    <button class="custom-modal-close" (click)="fechar()">
-      <i class="pi pi-times"></i>
-    </button>
+<app-modal-base
+  [visivel]="visible"
+  largura="600px"
+  alturaMaxima="85vh"
+  rotulo="Meus Favoritos"
+  (fechar)="fechar()">
 
-    <div class="custom-modal-header">
-      <div class="auth-icon">
-        <i class="pi pi-heart"></i>
-      </div>
-      <h2>Meus Favoritos</h2>
-      <p>Seus livros favoritos salvos</p>
-    </div>
+  <app-modal-cabecalho
+    titulo="Meus Favoritos"
+    subtitulo="Seus livros favoritos salvos"
+    icone="pi pi-heart"
+    (fechar)="fechar()">
+  </app-modal-cabecalho>
 
-    <div class="custom-modal-body" style="position: relative; min-height: 200px; max-height: 60vh; overflow-y: auto;">
-      <div *ngIf="loading" class="loader-overlay">
-        <div class="loader-container">
-          <div class="loader-spinner">
-            <div class="spinner-ring"></div>
-            <div class="spinner-ring"></div>
-            <div class="spinner-ring"></div>
-          </div>
-          <p class="loader-text">Carregando favoritos...</p>
-        </div>
-      </div>
+  <app-modal-corpo rolagemInterna>
+    <div class="favoritos-conteudo">
+      <app-carregamento
+        *ngIf="loading"
+        texto="Carregando favoritos..."
+        modelo="aneis">
+      </app-carregamento>
 
-      <div *ngIf="!loading">
-        <div *ngIf="favoritos.length === 0" class="empty-state">
-          <i class="pi pi-heart" style="font-size: 3rem; color: #cbd5e1;"></i>
-          <h3>Nenhum favorito</h3>
-          <p>Você ainda não adicionou livros aos favoritos</p>
+      <ng-container *ngIf="!loading">
+        <div *ngIf="favoritos.length === 0" class="favoritos-vazio">
+          <app-estado-vazio
+            icone="pi pi-heart"
+            titulo="Nenhum favorito"
+            descricao="Você ainda não adicionou livros aos favoritos">
+          </app-estado-vazio>
         </div>
 
         <div *ngIf="favoritos.length > 0" class="favoritos-grid">
-          <div *ngFor="let livro of favoritos" class="favorito-card" [class.card-problema]="!livro.ativo || livro.estoque <= 0" (click)="verDetalhes(livro.id)">
-            <img [src]="livro.imagemUrl ? '/uploads/' + livro.imagemUrl : 'https://via.placeholder.com/60x80?text=Sem+Imagem'" [alt]="livro.titulo">
+          <div
+            *ngFor="let livro of favoritos"
+            class="favorito-card"
+            [class.card-problema]="!livro.ativo || estoqueDisponivel(livro) <= 0"
+            (click)="verDetalhes(livro.id)">
+
+            <img
+              [src]="livro.imagemUrl ? '/uploads/' + livro.imagemUrl : 'https://via.placeholder.com/60x80?text=Sem+Imagem'"
+              [alt]="livro.titulo">
+
             <div class="favorito-info">
               <div class="favorito-titulo">
-                <h4>{{livro.titulo}}</h4>
-                <span *ngIf="!livro.ativo" class="status-inativo-fav">INATIVO</span>
-                <span *ngIf="livro.ativo && livro.estoque <= 0" class="status-esgotado-fav">ESGOTADO</span>
+                <h4>{{ livro.titulo }}</h4>
+
+                <span
+                  *ngIf="!livro.ativo"
+                  class="status-inativo-fav">
+                  INATIVO
+                </span>
+
+                <span
+                  *ngIf="livro.ativo && estoqueDisponivel(livro) <= 0"
+                  class="status-esgotado-fav">
+                  ESGOTADO
+                </span>
               </div>
-              <p>{{livro.autor || 'Autor desconhecido'}}</p>
-              <span class="favorito-preco">R$ {{livro.precoVenda || 0 | number:'1.2-2'}}</span>
+
+              <p>{{ livro.autor || 'Autor desconhecido' }}</p>
+
+              <span class="favorito-preco">
+                R$ {{ livro.precoVenda || 0 | number:'1.2-2' }}
+              </span>
             </div>
+
             <div class="favorito-actions">
-              <button class="btn-ver" style="justify-content: center; border-radius: 100%; height: 32px; width: 32px;" (click)="verDetalhes(livro.id)" title="Ver detalhes">
-                <i class="pi pi-eye"></i>
+              <button
+                appBotaoIcone
+                class="acao-lista"
+                icone="pi pi-eye"
+                rotulo="Ver detalhes"
+                (click)="$event.stopPropagation(); verDetalhes(livro.id)">
               </button>
-              <button class="btn-favorito-remover" (click)="$event.stopPropagation()" (click)="removerFavorito(livro.id)" title="Remover dos favoritos" [disabled]="carregandoRemover[livro.id]" [class.loading]="carregandoRemover[livro.id]">
-                <i class="pi pi-heart-fill" style="color: #dc2626;"></i>
+
+              <button
+                appBotaoIcone
+                class="acao-lista acao-remover"
+                icone="pi pi-heart-fill"
+                rotulo="Remover dos favoritos"
+                [desabilitado]="carregandoRemover[livro.id]"
+                (click)="$event.stopPropagation(); removerFavorito(livro.id)">
               </button>
-              <button class="btn-carrinho" (click)="$event.stopPropagation()" (click)="adicionarAoCarrinho(livro.id)" title="Adicionar ao carrinho" [disabled]="!livro.ativo || livro.estoque <= 0 || carregandoCarrinho[livro.id]" [class.loading]="carregandoCarrinho[livro.id]">
-                <i class="pi pi-cart-plus"></i>
+
+              <button
+                appBotaoIcone
+                class="acao-lista acao-adicionar"
+                icone="pi pi-cart-plus"
+                rotulo="Adicionar ao carrinho"
+                [desabilitado]="!livro.ativo || estoqueDisponivel(livro) <= 0 || carregandoCarrinho[livro.id] || carrinhoService.obterQuantidadeLivro(livro.id) >= 3"
+                (click)="$event.stopPropagation(); adicionarAoCarrinho(livro.id)">
               </button>
             </div>
           </div>
         </div>
-      </div>
+      </ng-container>
     </div>
+  </app-modal-corpo>
+</app-modal-base>
 
-    <div class="custom-modal-footer">
-      <button class="btn-secondary" (click)="fechar()">
-        <i class="pi pi-times"></i> Fechar
-      </button>
-    </div>
-  </div>
-</div>
-
-<p-toast position="top-right" [life]="2000"></p-toast>
+<app-notificacao></app-notificacao>

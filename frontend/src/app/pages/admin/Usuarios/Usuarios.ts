@@ -1,30 +1,66 @@
-import { Component, OnInit } from '@angular/core';
+import { ClienteService } from '../../../services/cliente.service';
+import { inject } from '@angular/core';
+import { ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent, ModalRodapeComponent, ModalConfirmacaoComponent } from '../../../components/shared/modals';
+import { NotificacaoComponent } from '../../../components/shared/feedback';
+import { EstadoVazioComponent } from '../../../components/shared/feedback';
+import { CarregamentoComponent } from '../../../components/shared/feedback';
+import { GrupoFormularioComponent } from '../../../components/shared/forms';
+import { MascaraDirective } from '../../../components/shared/forms';
+import { MensagemValidacaoComponent } from '../../../components/shared/forms';
+import { CampoSelecaoComponent } from '../../../components/shared/forms';
+import { CampoSenhaComponent } from '../../../components/shared/forms';
+import { CampoDirective } from '../../../components/shared/forms';
+import { BotaoComponent } from '../../../components/shared/buttons/botao/botao';
+import { BotaoIconeComponent } from '../../../components/shared/buttons/botao-icone/botao-icone';
+import { GrupoAcoesComponent } from '../../../components/shared/buttons/grupo-acoes/grupo-acoes';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaginatorModule } from 'primeng/paginator';
-import { DialogModule } from 'primeng/dialog';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { AdminSidebarComponent } from '../../../components/admin-sidebar/admin-sidebar';
-import { AdminService } from '../../../services/admin.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-usuarios-admin',
   standalone: true,
-  imports: [
+  imports: [ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent, ModalRodapeComponent, ModalConfirmacaoComponent, NotificacaoComponent, EstadoVazioComponent, CarregamentoComponent, GrupoFormularioComponent, MascaraDirective, MensagemValidacaoComponent, CampoSelecaoComponent, CampoSenhaComponent, CampoDirective, 
     CommonModule,
     FormsModule,
     PaginatorModule,
-    DialogModule,
-    ToastModule,
-    AdminSidebarComponent
+    AdminSidebarComponent,
+    BotaoComponent,
+    BotaoIconeComponent,
+    GrupoAcoesComponent
   ],
   providers: [MessageService],
   templateUrl: './Usuarios.html',
   styleUrls: ['./Usuarios.css', '../admin-common.css']
 })
-export class UsuariosComponent implements OnInit {
+export class UsuariosComponent implements OnInit, OnDestroy {
+  private readonly clienteService = inject(ClienteService);
+
+
+  get opcoesGenerosFiltro() {
+    return this.generosOptions.map(op => ({
+      rotulo: op.label,
+      valor: String(op.value ?? '')
+    }));
+  }
+
+  get opcoesStatusFiltro() {
+    return this.statusOptions.map(op => ({
+      rotulo: op.label,
+      valor: String(op.value ?? '')
+    }));
+  }
+
+  readonly opcoesGenerosCadastro = [
+    { rotulo: 'Prefiro não informar', valor: 'PREFIRO_NAO_INFORMAR' },
+    { rotulo: 'Masculino', valor: 'MASCULINO' },
+    { rotulo: 'Feminino', valor: 'FEMININO' }
+  ];
+
   clientes: any[] = [];
   clientesFiltrados: any[] = [];
   clientesPaginados: any[] = [];
@@ -77,7 +113,6 @@ export class UsuariosComponent implements OnInit {
   clienteExcluir: any = { id: null, nome: '' };
 
   constructor(
-    private adminService: AdminService,
     private messageService: MessageService
   ) {}
 
@@ -97,7 +132,7 @@ export class UsuariosComponent implements OnInit {
         params.append('ativo', filtros.ativo === 'ativo' ? 'true' : 'false');
       }
       const url = `${environment.apiUrl}/clientes/consulta?${params.toString()}`;
-      const data = await this.adminService.getClientesConsulta(url).toPromise();
+      const data = await this.clienteService.consultarAdministrativo(url).toPromise();
       this.clientes = data || [];
       this.clientesFiltrados = [...this.clientes];
       this.totalRecords = this.clientesFiltrados.length;
@@ -110,6 +145,24 @@ export class UsuariosComponent implements OnInit {
     }
   }
 
+
+  private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly DEBOUNCE_MS = 350;
+
+  onFiltroTextoChange(): void {
+    if (this.debounceTimer) clearTimeout(this.debounceTimer);
+    const vazio = !this.filtros.nome && !this.filtros.email && !this.filtros.cpf
+      && !this.filtros.genero && !this.filtros.ativo;
+    if (vazio) {
+      this.aplicarFiltros();
+      return;
+    }
+    this.debounceTimer = setTimeout(() => this.aplicarFiltros(), this.DEBOUNCE_MS);
+  }
+
+  ngOnDestroy(): void {
+    if (this.debounceTimer) clearTimeout(this.debounceTimer);
+  }
 filtrando: boolean = false;
 
 aplicarFiltros(): void {
@@ -185,7 +238,7 @@ limparFiltros(): void {
       return;
     }
     try {
-      const data = await this.adminService.criarCliente(this.novoCliente).toPromise();
+      await this.clienteService.cadastrarAdministrativo(this.novoCliente).toPromise();
       this.messageService.add({severity:'success', summary:'Sucesso', detail:'Cliente cadastrado com sucesso!'});
       this.displayCadastroModal = false;
       this.carregarClientes();
@@ -215,7 +268,7 @@ limparFiltros(): void {
       return;
     }
     try {
-      await this.adminService.alterarSenha(this.clienteSenha.id, this.clienteSenha.novaSenha, this.clienteSenha.confirmarSenha).toPromise();
+      await this.clienteService.alterarSenhaAdministrativo(this.clienteSenha.id, this.clienteSenha.novaSenha, this.clienteSenha.confirmarSenha).toPromise();
 
       // Atualizar a senha salva no "Lembrar-me" do cliente
       this.atualizarSenhaSalva(this.clienteSenha.email, this.clienteSenha.novaSenha);
@@ -238,7 +291,6 @@ limparFiltros(): void {
         if (parsed.email === email) {
           parsed.senha = novaSenha;
           localStorage.setItem(REMEMBER_KEY, JSON.stringify(parsed));
-          console.log('Senha salva no "Lembrar-me" atualizada para o cliente:', email);
         }
       } catch (e) {
         console.error('Erro ao atualizar senha salva:', e);
@@ -258,7 +310,7 @@ limparFiltros(): void {
       return;
     }
     try {
-      await this.adminService.alterarStatus(this.clienteStatus.id, this.clienteStatus.ativo, this.motivoStatus).toPromise();
+      await this.clienteService.alterarStatusAdministrativo(this.clienteStatus.id, this.clienteStatus.ativo, this.motivoStatus).toPromise();
       this.messageService.add({severity:'success', summary:'Sucesso', detail:'Status alterado com sucesso!'});
       this.displayStatusModal = false;
       this.carregarClientes();
@@ -275,7 +327,7 @@ limparFiltros(): void {
 
   async confirmarExcluir(): Promise<void> {
     try {
-      await this.adminService.excluirCliente(this.clienteExcluir.id).toPromise();
+      await this.clienteService.excluirAdministrativo(this.clienteExcluir.id).toPromise();
       this.messageService.add({severity:'success', summary:'Sucesso', detail:'Cliente excluído com sucesso!'});
       this.displayExcluirModal = false;
       this.carregarClientes();
@@ -285,41 +337,8 @@ limparFiltros(): void {
     }
   }
 
-  togglePassword(inputId: string): void {
-    const input = document.getElementById(inputId) as HTMLInputElement;
-    if (!input) return;
-    const icon = input.parentElement?.querySelector('.password-toggle') as HTMLElement;
-    if (!icon) return;
-    if (input.type === 'password') {
-      input.type = 'text';
-      icon.className = 'pi pi-eye-slash password-toggle';
-    } else {
-      input.type = 'password';
-      icon.className = 'pi pi-eye password-toggle';
-    }
-  }
 
-  formatarCPF(event: any): void {
-    let valor = event.target.value.replace(/\D/g, '');
-    if (valor.length > 11) valor = valor.slice(0, 11);
-    if (valor.length === 11) {
-      valor = valor.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    } else if (valor.length > 3) {
-      valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
-    }
-    event.target.value = valor;
-  }
 
-  formatarTelefone(event: any): void {
-    let valor = event.target.value.replace(/\D/g, '');
-    if (valor.length > 11) valor = valor.slice(0, 11);
-    if (valor.length === 11) {
-      valor = valor.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-    } else if (valor.length === 10) {
-      valor = valor.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-    }
-    event.target.value = valor;
-  }
 
   formatarCPFExibicao(cpf: string): string {
     if (!cpf) return '-';
@@ -362,3 +381,8 @@ limparFiltros(): void {
     return labels[genero] || genero || '-';
   }
 }
+
+
+
+
+

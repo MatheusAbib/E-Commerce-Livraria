@@ -1,0 +1,39 @@
+:host {
+  display: grid;
+  grid-template-columns: repeat(
+    var(--formulario-colunas, 2),
+    minmax(0, 1fr)
+  );
+  gap: var(--formulario-gap, 16px);
+  align-items: start;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+
+:host([data-alinhamento="centro"]) {
+  align-items: center;
+}
+
+:host([data-alinhamento="fim"]) {
+  align-items: end;
+}
+
+:host([data-alinhamento="esticar"]) {
+  align-items: stretch;
+}
+
+@media (max-width: 768px) {
+  :host {
+    grid-template-columns: repeat(
+      var(--formulario-colunas-tablet, 2),
+      minmax(0, 1fr)
+    );
+  }
+}
+
+@media (max-width: 480px) {
+  :host(.formulario-empilhar) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

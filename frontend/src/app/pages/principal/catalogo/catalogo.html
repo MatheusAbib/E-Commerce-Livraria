@@ -1,0 +1,287 @@
+<section class="catalogo-livraria principal-secao" id="produtos" aria-labelledby="catalogo-titulo">
+  <div class="principal-secao-conteudo">
+    <ng-template #complementoSecao>
+      <div class="catalogo-cabecalho-info">
+        <div class="catalogo-total" *ngIf="!loading">
+          <strong>{{ totalRecords | number:'1.0-0' }}</strong>
+          <span>{{ totalRecords === 1 ? 'título encontrado' : 'títulos encontrados' }}</span>
+        </div>
+
+        <div appGrupoAcoes alinhamento="fim" espacamento="8px" class="catalogo-atalhos" *ngIf="isLoggedIn">
+          <button appBotao variante="secundario" icone="pi pi-heart" (click)="abrirAtalho('favoritos')">
+            Favoritos
+            <span class="atalho-contador" *ngIf="favoritosCount">{{ favoritosCount }}</span>
+          </button>
+          <button appBotao variante="secundario" icone="pi pi-shopping-cart" (click)="abrirAtalho('carrinho')">
+            Carrinho
+            <span class="atalho-contador" *ngIf="carrinhoItens">{{ carrinhoItens }}</span>
+          </button>
+          <button appBotao variante="secundario" icone="pi pi-tag" (click)="abrirAtalho('cupons')">
+            Cupons
+            <span class="atalho-contador" *ngIf="cuponsDisponiveisCount">{{ cuponsDisponiveisCount }}</span>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+
+    <ng-container
+      *ngTemplateOutlet="cabecalhoSecao; context: {
+        indice: '06 / CATÁLOGO',
+        titulo: 'Encontre sua',
+        destaque: 'próxima leitura.',
+        id: 'catalogo-titulo',
+        complemento: complementoSecao
+      }">
+    </ng-container>
+
+    <div class="produtos-layout">
+      <aside class="filtros-lateral">
+        <div class="filtros-cabecalho">
+          <div>
+            <span>PERSONALIZE SUA BUSCA</span>
+            <h3>Filtros</h3>
+          </div>
+          <i class="pi pi-sliders-h"></i>
+        </div>
+
+        <div class="filtros-conteudo">
+          <div class="filtro-grupo">
+            <span class="filtro-grupo-titulo">01 / IDENTIFICAÇÃO</span>
+
+            <div class="filtro-item">
+              <label for="filtro-titulo">Título</label>
+              <input appCampo id="filtro-titulo" type="text"
+                [(ngModel)]="filtros.titulo"
+                (ngModelChange)="onFiltroTextoChange()"
+                placeholder="Nome do livro"
+                (keyup.enter)="aplicarFiltros()">
+            </div>
+
+            <div class="filtro-item">
+              <label for="filtro-autor">Autor</label>
+              <input appCampo id="filtro-autor" type="text"
+                [(ngModel)]="filtros.autor"
+                (ngModelChange)="onFiltroTextoChange()"
+                placeholder="Nome do autor"
+                (keyup.enter)="aplicarFiltros()">
+            </div>
+
+            <div class="filtro-item">
+              <label for="filtro-editora">Editora</label>
+              <input appCampo id="filtro-editora" type="text"
+                [(ngModel)]="filtros.editora"
+                (ngModelChange)="onFiltroTextoChange()"
+                placeholder="Nome da editora"
+                (keyup.enter)="aplicarFiltros()">
+            </div>
+          </div>
+
+          <div class="filtro-grupo">
+            <span class="filtro-grupo-titulo">02 / PREFERÊNCIAS</span>
+
+            <div class="filtro-item">
+              <label for="filtro-categoria">Categoria</label>
+              <app-campo-selecao
+                campoId="filtro-categoria"
+                rotulo="Categoria"
+                [opcoes]="opcoesCategoriasCompartilhadas"
+                [valorVazio]="''"
+                [exibirPlaceholder]="false"
+                [(ngModel)]="filtros.categoria"
+                (ngModelChange)="aplicarFiltros()">
+              </app-campo-selecao>
+            </div>
+
+            <div class="filtro-item">
+              <label for="filtro-preco">Preço máximo (R$)</label>
+              <input appCampo id="filtro-preco" type="number"
+                min="0" step="0.01"
+                [(ngModel)]="filtros.precoMax"
+                (ngModelChange)="onFiltroTextoChange()"
+                placeholder="Sem limite"
+                (keyup.enter)="aplicarFiltros()">
+            </div>
+
+            <div class="filtro-item">
+              <label for="filtro-avaliacao">Avaliação dos leitores</label>
+              <app-campo-selecao
+                campoId="filtro-avaliacao"
+                rotulo="Avaliação"
+                [opcoes]="opcoesAvaliacoes"
+                [valorVazio]="''"
+                [exibirPlaceholder]="false"
+                [(ngModel)]="filtros.avaliacao"
+                (ngModelChange)="aplicarFiltros()">
+              </app-campo-selecao>
+            </div>
+          </div>
+
+          <div appGrupoAcoes class="filtro-acoes" largurasIguais espacamento="10px">
+            <button appBotao variante="primario" icone="pi pi-search"
+              [carregando]="carregandoFiltro"
+              [desabilitado]="loading"
+              (click)="aplicarFiltros()">Aplicar</button>
+            <button appBotao variante="secundario" icone="pi pi-times"
+              [carregando]="carregandoLimpar"
+              [desabilitado]="loading"
+              (click)="limparFiltros()">Limpar</button>
+          </div>
+        </div>
+      </aside>
+
+      <div class="produtos-lista">
+        <div class="catalogo-barra">
+          <div class="catalogo-resultados">
+            <i class="pi pi-th-large"></i>
+            <span *ngIf="!loading && totalRecords">
+              Exibindo {{ first + 1 }}–{{ first + livrosPaginados.length }} de {{ totalRecords }}
+            </span>
+            <span *ngIf="loading">Buscando livros</span>
+            <span *ngIf="!loading && !totalRecords">Nenhum resultado</span>
+          </div>
+
+          <div class="catalogo-ordenacao">
+            <label for="catalogo-ordenacao">Ordenar por</label>
+            <app-campo-selecao
+              campoId="catalogo-ordenacao"
+              rotulo="Ordenação"
+              [opcoes]="opcoesOrdenacao"
+              [valorVazio]="''"
+              [exibirPlaceholder]="false"
+              [ngModel]="filtros.ordenacao"
+              (ngModelChange)="alterarOrdenacao($event)">
+            </app-campo-selecao>
+          </div>
+        </div>
+
+        <div *ngIf="loading" class="catalogo-carregamento">
+          <app-carregamento texto="Buscando livros..." modelo="aneis"></app-carregamento>
+        </div>
+
+        <div *ngIf="!loading && !filteredLivros.length" class="catalogo-vazio">
+          <app-estado-vazio
+            icone="pi pi-search"
+            titulo="Nenhum livro encontrado"
+            descricao="Tente ajustar os filtros ou buscar por outro termo.">
+            <button appBotao variante="secundario" icone="pi pi-times"
+              (click)="limparFiltros()">Limpar filtros</button>
+          </app-estado-vazio>
+        </div>
+
+        <div *ngIf="!loading && filteredLivros.length" class="produtos-grid">
+          <article class="livro-card" *ngFor="let livro of livrosPaginados; trackBy: identificarLivro">
+            <div class="livro-visual">
+              <span class="livro-categoria">{{ livro.categoria || 'Literatura' }}</span>
+
+              <button appBotaoIcone
+                class="livro-favorito"
+                variante="neutro"
+                [icone]="favoritosIds.includes(livro.id) ? 'pi pi-heart-fill' : 'pi pi-heart'"
+                [rotulo]="favoritosIds.includes(livro.id) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'"
+                [selecionado]="favoritosIds.includes(livro.id)"
+                [carregando]="carregandoFavorito[livro.id]"
+                (click)="favoritar(livro.id)">
+              </button>
+
+              <a class="livro-capa-link" href="#produtos"
+                (click)="$event.preventDefault(); verDetalhes(livro)"
+                [attr.aria-label]="'Ver detalhes de ' + livro.titulo">
+                <img
+                  [src]="livro.imagemUrl ? '/uploads/' + livro.imagemUrl : '/images/livro.png'"
+                  [alt]="livro.titulo"
+                  loading="lazy">
+              </a>
+
+              <span class="livro-indisponivel" *ngIf="!livro.ativo || estoqueDisponivel(livro) <= 0">
+                {{ !livro.ativo ? 'Indisponível' : 'Esgotado' }}
+              </span>
+            </div>
+
+            <div class="livro-conteudo">
+              <div class="livro-identidade">
+                <span class="livro-editora">{{ livro.editora || 'Edição literária' }}</span>
+                <h3>
+                  <a href="#produtos"
+                     (click)="$event.preventDefault(); verDetalhes(livro)"
+                     [title]="livro.titulo"
+                     [innerHTML]="destacarTrecho(livro.titulo, filtros.titulo)">
+                  </a>
+                </h3>
+                <p class="livro-autor" [title]="livro.autor">{{ livro.autor || 'Autor desconhecido' }}</p>
+              </div>
+
+              <div class="livro-indicadores">
+                <div class="livro-avaliacao" *ngIf="livro.avaliacao?.totalAvaliacoes > 0; else semAvaliacao">
+                  <app-campo-avaliacao
+                    [ngModel]="livro.avaliacao.media"
+                    [somenteLeitura]="true"
+                    [permitirMeiaEstrela]="true"
+                    tamanho="pequeno">
+                  </app-campo-avaliacao>
+                  <strong>{{ formatarNota(livro.avaliacao.media) }}</strong>
+                  <span>({{ livro.avaliacao.totalAvaliacoes }})</span>
+                </div>
+
+                <ng-template #semAvaliacao>
+                  <span class="livro-sem-avaliacao">
+                    <i class="pi pi-star"></i>
+                    Sem avaliações
+                  </span>
+                </ng-template>
+
+                <span class="livro-vendas">
+                  <i class="pi pi-shopping-bag"></i>
+                  {{ livro.quantidadeVendida || 0 }} {{ livro.quantidadeVendida === 1 ? 'vendido' : 'vendidos' }}
+                </span>
+              </div>
+
+              <div class="livro-comercial">
+                <div class="livro-disponibilidade"
+                  [class.indisponivel]="!livro.ativo || estoqueDisponivel(livro) <= 0"
+                  [class.estoque-baixo]="livro.ativo && estoqueDisponivel(livro) > 0 && estoqueDisponivel(livro) <= 3">
+                  <span class="disponibilidade-ponto"></span>
+                  {{ !livro.ativo ? 'Indisponível' : estoqueDisponivel(livro) <= 0 ? 'Sem estoque' : estoqueDisponivel(livro) <= 3 ? 'Últimas unidades' : 'Em estoque' }}
+                </div>
+
+                <div class="livro-preco">
+                  <span>R$</span>
+                  <strong>{{ livro.precoVenda || 0 | number:'1.2-2' }}</strong>
+                </div>
+              </div>
+
+              <div class="livro-acoes">
+                <button appBotaoIcone variante="neutro"
+                  icone="pi pi-eye" rotulo="Ver detalhes"
+                  (click)="verDetalhes(livro)">
+                </button>
+
+                <span *ngIf="!isLoggedIn" class="livro-compra"
+                  pTooltip="Faça login para comprar" tooltipPosition="top">
+                  <button appBotao variante="primario" icone="pi pi-cart-plus"
+                    [larguraTotal]="true" [desabilitado]="true">Adicionar</button>
+                </span>
+
+                <span *ngIf="isLoggedIn" class="livro-compra">
+                  <button appBotao variante="primario" icone="pi pi-cart-plus"
+                    [larguraTotal]="true"
+                    [desabilitado]="limiteAdicao(livro) <= 0 || !livro.ativo"
+                    [carregando]="carregandoCarrinho[livro.id]"
+                    (click)="adicionarAoCarrinho(livro.id)">Adicionar</button>
+                </span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <p-paginator
+          *ngIf="!loading && filteredLivros.length"
+          [first]="first"
+          [rows]="rows"
+          [totalRecords]="totalRecords"
+          [rowsPerPageOptions]="[24, 48, 96]"
+          (onPageChange)="onPageChange($event)">
+        </p-paginator>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,17 @@
+@if (carregando) {
+  <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+} @else if (icone && posicaoIcone === 'inicio') {
+  <i [class]="icone" aria-hidden="true"></i>
+}
+
+<span class="botao-conteudo" [hidden]="carregando && !!textoCarregando">
+  <ng-content></ng-content>
+</span>
+
+@if (carregando && textoCarregando) {
+  <span>{{ textoCarregando }}</span>
+}
+
+@if (!carregando && icone && posicaoIcone === 'fim') {
+  <i [class]="icone" aria-hidden="true"></i>
+}

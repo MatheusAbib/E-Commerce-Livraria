@@ -1,12 +1,14 @@
+import { ChatbotService } from '../../services/chatbot.service';
+import { inject } from '@angular/core';
+import { PedidoService } from '../../services/pedido.service';
 
 import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
-import { environment } from '../../../environments/environment';
+
 
 @Component({
   selector: 'app-chatbot',
@@ -569,6 +571,10 @@ import { environment } from '../../../environments/environment';
   `]
 })
 export class ChatbotComponent implements OnInit, OnDestroy {
+  private readonly chatbotService = inject(ChatbotService);
+
+  private readonly pedidoService = inject(PedidoService);
+
   @ViewChild('chatMessages') chatMessages!: ElementRef;
 
   minimized: boolean = true;
@@ -587,9 +593,7 @@ export class ChatbotComponent implements OnInit, OnDestroy {
   ];
 
   constructor(
-    private authService: AuthService,
-    private messageService: MessageService,
-    private router: Router
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -646,14 +650,11 @@ export class ChatbotComponent implements OnInit, OnDestroy {
     try {
       const token = this.authService.getToken();
 
-      const response = await fetch(
-        `${environment.apiUrl}/pedidos?clienteId=${user.id}`,
-        {
+      const response = await this.pedidoService.listarPorCliente(user.id, {
           headers: {
             Authorization: 'Bearer ' + token
           }
-        }
-      );
+        });
 
       if (response.ok) {
         const todosPedidos = await response.json();
@@ -731,7 +732,7 @@ REGRAS:
 Resposta:`;
 
     try {
-      const response = await fetch(`${environment.apiUrl}/chatbot`, {
+      const response = await this.chatbotService.enviarMensagem({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

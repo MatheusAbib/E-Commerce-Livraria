@@ -1,21 +1,35 @@
-
 package com.biblioteca.biblioteca_online.repository;
 
 import com.biblioteca.biblioteca_online.model.Cliente;
 import com.biblioteca.biblioteca_online.model.Pedido;
+import jakarta.persistence.LockModeType;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     List<Pedido> findByClienteId(Long clienteId);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        SELECT p FROM Pedido p
+        WHERE p.id = :id
+        """)
+    Optional<Pedido> buscarPorIdComBloqueio(
+        @Param("id") Long id
+    );
+
     @Query("SELECT p FROM Pedido p WHERE p.cliente.id = :clienteId ORDER BY p.dataPedido DESC")
-    List<Pedido> findPedidosPorClienteOrdenadosPorData(@Param("clienteId") Long clienteId);
+    List<Pedido> findPedidosPorClienteOrdenadosPorData(
+        @Param("clienteId") Long clienteId
+    );
 
     @Transactional
     void deleteByCliente(Cliente cliente);

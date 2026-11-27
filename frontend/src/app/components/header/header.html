@@ -1,5 +1,28 @@
 
-<header id="main-header">
+<header [class.header-inicial]="headerPaginaInicial()" id="main-header">
+  <div class="header-pendencias" *ngIf="perfilIncompleto">
+  <div class="header-pendencias-container">
+    <div class="header-pendencias-info">
+      <i class="pi pi-exclamation-circle"></i>
+
+      <div class="header-pendencias-texto">
+        <strong>Dados pendentes</strong>
+        <span>Complete seu perfil para realizar suas compras.</span>
+      </div>
+    </div>
+
+    <button
+      appBotao
+      class="header-pendencias-btn acao-header-pendencias"
+      variante="secundario"
+      tamanho="pequeno"
+      icone="pi pi-arrow-up-right"
+      posicaoIcone="fim"
+      (click)="fecharMenu(); menuContaAberto = false; abrirPerfil()">
+      Completar perfil
+    </button>
+  </div>
+</div>
   <div class="header-container">
     <div class="header-brand">
       <a
@@ -114,22 +137,25 @@
     </nav>
 
     <div class="header-actions">
-      <p-button
+      <button
+        appBotao
+        class="acao-header-entrar"
+        variante="secundario"
+        tamanho="pequeno"
+        icone="pi pi-sign-in"
         *ngIf="!isLoggedIn"
-        (click)="abrirLogin()"
-        label="Entrar"
-        icon="pi pi-sign-in"
-        styleClass="p-button-outlined p-button-sm">
-      </p-button>
+        (click)="abrirLogin()">
+        Entrar
+      </button>
 
       <div *ngIf="isLoggedIn" class="user-actions">
         <button
-          type="button"
-          class="action-icon"
-          (click)="abrirFavoritos()"
-          title="Favoritos"
-          aria-label="Favoritos">
-          <i class="pi pi-heart"></i>
+          appBotaoIcone
+          class="action-icon acao-header-icone"
+          variante="transparente"
+          icone="pi pi-heart"
+          rotulo="Favoritos"
+          (click)="abrirFavoritos()">
           <span
             class="badge-cart"
             *ngIf="favoritosCount > 0">
@@ -138,12 +164,12 @@
         </button>
 
         <button
-          type="button"
-          class="action-icon"
-          (click)="abrirCarrinho()"
-          title="Carrinho"
-          aria-label="Carrinho">
-          <i class="pi pi-shopping-cart"></i>
+          appBotaoIcone
+          class="action-icon acao-header-icone"
+          variante="transparente"
+          icone="pi pi-shopping-cart"
+          rotulo="Carrinho"
+          (click)="abrirCarrinho()">
           <span
             class="badge-cart"
             *ngIf="carrinhoItens > 0">
@@ -152,12 +178,12 @@
         </button>
 
         <button
-          type="button"
-          class="action-icon"
-          (click)="abrirNotificacoes()"
-          title="Notificações"
-          aria-label="Notificações">
-          <i class="pi pi-bell"></i>
+          appBotaoIcone
+          class="action-icon acao-header-icone"
+          variante="transparente"
+          icone="pi pi-bell"
+          rotulo="Notificações"
+          (click)="abrirNotificacoes()">
           <span
             class="badge-notif"
             *ngIf="notificacoesNaoLidas > 0">
@@ -166,12 +192,12 @@
         </button>
 
         <button
-          type="button"
-          class="action-icon"
-          (click)="abrirCupons()"
-          title="Cupons"
-          aria-label="Cupons">
-          <i class="pi pi-tag"></i>
+          appBotaoIcone
+          class="action-icon acao-header-icone"
+          variante="transparente"
+          icone="pi pi-tag"
+          rotulo="Cupons"
+          (click)="abrirCupons()">
           <span
             class="badge-cart"
             *ngIf="cuponsDisponiveisCount > 0">
@@ -180,12 +206,12 @@
         </button>
 
         <button
-          type="button"
-          class="action-icon"
-          (click)="abrirChatsModal()"
-          title="Chats"
-          aria-label="Chats">
-          <i class="pi pi-comment"></i>
+          appBotaoIcone
+          class="action-icon acao-header-icone"
+          variante="transparente"
+          icone="pi pi-comment"
+          rotulo="Chats"
+          (click)="abrirChatsModal()">
           <span
             class="badge-cart"
             *ngIf="totalChatsNaoLidas > 0">
@@ -205,6 +231,12 @@
           <span></span>
           <span></span>
           <span></span>
+
+          <i
+            *ngIf="perfilIncompleto"
+            class="pi pi-exclamation-circle perfil-alerta-badge"
+            title="Existem dados pendentes no seu perfil">
+          </i>
         </button>
 
         <div class="account-menu" *ngIf="menuContaAberto">
@@ -213,14 +245,21 @@
             <strong>{{ usuario?.nome || 'Minha conta' }}</strong>
           </div>
 
-          <button
-            type="button"
-            class="account-menu-item"
-            (click)="menuContaAberto = false; abrirPerfil()">
-            <i class="pi pi-user"></i>
-            <span>Meu perfil</span>
-            <i class="pi pi-arrow-up-right"></i>
-          </button>
+            <button
+              type="button"
+              class="account-menu-item"
+              (click)="menuContaAberto = false; abrirPerfil()">
+              <i class="pi pi-user"></i>
+              <span>Meu perfil</span>
+
+              <i
+                *ngIf="perfilIncompleto"
+                class="pi pi-exclamation-circle perfil-alerta-inline"
+                title="Perfil incompleto">
+              </i>
+
+              <i class="pi pi-arrow-up-right"></i>
+            </button>
 
           <button
             type="button"
@@ -233,17 +272,23 @@
         </div>
       </div>
 
-      <button
-        type="button"
-        class="menu-toggle"
-        *ngIf="isLoggedIn"
-        (click)="toggleMenu()"
-        [class.active]="menuAberto"
-        [attr.aria-expanded]="menuAberto"
-        aria-label="Abrir ou fechar navegação">
-        <span></span>
-        <span></span>
-      </button>
+<button
+  type="button"
+  class="menu-toggle"
+  *ngIf="isLoggedIn"
+  (click)="toggleMenu()"
+  [class.active]="menuAberto"
+  [attr.aria-expanded]="menuAberto"
+  aria-label="Abrir ou fechar navegação">
+  <span></span>
+  <span></span>
+
+  <i
+    *ngIf="perfilIncompleto"
+    class="pi pi-exclamation-circle perfil-alerta-badge"
+    title="Perfil incompleto">
+  </i>
+</button>
     </div>
   </div>
 </header>
@@ -287,4 +332,4 @@
   (abrirChat)="abrirChatDrawer($event)">
 </app-chat-modal>
 
-<p-toast position="top-right" [life]="2000"></p-toast>
+<app-notificacao></app-notificacao>

@@ -1,24 +1,29 @@
-import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef, ViewEncapsulation } from '@angular/core';
+import { inject } from '@angular/core';
+import { FavoritoService } from '../../../services/favorito.service';
+import { ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent } from '../../shared/modals';
+import { NotificacaoComponent } from '../../../components/shared/feedback';
+import { EstadoVazioComponent } from '../../../components/shared/feedback';
+import { CarregamentoComponent } from '../../../components/shared/feedback';
+import { BotaoIconeComponent } from '../../shared/buttons/botao-icone/botao-icone';
+import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { CarrinhoService } from '../../../services/carrinho';
 import { AuthService } from '../../../services/auth';
 import { Router } from '@angular/router';
-import { environment } from '../../../../environments/environment';
+
 
 @Component({
   selector: 'app-favoritos-modal',
   standalone: true,
-  imports: [CommonModule, ButtonModule, DialogModule, ToastModule],
+  imports: [NotificacaoComponent, EstadoVazioComponent, CarregamentoComponent, CommonModule, BotaoIconeComponent, ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent],
   providers: [MessageService],
   templateUrl: './favoritos-modal.html',
-  styleUrls: ['./favoritos-modal.css'],
-  encapsulation: ViewEncapsulation.None
+  styleUrls: ['./favoritos-modal.css']
 })
 export class FavoritosModalComponent implements OnInit {
+  private readonly favoritoService = inject(FavoritoService);
+
   @Input() visible: boolean = false;
   @Output() visibleChange = new EventEmitter<boolean>();
 
@@ -32,7 +37,7 @@ export class FavoritosModalComponent implements OnInit {
 
   constructor(
     private messageService: MessageService,
-    private carrinhoService: CarrinhoService,
+    public carrinhoService: CarrinhoService,
     private cdr: ChangeDetectorRef,
     private router: Router,
     private authService: AuthService
@@ -64,11 +69,8 @@ export class FavoritosModalComponent implements OnInit {
   }
 
   async carregarFavoritos(): Promise<void> {
-    console.log('Carregando favoritos...');
-    console.log('Usuario no modal:', this.usuario);
 
     if (!this.usuario) {
-      console.log('Usuário não encontrado no modal');
       return;
     }
 
@@ -77,20 +79,17 @@ export class FavoritosModalComponent implements OnInit {
 
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/clientes/${this.usuario.id}/favoritos`, {
+      const response = await this.favoritoService.listar(this.usuario.id, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + token
         }
       });
-      console.log('Response status:', response.status);
 
       if (response.ok) {
         this.favoritos = await response.json();
-        console.log('Favoritos carregados:', this.favoritos);
         this.cdr.detectChanges();
       } else {
-        console.log('Erro na resposta:', response.status);
       }
     } catch (error) {
       console.error('Erro ao carregar favoritos:', error);
@@ -115,7 +114,7 @@ export class FavoritosModalComponent implements OnInit {
 
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/clientes/${this.usuario.id}/favoritos/${livroId}`, {
+      const response = await this.favoritoService.remover(this.usuario.id, livroId, {
         method: 'DELETE',
         headers: {
           'Authorization': 'Bearer ' + token
@@ -137,7 +136,7 @@ export class FavoritosModalComponent implements OnInit {
         const user = JSON.parse(localStorage.getItem('clienteLogado') || 'null');
         if (user) {
           const tokenCount = this.authService.getToken();
-          const responseCount = await fetch(`${environment.apiUrl}/clientes/${user.id}/favoritos`, {
+          const responseCount = await this.favoritoService.listar(user.id, {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer ' + tokenCount
@@ -158,64 +157,31 @@ export class FavoritosModalComponent implements OnInit {
     }
   }
 
-  adicionarAoCarrinho(livroId: number): void {
+  estoqueDisponivel(livro: any): number {
+    return Math.max(0, Number(livro.estoqueDisponivel ?? livro.estoque ?? 0));
+  }
+
+  async adicionarAoCarrinho(livroId: number): Promise<void> {
     if (this.carregandoCarrinho[livroId]) return;
     this.carregandoCarrinho[livroId] = true;
-
-    const user = JSON.parse(localStorage.getItem('clienteLogado') || 'null');
-    if (!user) {
-      this.messageService.add({severity:'error', summary:'Erro', detail:'Faça login para comprar'});
-      this.carregandoCarrinho[livroId] = false;
-      return;
-    }
-
-    const livro = this.favoritos.find(l => l.id === livroId);
-    if (!livro) {
-      this.carregandoCarrinho[livroId] = false;
-      return;
-    }
-
-    if (!livro.ativo) {
-      this.messageService.add({severity:'error', summary:'Erro', detail:'Este livro está inativo e não pode ser comprado'});
-      this.carregandoCarrinho[livroId] = false;
-      return;
-    }
-
-    if (livro.estoque <= 0) {
-      this.messageService.add({severity:'error', summary:'Erro', detail:'Este livro está esgotado'});
-      this.carregandoCarrinho[livroId] = false;
-      return;
-    }
-
     try {
-      const carrinhos = JSON.parse(localStorage.getItem('carrinhosPorUsuario') || '{}');
-      let carrinho = carrinhos[user.id] || [];
-      const existente = carrinho.find((i: any) => i.id === livroId);
-
-      if (existente) {
-        if (existente.quantidade + 1 > livro.estoque) {
-          this.messageService.add({severity:'error', summary:'Erro', detail:'Quantidade indisponível em estoque'});
-          this.carregandoCarrinho[livroId] = false;
-          return;
-        }
-        existente.quantidade++;
-      } else {
-        carrinho.push({ id: livroId, quantidade: 1 });
+      if (!this.authService.isAuthenticated()) {
+        throw new Error('Faça login para comprar');
       }
-
-      carrinhos[user.id] = carrinho;
-      localStorage.setItem('carrinhosPorUsuario', JSON.stringify(carrinhos));
-      this.carrinhoService.atualizarContador();
-      this.carrinhoService['carrinhoItensSubject'].next(
-        this.carrinhoService['carrinhoItensSubject'].value
-      );
-      this.carrinhoService.notificarCarrinhoAtualizado();
+      const livro = this.favoritos.find(l => l.id === livroId);
+      if (!livro || !livro.ativo) throw new Error('Livro indisponível');
+      const acesso = await this.authService.verificarAcessoCarrinho();
+      if (!acesso.permitido) throw new Error(acesso.mensagem);
+      const carrinho = await this.carrinhoService.adicionarAoCarrinho(livroId, 1);
+      const item = carrinho.itens.find(i => i.livroId === livroId);
+      if (item) livro.estoqueDisponivel = item.estoqueDisponivel;
       this.messageService.add({severity:'success', summary:'Sucesso', detail:'Adicionado ao carrinho!'});
       this.authService.adicionarNotificacao('Carrinho', 'Produto adicionado ao carrinho', 'success');
-    } catch (error) {
-      this.messageService.add({severity:'error', summary:'Erro', detail:'Erro ao adicionar ao carrinho'});
+    } catch (erro) {
+      this.messageService.add({severity:'error', summary:'Erro', detail:this.carrinhoService.obterMensagemErro(erro)});
     } finally {
       this.carregandoCarrinho[livroId] = false;
+      this.cdr.detectChanges();
     }
   }
 }

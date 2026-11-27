@@ -1,38 +1,24 @@
-﻿
+import { ClienteService } from './cliente.service';
+import { NotificacaoService } from './notificacao.service';
+import type { Notificacao } from '../models/notificacao.model';
+export type { Notificacao } from '../models/notificacao.model';
+import type { User, LoginResponse } from '../models/usuario.model';
+export type { User, LoginResponse } from '../models/usuario.model';
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, Subject, of, forkJoin } from 'rxjs';
-import { tap, switchMap, map } from 'rxjs/operators';
+import { BehaviorSubject, Observable, Subject, ReplaySubject, of } from 'rxjs';
+import { tap, map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-
-export interface User {
-  id: number;
-  nome: string;
-  email: string;
-  perfil: string;
-  token?: string;
-}
-
-export interface LoginResponse {
-  token: string;
-  user: User;
-  expiresIn: number;
-}
-
-export interface Notificacao {
-  id: number;
-  titulo: string;
-  mensagem: string;
-  tipo: string;
-  data: string;
-  lida: boolean;
-  pedidoId?: number | null;
-}
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
+  private temporizadorSessao: ReturnType<typeof setTimeout> | null = null;
+  private sessaoExpiradaSubject = new ReplaySubject<void>(1);
+  readonly sessaoExpirada$ = this.sessaoExpiradaSubject.asObservable();
+
   private apiUrl = environment.apiUrl;
   private tokenKey = 'auth_token';
   private userKey = 'user_data';
@@ -65,13 +51,18 @@ export class AuthService {
   private abrirChatSubject = new Subject<number>();
   abrirChat$ = this.abrirChatSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private clienteService: ClienteService, private notificacaoService: NotificacaoService) {
     const user = this.getUserFromStorage();
+    const token = this.getToken();
 
-    if (user) {
+    if (user && token && !this.isTokenExpired(token)) {
       this.usuarioSubject.next(user);
       this.loginStatusSubject.next(true);
       this.carregarNotificacoesLocais(user.id);
+      this.agendarExpiracaoSessao(token);
+    } else if (user || token) {
+      this.logout();
+      this.sessaoExpiradaSubject.next();
     }
   }
 
@@ -89,6 +80,7 @@ login(email: string, senha: string): Observable<LoginResponse> {
       response.user = userWithoutPassword;
 
       this.storeAuthData(response.token, response.user);
+      this.agendarExpiracaoSessao(response.token);
       this.usuarioSubject.next(response.user);
       this.loginStatusSubject.next(true);
 
@@ -98,8 +90,141 @@ login(email: string, senha: string): Observable<LoginResponse> {
   );
 }
 
+validarCPF(cpf: string | null | undefined): boolean {
+  const numeros = String(cpf || '').replace(/\D/g, '');
+
+  if (numeros.length !== 11 || /^(\d)\1{10}$/.test(numeros)) {
+    return false;
+  }
+
+  for (let i = 9; i < 11; i++) {
+    let soma = 0;
+
+    for (let j = 0; j < i; j++) {
+      soma += Number(numeros[j]) * (i + 1 - j);
+    }
+
+    let digito = (soma * 10) % 11;
+
+    if (digito === 10) digito = 0;
+
+    if (digito !== Number(numeros[i])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async verificarAcessoCarrinho(): Promise<{
+  permitido: boolean;
+  mensagem: string;
+}> {
+  const user = this.getUser();
+  const token = this.getToken();
+
+  if (!user || !token || !this.isAuthenticated()) {
+    return {
+      permitido: false,
+      mensagem: 'Faça login para acessar o carrinho.'
+    };
+  }
+
+  try {
+    const response = await this.clienteService.buscarPorId(user.id, {
+        headers: {
+          Authorization: 'Bearer ' + token
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Erro ao consultar usuário');
+    }
+
+    const usuarioCompleto = await response.json();
+
+    if (!this.isAuthenticated() || this.getUser()?.id !== user.id) {
+      return {
+        permitido: false,
+        mensagem: 'Faça login para acessar o carrinho.'
+      };
+    }
+
+    delete usuarioCompleto.senha;
+
+    this.atualizarUsuario(usuarioCompleto);
+
+    const pendencias = this.obterPendenciasPerfil(usuarioCompleto);
+
+    if (pendencias.length > 0) {
+      const campos = pendencias.length === 1
+        ? pendencias[0]
+        : pendencias.slice(0, -1).join(', ') +
+          ' e ' + pendencias[pendencias.length - 1];
+
+      return {
+        permitido: false,
+        mensagem: `Cadastre ${campos} antes de acessar o carrinho.`
+      };
+    }
+
+    return {
+      permitido: true,
+      mensagem: ''
+    };
+  } catch {
+    return {
+      permitido: false,
+      mensagem: 'Não foi possível verificar seus dados. Tente novamente.'
+    };
+  }
+}
+
+obterPendenciasPerfil(usuario: any): string[] {
+  if (!usuario) return [];
+
+  const pendencias: string[] = [];
+
+  if (!this.validarCPF(usuario.cpf)) {
+    pendencias.push('um CPF válido');
+  }
+
+  if (!this.validarTelefone(usuario.telefone, usuario.tipotelefone)) {
+    pendencias.push('um telefone válido');
+  }
+
+  if (!usuario.enderecos?.length) {
+    pendencias.push('um endereço');
+  }
+
+  if (!usuario.cartoes?.length) {
+    pendencias.push('um cartão');
+  }
+
+  return pendencias;
+}
+
+validarTelefone(telefone: string | null | undefined, tipo?: string): boolean {
+  const numeros = String(telefone || '').replace(/\D/g, '');
+
+  if (/^(\d)\1+$/.test(numeros)) return false;
+
+  if (tipo === 'CELULAR') {
+    return /^[1-9]\d9\d{8}$/.test(numeros);
+  }
+
+  if (tipo === 'RESIDENCIAL' || tipo === 'COMERCIAL') {
+    return /^[1-9]\d[2-5]\d{7}$/.test(numeros);
+  }
+
+  return false;
+}
 
   logout(): void {
+    this.cancelarTemporizadorSessao();
+    this.favoritosCountSubject.next(0);
+    this.cuponsCountSubject.next(0);
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
     localStorage.removeItem('clienteLogado');
@@ -128,11 +253,85 @@ login(email: string, senha: string): Observable<LoginResponse> {
     const token = this.getToken();
 
     if (!token) {
+      if (this.usuarioSubject.value) {
+        this.encerrarSessaoExpirada();
+      }
+
       return false;
     }
 
-    return !this.isTokenExpired(token);
+    if (this.isTokenExpired(token)) {
+      this.encerrarSessaoExpirada(token);
+      return false;
+    }
+
+    return true;
   }
+
+  encerrarSessaoExpirada(tokenEsperado?: string): void {
+    const tokenAtual = this.getToken();
+
+    if (tokenEsperado && tokenAtual !== tokenEsperado) {
+      return;
+    }
+
+    if (!tokenAtual && !this.usuarioSubject.value) {
+      return;
+    }
+
+    this.logout();
+    this.sessaoExpiradaSubject.next();
+  }
+
+  private cancelarTemporizadorSessao(): void {
+    if (this.temporizadorSessao !== null) {
+      clearTimeout(this.temporizadorSessao);
+      this.temporizadorSessao = null;
+    }
+  }
+
+  private obterExpiracaoToken(token: string): number {
+    try {
+      const parte = token.split('.')[1];
+
+      if (!parte) return 0;
+
+      const base64 = parte.replace(/-/g, '+').replace(/_/g, '/');
+      const preenchido = base64.padEnd(
+        Math.ceil(base64.length / 4) * 4,
+        '='
+      );
+
+      const payload = JSON.parse(atob(preenchido));
+
+      return typeof payload.exp === 'number' && Number.isFinite(payload.exp)
+        ? payload.exp * 1000
+        : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  private agendarExpiracaoSessao(token: string): void {
+    this.cancelarTemporizadorSessao();
+
+    const restante = this.obterExpiracaoToken(token) - Date.now();
+
+    this.temporizadorSessao = setTimeout(() => {
+      this.temporizadorSessao = null;
+
+      if (this.getToken() !== token) {
+        return;
+      }
+
+      if (this.isTokenExpired(token)) {
+        this.encerrarSessaoExpirada(token);
+      } else {
+        this.agendarExpiracaoSessao(token);
+      }
+    }, Math.max(0, Math.min(restante, 2147483647)));
+  }
+
 
   isAdmin(): boolean {
     const user = this.getUser();
@@ -174,15 +373,9 @@ login(email: string, senha: string): Observable<LoginResponse> {
   }
 
   private isTokenExpired(token: string): boolean {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const exp = payload.exp * 1000;
-
-      return Date.now() > exp;
-    } catch (e) {
-      return true;
-    }
+    return Date.now() >= this.obterExpiracaoToken(token);
   }
+
 
   atualizarLoginStatus(logado: boolean): void {
     this.loginStatusSubject.next(logado);
@@ -335,14 +528,7 @@ login(email: string, senha: string): Observable<LoginResponse> {
       this.carregarNotificacoesLocais(user.id);
     }
 
-    return this.http.get<Notificacao[]>(
-      `${this.apiUrl}/notificacoes`,
-      {
-        params: {
-          clienteId: String(user.id)
-        }
-      }
-    ).pipe(
+    return this.notificacaoService.listar(user.id).pipe(
       map(notificacoes => {
         if (this.getUser()?.id === user.id) {
           this.notificacoesServidor = notificacoes;
@@ -362,14 +548,7 @@ login(email: string, senha: string): Observable<LoginResponse> {
       return of({ quantidade: 0 });
     }
 
-    return this.http.get<{ quantidade: number }>(
-      `${this.apiUrl}/notificacoes/nao-lidas`,
-      {
-        params: {
-          clienteId: String(user.id)
-        }
-      }
-    ).pipe(
+    return this.notificacaoService.contarNaoLidas(user.id).pipe(
       map(resultado => {
         const locaisNaoLidas = this.notificacoesLocais.filter(
           notificacao => !notificacao.lida
@@ -413,15 +592,7 @@ login(email: string, senha: string): Observable<LoginResponse> {
       return of(notificacaoAtualizada);
     }
 
-    return this.http.put<Notificacao>(
-      `${this.apiUrl}/notificacoes/${id}/lida`,
-      {},
-      {
-        params: {
-          clienteId: String(user.id)
-        }
-      }
-    ).pipe(
+    return this.notificacaoService.marcarComoLida(user.id, id).pipe(
       tap(notificacaoAtualizada => {
         if (this.getUser()?.id !== user.id) {
           return;
@@ -446,15 +617,7 @@ login(email: string, senha: string): Observable<LoginResponse> {
       throw new Error('Usuário não autenticado');
     }
 
-    return this.http.put<{ mensagem: string }>(
-      `${this.apiUrl}/notificacoes/marcar-todas-lidas`,
-      {},
-      {
-        params: {
-          clienteId: String(user.id)
-        }
-      }
-    ).pipe(
+    return this.notificacaoService.marcarTodasComoLidas(user.id).pipe(
       tap(() => {
         if (this.getUser()?.id !== user.id) {
           return;
@@ -498,14 +661,7 @@ login(email: string, senha: string): Observable<LoginResponse> {
       return of(void 0);
     }
 
-    return this.http.delete<void>(
-      `${this.apiUrl}/notificacoes/${id}`,
-      {
-        params: {
-          clienteId: String(user.id)
-        }
-      }
-    ).pipe(
+    return this.notificacaoService.excluir(user.id, id).pipe(
       tap(() => {
         if (this.getUser()?.id !== user.id) {
           return;
@@ -527,14 +683,7 @@ login(email: string, senha: string): Observable<LoginResponse> {
       throw new Error('Usuário não autenticado');
     }
 
-    return this.http.delete<{ mensagem: string }>(
-      `${this.apiUrl}/notificacoes`,
-      {
-        params: {
-          clienteId: String(user.id)
-        }
-      }
-    ).pipe(
+    return this.notificacaoService.excluirTodas(user.id).pipe(
       tap(() => {
         if (this.getUser()?.id !== user.id) {
           return;

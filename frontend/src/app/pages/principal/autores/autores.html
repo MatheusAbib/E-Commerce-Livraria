@@ -1,0 +1,115 @@
+<section
+  *ngIf="!carregando && autores.length"
+  class="autores-livraria principal-secao"
+  id="autores"
+  aria-labelledby="autores-titulo"
+  (window:resize)="atualizarNavegacao()" (window:pointerup)="finalizarInteracao()" (window:pointercancel)="finalizarInteracao()">
+
+  <div class="principal-secao-conteudo">
+    <ng-template #complementoSecao>
+      <div class="autores-navegacao">
+        <div class="autores-contagem">
+          <strong>{{ autores.length | number:'2.0-0' }}</strong>
+          <span>{{ autores.length === 1 ? 'AUTOR' : 'AUTORES' }}</span>
+        </div>
+
+        <button *ngIf="loopAtivo"
+          appBotaoIcone
+          [icone]="pausado ? 'pi pi-play' : 'pi pi-pause'"
+          [rotulo]="pausado ? 'Reproduzir carrossel' : 'Pausar carrossel'"
+          tamanho="grande"
+          (click)="alternarReproducao()">
+        </button>
+
+        <button appBotaoIcone
+          icone="pi pi-arrow-left"
+          rotulo="Autores anteriores"
+          tamanho="grande"
+          [desabilitado]="!podeVoltar"
+          (click)="navegar(-1)">
+        </button>
+
+        <button appBotaoIcone
+          icone="pi pi-arrow-right"
+          rotulo="Próximos autores"
+          tamanho="grande"
+          [desabilitado]="!podeAvancar"
+          (click)="navegar(1)">
+        </button>
+      </div>
+    </ng-template>
+
+    <ng-container
+      *ngTemplateOutlet="cabecalhoSecao; context: {
+        indice: '05 / POR TRÁS DAS PALAVRAS',
+        titulo: 'Quem escreve',
+        destaque: 'as histórias.',
+        id: 'autores-titulo',
+        complemento: complementoSecao
+      }">
+    </ng-container>
+
+    <div class="autores-galeria">
+      <div
+        #trilho
+        class="autores-trilho"
+        [class.autores-trilho-loop]="loopAtivo"
+        (scroll)="aoRolar()"
+        (mouseenter)="definirMouseSobre(true)"
+        (mouseleave)="definirMouseSobre(false)"
+        (pointerdown)="iniciarInteracao()"
+        (pointerup)="finalizarInteracao()"
+        (pointercancel)="finalizarInteracao()">
+
+        <a
+          *ngFor="let autor of autoresExibidos; let i = index; trackBy: identificarAutor"
+          class="autor-card"
+          [href]="autor.biografiaUrl"
+          [attr.tabindex]="loopAtivo && (i < autores.length || i >= autores.length * 2) ? -1 : null"
+          [attr.aria-hidden]="loopAtivo && (i < autores.length || i >= autores.length * 2) ? 'true' : null"
+          target="_blank"
+          rel="noopener noreferrer"
+          [attr.aria-label]="'Conhecer a biografia de ' + autor.nome + ' (abre em nova aba)'">
+
+          <div class="autor-card-indice">
+            <span>Nº {{ numeroAutor(i) | number:'2.0-0' }}</span>
+            <i class="pi pi-arrow-up-right" aria-hidden="true"></i>
+          </div>
+
+          <div class="autor-card-moldura">
+            <div class="autor-card-retrato">
+              <span aria-hidden="true">{{ iniciais(autor.nome) }}</span>
+
+              <img
+                [src]="urlImagem(autor)"
+                [alt]="autor.nome"
+                loading="lazy"
+                decoding="async"
+                (error)="corrigirImagem($event)">
+            </div>
+          </div>
+
+          <div class="autor-card-informacoes">
+            <h3>{{ autor.nome }}</h3>
+
+            <span class="autor-card-acervo">
+              {{ autor.quantidadeLivros }}
+              {{ autor.quantidadeLivros === 1 ? 'livro' : 'livros' }} no acervo
+            </span>
+          </div>
+
+          <div class="autor-card-rodape">
+            <span>Conhecer biografia</span>
+            <i class="pi pi-external-link" aria-hidden="true"></i>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <footer class="autores-rodape">
+      <span>ÍNDICE DE AUTORES</span>
+      <div class="autores-rodape-linha"></div>
+      <span>L.O. — ACERVO LITERÁRIO</span>
+    </footer>
+  </div>
+</section>

@@ -1,20 +1,27 @@
+import { inject } from '@angular/core';
+import { CupomService } from '../../../services/cupom.service';
+import { ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent } from '../../shared/modals';
+import { NotificacaoComponent } from '../../../components/shared/feedback';
+import { EstadoVazioComponent } from '../../../components/shared/feedback';
+import { CarregamentoComponent } from '../../../components/shared/feedback';
+import { BotaoComponent } from '../../shared/buttons/botao/botao';
 import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { AuthService } from '../../../services/auth';
-import { environment } from '../../../../environments/environment';
+
 
 @Component({
   selector: 'app-cupom-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToastModule],
+  imports: [NotificacaoComponent, EstadoVazioComponent, CarregamentoComponent, CommonModule, BotaoComponent, ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent],
   providers: [MessageService],
   templateUrl: './cupom-modal.html',
   styleUrls: ['./cupom-modal.css']
 })
 export class CupomModalComponent implements OnInit {
+  private readonly cupomService = inject(CupomService);
+
   @Input() visible: boolean = false;
   @Output() visibleChange = new EventEmitter<boolean>();
 
@@ -53,10 +60,10 @@ export class CupomModalComponent implements OnInit {
       const token = this.authService.getToken();
 
       const [disponiveisRes, usadosRes] = await Promise.all([
-        fetch(`${environment.apiUrl}/cupons/cliente/${user.id}/disponiveis`, {
+        this.cupomService.listarDisponiveis(user.id, {
           headers: { 'Authorization': 'Bearer ' + token }
         }),
-        fetch(`${environment.apiUrl}/cupons/cliente/${user.id}/usados`, {
+        this.cupomService.listarUsados(user.id, {
           headers: { 'Authorization': 'Bearer ' + token }
         })
       ]);

@@ -1,32 +1,54 @@
+import { inject } from '@angular/core';
+import { AvaliacaoService } from '../../../services/avaliacao.service';
+import { ModalConfirmacaoComponent } from '../../../components/shared/modals';
+import { CampoAvaliacaoComponent } from '../../../components/shared/forms';
+import { NotificacaoComponent } from '../../../components/shared/feedback';
+import { EstadoVazioComponent } from '../../../components/shared/feedback';
+import { CarregamentoComponent } from '../../../components/shared/feedback';
+import { CampoSelecaoComponent } from '../../../components/shared/forms';
+import { CampoDirective } from '../../../components/shared/forms';
+import { BotaoComponent } from '../../../components/shared/buttons/botao/botao';
+import { BotaoIconeComponent } from '../../../components/shared/buttons/botao-icone/botao-icone';
+import { GrupoAcoesComponent } from '../../../components/shared/buttons/grupo-acoes/grupo-acoes';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
-import { ToastModule } from 'primeng/toast';
 import { PaginatorModule } from 'primeng/paginator';
 import { MessageService } from 'primeng/api';
 import { AuthService } from '../../../services/auth';
 import { AdminSidebarComponent } from "../../../components/admin-sidebar/admin-sidebar";
-import { environment } from '../../../../environments/environment';
+
 
 @Component({
   selector: 'app-admin-avaliacoes',
   standalone: true,
-  imports: [
+  imports: [ModalConfirmacaoComponent, CampoAvaliacaoComponent, NotificacaoComponent, EstadoVazioComponent, CarregamentoComponent, CampoSelecaoComponent, CampoDirective, 
     CommonModule,
     FormsModule,
     RouterModule,
-    ButtonModule,
-    ToastModule,
     PaginatorModule,
-    AdminSidebarComponent
+    AdminSidebarComponent,
+    BotaoComponent,
+    BotaoIconeComponent,
+    GrupoAcoesComponent
 ],
   providers: [MessageService],
   templateUrl: './avaliacoes.html',
   styleUrls: ['./avaliacoes.css', './../admin-common.css']
 })
 export class AdminAvaliacoesComponent implements OnInit {
+  private readonly avaliacaoService = inject(AvaliacaoService);
+
+  readonly opcoesNotasFiltro = [
+    { rotulo: 'Todas', valor: '' },
+    { rotulo: '1 ★', valor: '1' },
+    { rotulo: '2 ★', valor: '2' },
+    { rotulo: '3 ★', valor: '3' },
+    { rotulo: '4 ★', valor: '4' },
+    { rotulo: '5 ★', valor: '5' }
+  ];
+
   avaliacoes: any[] = [];
   filteredAvaliacoes: any[] = [];
   loading: boolean = true;
@@ -56,7 +78,7 @@ export class AdminAvaliacoesComponent implements OnInit {
     this.loading = true;
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/avaliacoes/todas`, {
+      const response = await this.avaliacaoService.listarTodas({
         headers: {
           'Authorization': 'Bearer ' + token
         }
@@ -162,7 +184,7 @@ async confirmarExcluir(): Promise<void> {
 
   try {
     const token = this.authService.getToken();
-    const response = await fetch(`${environment.apiUrl}/avaliacoes/${this.avaliacaoSelecionada.id}/remover-comentario`, {
+    const response = await this.avaliacaoService.removerComentario(this.avaliacaoSelecionada.id, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

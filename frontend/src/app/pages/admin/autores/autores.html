@@ -1,0 +1,478 @@
+<div class="admin-layout">
+  <app-admin-sidebar></app-admin-sidebar>
+
+  <main class="admin-main">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">
+          <i class="pi pi-id-card"></i> Gestão de Autores
+        </h1>
+        <p class="page-description">
+          Gerencie os autores do acervo, suas fotografias e os links de suas biografias.
+        </p>
+      </div>
+    </div>
+
+    <div class="autores-indicadores">
+      <div class="autor-indicador">
+        <i class="pi pi-users"></i>
+        <div>
+          <span>Autores cadastrados</span>
+          <strong>{{ autores.length }}</strong>
+        </div>
+      </div>
+
+      <div class="autor-indicador indicador-ativo">
+        <i class="pi pi-check-circle"></i>
+        <div>
+          <span>Autores ativos</span>
+          <strong>{{ totalAtivos }}</strong>
+        </div>
+      </div>
+
+      <div class="autor-indicador indicador-inativo">
+        <i class="pi pi-times-circle"></i>
+        <div>
+          <span>Autores inativos</span>
+          <strong>{{ totalInativos }}</strong>
+        </div>
+      </div>
+
+      <div class="autor-indicador indicador-pendente">
+        <i class="pi pi-exclamation-circle"></i>
+        <div>
+          <span>Cadastros incompletos</span>
+          <strong>{{ totalIncompletos }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="filtros-container">
+      <div class="filtro-header autores-filtro-header">
+        <h3><i class="pi pi-filter"></i> Filtrar Autores</h3>
+
+        <div appGrupoAcoes alinhamento="fim" espacamento="8px">
+          <button appBotao
+            variante="secundario"
+            icone="pi pi-download"
+            [carregando]="importando"
+            [desabilitado]="loading"
+            textoCarregando="Importando..."
+            (click)="importar()">
+            Importar do acervo
+          </button>
+
+          <button appBotao
+            variante="primario"
+            icone="pi pi-plus"
+            (click)="abrirCadastro()">
+            Novo Autor
+          </button>
+        </div>
+      </div>
+
+      <div class="filtros-grid autores-filtros-grid">
+        <div class="filtro-item">
+          <label for="autor-busca">Nome</label>
+          <input appCampo
+            aparencia="administrativo"
+            id="autor-busca"
+            placeholder="Digite o nome do autor"
+            [(ngModel)]="busca" (ngModelChange)="aplicarFiltros()">
+        </div>
+
+        <div class="filtro-item">
+          <label for="autor-status">Status</label>
+          <app-campo-selecao
+            campoId="autor-status"
+            rotulo="Status"
+            aparencia="administrativo"
+            [opcoes]="opcoesStatus"
+            [valorVazio]="''"
+            [exibirPlaceholder]="false"
+            [(ngModel)]="status" (ngModelChange)="aplicarFiltros()">
+          </app-campo-selecao>
+        </div>
+
+        <div class="filtro-item">
+          <label for="autor-cadastro">Cadastro</label>
+          <app-campo-selecao
+            campoId="autor-cadastro"
+            rotulo="Cadastro"
+            aparencia="administrativo"
+            [opcoes]="opcoesCadastro"
+            [valorVazio]="''"
+            [exibirPlaceholder]="false"
+            [(ngModel)]="cadastro" (ngModelChange)="aplicarFiltros()">
+          </app-campo-selecao>
+        </div>
+
+        <div class="filtro-item autores-limpar">
+          <button appBotao
+            variante="secundario"
+            icone="pi pi-times"
+            (click)="limparFiltros()">
+            Limpar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <div class="table-header">
+        <div class="table-title">
+          <i class="pi pi-id-card"></i>
+          <span>Autores do acervo</span>
+        </div>
+
+        <div class="table-count">
+          <span class="count-badge">{{ autoresFiltrados.length }}</span>
+          <span>autores</span>
+        </div>
+      </div>
+
+      <div *ngIf="loading" class="loading-state">
+        <app-carregamento modelo="simples" texto="Carregando autores..."></app-carregamento>
+      </div>
+
+      <div *ngIf="!loading && erroCarregamento" class="autores-erro">
+        <app-estado-vazio
+          icone="pi pi-exclamation-circle"
+          titulo="Não foi possível carregar os autores"
+          descricao="Verifique a conexão com o servidor.">
+        </app-estado-vazio>
+
+        <button appBotao variante="secundario" icone="pi pi-refresh" (click)="carregar()">
+          Tentar novamente
+        </button>
+      </div>
+
+      <div *ngIf="!loading && !erroCarregamento && !autoresFiltrados.length" class="empty-state">
+        <app-estado-vazio
+          icone="pi pi-users"
+          titulo="Nenhum autor encontrado"
+          descricao="Cadastre um autor ou altere os filtros selecionados.">
+        </app-estado-vazio>
+      </div>
+
+      <ng-container *ngIf="!loading && !erroCarregamento && autoresFiltrados.length">
+        <div class="autores-table-container">
+          <table class="autores-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Autor</th>
+                <th>Livros</th>
+                <th>Biografia</th>
+                <th>Cadastro</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let autor of autoresPaginados">
+                <td>{{ autor.id }}</td>
+
+                <td>
+                  <div class="autor-identidade">
+                    <div class="autor-fotografia">
+                      <span>{{ iniciais(autor.nome) }}</span>
+                      <img *ngIf="autor.temImagem"
+                        [src]="urlImagem(autor)"
+                        [alt]="autor.nome"
+                        loading="lazy"
+                        (error)="corrigirImagem($event)">
+                    </div>
+                    <strong>{{ autor.nome }}</strong>
+                  </div>
+                </td>
+
+                <td>{{ autor.quantidadeLivros }}</td>
+
+                <td>
+                  <a *ngIf="autor.biografiaUrl; else semBiografia"
+                    class="autor-biografia-link"
+                    [href]="autor.biografiaUrl"
+                    target="_blank"
+                    rel="noopener noreferrer">
+                    Acessar <i class="pi pi-external-link"></i>
+                  </a>
+
+                  <ng-template #semBiografia>
+                    <span class="autor-texto-secundario">Não informada</span>
+                  </ng-template>
+                </td>
+
+                <td>
+                  <span class="autor-status"
+                    [class.autor-status-sucesso]="autor.completo"
+                    [class.autor-status-aviso]="!autor.completo">
+                    <i [class]="autor.completo ? 'pi pi-check-circle' : 'pi pi-exclamation-circle'"></i>
+                    {{ autor.completo ? 'Completo' : 'Incompleto' }}
+                  </span>
+                </td>
+
+                <td>
+                  <span class="autor-status"
+                    [class.autor-status-sucesso]="autor.ativo"
+                    [class.autor-status-perigo]="!autor.ativo">
+                    <i [class]="autor.ativo ? 'pi pi-check-circle' : 'pi pi-times-circle'"></i>
+                    {{ autor.ativo ? 'Ativo' : 'Inativo' }}
+                  </span>
+                </td>
+
+                <td>
+                  <div appGrupoAcoes alinhamento="inicio" espacamento="6px" class="autor-acoes">
+                    <button appBotaoIcone
+                      class="acao-admin-tabela"
+                      [icone]="autor.ativo ? 'pi pi-check-circle' : 'pi pi-times-circle'"
+                      [rotulo]="autor.ativo ? 'Inativar' : 'Ativar'"
+                      [variante]="autor.ativo ? 'sucesso' : 'neutro'"
+                      (click)="abrirConfirmacao(autor, 'status')">
+                    </button>
+
+                    <button appBotaoIcone
+                      class="acao-admin-tabela"
+                      icone="pi pi-eye"
+                      rotulo="Visualizar autor"
+                      (click)="abrirDetalhes(autor)">
+                    </button>
+
+                    <button appBotaoIcone
+                      class="acao-admin-tabela"
+                      icone="pi pi-pencil"
+                      rotulo="Editar autor"
+                      (click)="abrirEdicao(autor)">
+                    </button>
+
+                    <button appBotaoIcone
+                      class="acao-admin-tabela"
+                      variante="perigo"
+                      icone="pi pi-trash"
+                      [rotulo]="autor.quantidadeLivros ? 'Autor possui livros associados' : 'Excluir autor'"
+                      [desabilitado]="autor.quantidadeLivros > 0"
+                      (click)="abrirConfirmacao(autor, 'exclusao')">
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p-paginator
+          [first]="first"
+          [rows]="rows"
+          [totalRecords]="autoresFiltrados.length"
+          [rowsPerPageOptions]="[10, 20, 50]"
+          (onPageChange)="alterarPagina($event)">
+        </p-paginator>
+      </ng-container>
+    </div>
+  </main>
+</div>
+
+<app-modal-base
+  [visivel]="modal !== null"
+  largura="680px"
+  alturaMaxima="92dvh"
+  [rotulo]="tituloModal"
+  [bloqueado]="salvando"
+  (fechar)="cancelarFormulario()">
+
+  <app-modal-cabecalho
+    [titulo]="tituloModal"
+    [subtitulo]="modal === 'detalhes' ? 'Informações do cadastro.' : 'Preencha as informações do autor.'"
+    icone="pi pi-id-card"
+    [desabilitarFechar]="salvando"
+    (fechar)="cancelarFormulario()">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo>
+    <ng-container *ngIf="modal === 'detalhes' && selecionado as autor">
+      <div class="autor-detalhes-abertura">
+        <div class="autor-retrato">
+          <span>{{ iniciais(autor.nome) }}</span>
+          <img *ngIf="autor.temImagem"
+            [src]="urlImagem(autor)"
+            [alt]="autor.nome"
+            (error)="corrigirImagem($event)">
+        </div>
+
+        <div class="autor-detalhes-identidade">
+          <span class="autor-texto-secundario">AUTOR Nº {{ autor.id }}</span>
+          <h2>{{ autor.nome }}</h2>
+          <span class="autor-status"
+            [class.autor-status-sucesso]="autor.ativo"
+            [class.autor-status-perigo]="!autor.ativo">
+            {{ autor.ativo ? 'Ativo' : 'Inativo' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="autor-detalhes-grid">
+        <div>
+          <span>Livros associados</span>
+          <strong>{{ autor.quantidadeLivros }}</strong>
+        </div>
+        <div>
+          <span>Situação do cadastro</span>
+          <strong>{{ autor.completo ? 'Completo' : 'Incompleto' }}</strong>
+        </div>
+        <div>
+          <span>Data de cadastro</span>
+          <strong>{{ autor.dataCadastro | date:'dd/MM/yyyy HH:mm' }}</strong>
+        </div>
+        <div>
+          <span>Última atualização</span>
+          <strong>{{ autor.dataAtualizacao | date:'dd/MM/yyyy HH:mm' }}</strong>
+        </div>
+        <div class="autor-detalhes-biografia">
+          <span>Biografia</span>
+          <a *ngIf="autor.biografiaUrl; else biografiaAusente"
+            [href]="autor.biografiaUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="autor-biografia-link">
+            {{ autor.biografiaUrl }} <i class="pi pi-external-link"></i>
+          </a>
+          <ng-template #biografiaAusente>
+            <strong>Não informada</strong>
+          </ng-template>
+        </div>
+      </div>
+
+      <div *ngIf="!autor.completo || !autor.ativo" class="autor-aviso">
+        <i class="pi pi-info-circle"></i>
+        <span>Somente autores ativos, com fotografia e biografia cadastradas, serão exibidos na página principal.</span>
+      </div>
+    </ng-container>
+
+    <div *ngIf="modal === 'cadastro' || modal === 'edicao'" class="autor-formulario">
+      <div class="autor-formulario-fotografia">
+        <div class="autor-preview">
+          <app-imagem-preview
+            *ngIf="origemImagem; else fotografiaVazia"
+            [origem]="origemImagem"
+            ajuste="cover"
+            descricao="Fotografia do autor"
+            [removivel]="arquivo !== null"
+            [desabilitado]="salvando"
+            (remover)="arquivo = null">
+          </app-imagem-preview>
+
+          <ng-template #fotografiaVazia>
+            <div class="autor-fotografia-vazia">
+              <i class="pi pi-user"></i>
+              <span>Sem fotografia</span>
+            </div>
+          </ng-template>
+        </div>
+
+        <app-campo-arquivo
+          rotulo="Selecionar fotografia"
+          descricao="JPG ou PNG, até 5 MB"
+          aceitar=".jpg,.jpeg,.png"
+          [tamanhoMaximoMB]="5"
+          [desabilitado]="salvando"
+          (arquivosSelecionados)="selecionarImagem($event)"
+          (errosSelecao)="errosImagem($event)">
+        </app-campo-arquivo>
+      </div>
+
+      <div class="autor-formulario-campos">
+        <div class="autor-campo">
+          <label for="autor-nome">Nome do autor *</label>
+          <input appCampo
+            id="autor-nome"
+            maxlength="255"
+            placeholder="Nome completo"
+            [disabled]="salvando"
+            [(ngModel)]="formulario.nome">
+        </div>
+
+        <div class="autor-campo">
+          <label for="autor-biografia">Link da biografia</label>
+          <input appCampo
+            id="autor-biografia"
+            type="url"
+            maxlength="2048"
+            placeholder="https://pt.wikipedia.org/wiki/..."
+            [disabled]="salvando"
+            [(ngModel)]="formulario.biografiaUrl">
+          <small>Informe o endereço da página biográfica do autor.</small>
+        </div>
+
+        <div class="autor-campo">
+          <label for="autor-form-status">Status</label>
+          <app-campo-selecao
+            campoId="autor-form-status"
+            rotulo="Status"
+            [opcoes]="opcoesFormulario"
+            [exibirPlaceholder]="false"
+            [disabled]="salvando"
+            [ngModel]="formulario.ativo ? 'ativo' : 'inativo'"
+            (ngModelChange)="formulario.ativo = $event === 'ativo'">
+          </app-campo-selecao>
+        </div>
+      </div>
+
+      <div class="autor-aviso">
+        <i class="pi pi-info-circle"></i>
+        <span>O cadastro pode ser salvo sem fotografia ou biografia. A publicação ocorrerá quando estiver completo e ativo.</span>
+      </div>
+    </div>
+  </app-modal-corpo>
+
+  <app-modal-rodape>
+    <div appGrupoAcoes alinhamento="distribuido" [largurasIguais]="true">
+      <ng-container *ngIf="modal === 'detalhes'; else acoesFormulario">
+        <button appBotao variante="secundario" (click)="fecharModal()">
+          Fechar
+        </button>
+        <button appBotao
+          variante="primario"
+          icone="pi pi-pencil"
+          (click)="selecionado && abrirEdicao(selecionado)">
+          Editar
+        </button>
+      </ng-container>
+
+      <ng-template #acoesFormulario>
+        <button appBotao
+          variante="secundario"
+          [desabilitado]="salvando"
+          (click)="cancelarFormulario()">
+          Cancelar
+        </button>
+
+        <button appBotao
+          variante="primario"
+          icone="pi pi-save"
+          [carregando]="salvando"
+          [desabilitado]="!formularioValido"
+          textoCarregando="Salvando..."
+          (click)="salvar()">
+          Salvar
+        </button>
+      </ng-template>
+    </div>
+  </app-modal-rodape>
+</app-modal-base>
+
+<app-modal-confirmacao
+  [visivel]="confirmacao !== null"
+  [titulo]="tituloConfirmacao"
+  [mensagem]="mensagemConfirmacao"
+  [icone]="confirmacao === 'exclusao' ? 'pi pi-trash' : 'pi pi-exclamation-triangle'"
+  [variante]="confirmacao === 'exclusao' ? 'perigo' : 'neutro'"
+  [textoConfirmar]="confirmacao === 'exclusao' ? 'Excluir' : (alvoConfirmacao?.ativo ? 'Inativar' : 'Ativar')"
+  [carregando]="confirmando"
+  (cancelar)="cancelarConfirmacao()"
+  (confirmar)="confirmar()">
+</app-modal-confirmacao>
+
+<app-notificacao></app-notificacao>
+
+

@@ -1,0 +1,10 @@
+<div class="skeleton-grupo" [style.gap]="espacamento" aria-hidden="true">
+  @for (item of itens; track item) {
+    <div
+      class="skeleton"
+      [class.circular]="formato === 'circular'"
+      [style.width]="largura"
+      [style.height]="altura">
+    </div>
+  }
+</div>

@@ -1,0 +1,58 @@
+<div
+  class="campo-avaliacao"
+  [class.avaliacao-desabilitada]="desabilitado">
+
+  <div
+    class="avaliacao-estrelas"
+    [attr.role]="somenteLeitura ? 'img' : 'slider'"
+    [attr.tabindex]="bloqueado ? null : 0"
+    [attr.aria-label]="somenteLeitura ? rotulo + ': ' + valor + ' de ' + limite : rotulo"
+    [attr.aria-valuemin]="somenteLeitura ? null : 0"
+    [attr.aria-valuemax]="somenteLeitura ? null : limite"
+    [attr.aria-valuenow]="somenteLeitura ? null : valor"
+    [attr.aria-valuetext]="somenteLeitura ? null : valor + ' de ' + limite + ' estrelas'"
+    [attr.aria-disabled]="desabilitado ? 'true' : null"
+    (keydown)="navegar($event)"
+    (blur)="marcarTocado()"
+    (mouseleave)="limparVisualizacao()">
+
+    @for (estrela of estrelas; track estrela) {
+      @if (somenteLeitura) {
+        <span class="avaliacao-estrela" aria-hidden="true">
+          <i class="pi pi-star-fill estrela-fundo"></i>
+
+          <span
+            class="estrela-preenchimento"
+            [style.width.%]="preenchimento(estrela)">
+            <i class="pi pi-star-fill"></i>
+          </span>
+        </span>
+      } @else {
+        <button
+          type="button"
+          class="avaliacao-estrela"
+          tabindex="-1"
+          aria-hidden="true"
+          [disabled]="desabilitado"
+          (mousedown)="$event.preventDefault()"
+          (mousemove)="visualizar(estrela, $event)"
+          (click)="selecionarEstrela(estrela, $event)">
+
+          <i class="pi pi-star-fill estrela-fundo"></i>
+
+          <span
+            class="estrela-preenchimento"
+            [style.width.%]="preenchimento(estrela)">
+            <i class="pi pi-star-fill"></i>
+          </span>
+        </button>
+      }
+    }
+  </div>
+
+  @if (exibirValor) {
+    <span class="avaliacao-valor" aria-hidden="true">
+      {{ valorExibido }}/{{ limite }}
+    </span>
+  }
+</div>

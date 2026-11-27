@@ -17,23 +17,34 @@
   </div>
   <div class="filtros-grid">
     <div class="filtro-item">
-      <label>Buscar por cliente</label>
-      <input
+      <label for="admin-chats-filtroCliente">Buscar por cliente</label>
+      <input appCampo aparencia="administrativo"
         type="text"
         [(ngModel)]="filtroCliente"
         placeholder="Digite o nome do cliente..."
-        class="auth-input"
-      >
+       id="admin-chats-filtroCliente">
     </div>
     <div class="filtro-item full-width">
-      <div class="filtro-actions">
-        <button class="btn-filtrar" (click)="aplicarFiltro()" [disabled]="filtrando">
-          <i class="pi" [class.pi-search]="!filtrando" [class.pi-spin]="filtrando" [class.pi-spinner]="filtrando"></i>
-          {{ filtrando ? 'Filtrando...' : 'Filtrar' }}
+      <div appGrupoAcoes class="filtro-actions" alinhamento="inicio" espacamento="10px">
+        <button
+          appBotao
+          class="acao-admin acao-admin-filtro"
+          variante="primario"
+          icone="pi pi-search"
+          [carregando]="filtrando"
+          textoCarregando="Filtrando..."
+          (click)="aplicarFiltro()">
+          Filtrar
         </button>
-        <button class="btn-limpar" (click)="limparFiltro()" [disabled]="filtrando">
-          <i class="pi" [class.pi-times]="!filtrando" [class.pi-spin]="filtrando" [class.pi-spinner]="filtrando"></i>
-          {{ filtrando ? 'Limpando...' : 'Limpar' }}
+        <button
+          appBotao
+          class="acao-admin acao-admin-filtro"
+          variante="secundario"
+          icone="pi pi-times"
+          [carregando]="filtrando"
+          textoCarregando="Limpando..."
+          (click)="limparFiltro()">
+          Limpar
         </button>
       </div>
     </div>
@@ -58,21 +69,10 @@
         </div>
 
             <div *ngIf="loading" class="loader-overlay-transacoes">
-              <div class="loader-container">
-                <div class="loader-spinner">
-                  <div class="spinner-ring"></div>
-                  <div class="spinner-ring"></div>
-                  <div class="spinner-ring"></div>
-                </div>
-                <p class="loader-text">Carregando conversas...</p>
-              </div>
+              <app-carregamento texto="Carregando conversas..." modelo="aneis"></app-carregamento>
             </div>
 
-            <div *ngIf="!loading && conversasFiltradas.length === 0" class="empty-state">
-              <i class="pi pi-inbox"></i>
-              <h3>Nenhuma conversa</h3>
-              <p>Ainda não há mensagens de clientes</p>
-            </div>
+            <div *ngIf="!loading && conversasFiltradas.length === 0" class="empty-state"><app-estado-vazio icone="pi pi-inbox" titulo="Nenhuma conversa" descricao="Ainda não há mensagens de clientes"></app-estado-vazio></div>
 
         <div *ngFor="let item of conversasFiltradas" class="conversa-item"
              [class.ativa]="chatAdminPedido?.id === item.pedidoId"
@@ -111,12 +111,23 @@
                   {{ chatAdminAtivo ? 'Ativo' : 'Encerrado' }}
                 </span>
               </div>
-              <div class="chat-header-actions">
-                <button class="btn-danger" (click)="encerrarAtendimentoAdmin()" *ngIf="chatAdminAtivo">
-                  <i class="pi pi-times-circle"></i> Encerrar
+              <div appGrupoAcoes class="chat-header-actions" alinhamento="fim" espacamento="var(--chat-acoes-gap)">
+                <button
+                  appBotao
+                  class="acao-admin acao-chat-encerrar"
+                  variante="perigo"
+                  icone="pi pi-times-circle"
+                  *ngIf="chatAdminAtivo"
+                  (click)="encerrarAtendimentoAdmin()">
+                  Encerrar
                 </button>
-                <button class="btn-fechar-chat" (click)="fecharChatAdmin()">
-                  <i class="pi pi-times"></i>
+                <button
+                  appBotaoIcone
+                  class="acao-chat-fechar"
+                  variante="neutro"
+                  icone="pi pi-times"
+                  rotulo="Fechar conversa"
+                  (click)="fecharChatAdmin()">
                 </button>
               </div>
             </div>
@@ -191,17 +202,21 @@
 
           <div class="chat-footer-admin-page" *ngIf="chatAdminAtivo">
             <div class="chat-input-wrapper-admin-page">
-              <input
+              <input appCampo aparencia="administrativo"
                 type="text"
                 [(ngModel)]="novaMensagemChatAdmin"
                 placeholder="Digite sua mensagem..."
                 (keyup.enter)="enviarMensagemChatAdmin()"
-                class="chat-input-admin-page">
+                class="chat-input-admin-page" id="admin-chats-novaMensagemChatAdmin" aria-label="Mensagem do chat">
               <button
-                class="chat-send-btn-admin-page"
-                (click)="enviarMensagemChatAdmin()"
-                [disabled]="!novaMensagemChatAdmin.trim()">
-                <i class="pi pi-send"></i>
+                appBotaoIcone
+                class="acao-chat-enviar"
+                variante="primario"
+                tamanho="grande"
+                icone="pi pi-send"
+                rotulo="Enviar mensagem"
+                [desabilitado]="!novaMensagemChatAdmin.trim()"
+                (click)="enviarMensagemChatAdmin()">
               </button>
             </div>
           </div>
@@ -211,8 +226,14 @@
               <i class="pi pi-info-circle"></i>
               <span>Atendimento encerrado</span>
             </div>
-            <button class="chat-reativar-btn-admin" (click)="reativarAtendimentoAdmin()">
-              <i class="pi pi-refresh"></i> Iniciar nova conversa
+            <button
+              appBotao
+              class="acao-admin acao-chat-reativar"
+              variante="primario"
+              icone="pi pi-refresh"
+              larguraTotal
+              (click)="reativarAtendimentoAdmin()">
+              Iniciar nova conversa
             </button>
           </div>
         </div>

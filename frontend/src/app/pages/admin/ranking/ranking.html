@@ -17,24 +17,35 @@
       </div>
       <div class="filtros-grid">
         <div class="filtro-item">
-          <label>Nome do Cliente</label>
-          <input
+          <label for="busca-nome">Nome do Cliente</label>
+          <input appCampo aparencia="administrativo"
             type="text"
             id="busca-nome"
             [(ngModel)]="busca"
             placeholder="Digite o nome do cliente..."
-            class="auth-input"
           >
         </div>
         <div class="filtro-item full-width">
-          <div class="filtro-actions">
-            <button class="btn-filtrar" (click)="aplicarFiltro()" [disabled]="filtrando">
-              <i class="pi" [class.pi-search]="!filtrando" [class.pi-spin]="filtrando" [class.pi-spinner]="filtrando"></i>
-              {{ filtrando ? 'Buscando...' : 'Buscar' }}
+          <div appGrupoAcoes class="filtro-actions" alinhamento="inicio" espacamento="10px">
+            <button
+              appBotao
+              class="acao-admin acao-admin-filtro"
+              variante="primario"
+              icone="pi pi-search"
+              [carregando]="filtrando"
+              textoCarregando="Buscando..."
+              (click)="aplicarFiltro()">
+              Buscar
             </button>
-            <button class="btn-limpar" (click)="limparFiltro()" [disabled]="filtrando">
-              <i class="pi" [class.pi-times]="!filtrando" [class.pi-spin]="filtrando" [class.pi-spinner]="filtrando"></i>
-              {{ filtrando ? 'Limpando...' : 'Limpar' }}
+            <button
+              appBotao
+              class="acao-admin acao-admin-filtro"
+              variante="secundario"
+              icone="pi pi-times"
+              [carregando]="filtrando"
+              textoCarregando="Limpando..."
+              (click)="limparFiltro()">
+              Limpar
             </button>
           </div>
         </div>
@@ -54,16 +65,9 @@
       </div>
 
       <div class="table-container">
-        <div *ngIf="loading" class="loading-state">
-          <i class="pi pi-spin pi-spinner"></i>
-          <p>Carregando ranking...</p>
-        </div>
+        <div *ngIf="loading" class="loading-state"><app-carregamento modelo="simples" texto="Carregando ranking..."></app-carregamento></div>
 
-        <div *ngIf="!loading && rankingFiltrado.length === 0" class="empty-state">
-          <i class="pi pi-trophy"></i>
-          <h3>Nenhum cliente encontrado</h3>
-          <p>Não há clientes para os filtros selecionados</p>
-        </div>
+        <div *ngIf="!loading && rankingFiltrado.length === 0" class="empty-state"><app-estado-vazio icone="pi pi-trophy" titulo="Nenhum cliente encontrado" descricao="Não há clientes para os filtros selecionados"></app-estado-vazio></div>
 
         <div *ngIf="!loading && rankingFiltrado.length > 0" class="ranking-table-wrapper">
           <table class="ranking-table">

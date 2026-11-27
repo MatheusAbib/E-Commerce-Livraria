@@ -1,99 +1,113 @@
-<div class="custom-modal" [class.active]="visible">
-  <div class="custom-modal-overlay" (click)="fechar()"></div>
-  <div class="custom-modal-content">
-    <button class="custom-modal-close" (click)="fechar()" [disabled]="loading">
-      <i class="pi pi-times"></i>
-    </button>
-    <div class="custom-modal-header">
-      <div class="auth-icon">
-        <i class="pi pi-user-plus"></i>
-      </div>
-      <h2>Criar conta</h2>
-      <p>Preencha os dados para se cadastrar</p>
-    </div>
-    <div class="custom-modal-body">
-      <div class="field">
-        <label>Nome completo *</label>
-        <input type="text" [(ngModel)]="nome" placeholder="Seu nome completo" class="auth-input" [disabled]="loading">
-      </div>
-      <div class="field">
-        <label>E-mail *</label>
-        <input type="email" [(ngModel)]="email" placeholder="seu@email.com" class="auth-input" [disabled]="loading" (blur)="verificarEmail()" [class.input-invalido]="emailTocado && !validarEmail(email)">
-        <small
-        class="mensagem-erro"
-        *ngIf="emailTocado && !validarEmail(email)">
-        {{ email.trim() ? 'Informe um endereço de e-mail válido.' : 'O e-mail é obrigatório.' }}
-      </small>
+<app-modal-base
+  [visivel]="visible"
+  largura="480px"
+  [fecharAoClicarFora]="!loading"
+  [fecharComEscape]="!loading"
+  [bloqueado]="loading"
+  (fechar)="fechar()">
+
+  <app-modal-cabecalho
+    titulo="Criar conta"
+    subtitulo="Preencha os dados para se cadastrar"
+    icone="pi pi-user-plus"
+    (fechar)="fechar()"
+    [desabilitarFechar]="loading">
+  </app-modal-cabecalho>
+
+  <app-modal-corpo>
+    <div class="cadastro-modal-body">
+      <div appGrupoCampo class="campo-autenticacao" rotulo="Nome completo" campoId="cadastro-modal-nome" obrigatorio>
+        <input appCampo aparencia="autenticacao" id="cadastro-modal-nome" type="text" [(ngModel)]="nome" placeholder="Seu nome completo" class="auth-input" [disabled]="loading">
       </div>
 
-      <div class="field">
-        <label>Senha *</label>
+      <div appGrupoCampo class="campo-autenticacao" rotulo="E-mail" campoId="cadastro-modal-email" obrigatorio>
         <input
-          type="password"
-          [(ngModel)]="senha"
-          (input)="validarSenha()"
-          placeholder="Crie uma senha"
+          appCampo
+          aparencia="autenticacao"
+          id="cadastro-modal-email"
+          type="email"
+          [(ngModel)]="email"
+          placeholder="seu@email.com"
           class="auth-input"
-          autocomplete="off"
-          [disabled]="loading">
-        <div class="password-strength" *ngIf="senha.length > 0">
-          <div class="strength-bar">
-            <div class="strength-segment" [class.active]="senha.length >= 6"></div>
-            <div class="strength-segment" [class.active]="temMaiuscula"></div>
-            <div class="strength-segment" [class.active]="temMinuscula"></div>
-            <div class="strength-segment" [class.active]="temNumero"></div>
-            <div class="strength-segment" [class.active]="temEspecial"></div>
-          </div>
-          <div class="strength-requirements">
-            <span [class.valid]="senha.length >= 6" [class.invalid]="senha.length > 0 && senha.length < 6">
-              <i class="pi" [class.pi-check-circle]="senha.length >= 6" [class.pi-circle]="senha.length > 0 && senha.length < 6"></i>
-              Mínimo 6 caracteres
-            </span>
-            <span [class.valid]="temMaiuscula" [class.invalid]="senha.length > 0 && !temMaiuscula">
-              <i class="pi" [class.pi-check-circle]="temMaiuscula" [class.pi-circle]="senha.length > 0 && !temMaiuscula"></i>
-              1 letra maiúscula
-            </span>
-            <span [class.valid]="temMinuscula" [class.invalid]="senha.length > 0 && !temMinuscula">
-              <i class="pi" [class.pi-check-circle]="temMinuscula" [class.pi-circle]="senha.length > 0 && !temMinuscula"></i>
-              1 letra minúscula
-            </span>
-            <span [class.valid]="temNumero" [class.invalid]="senha.length > 0 && !temNumero">
-              <i class="pi" [class.pi-check-circle]="temNumero" [class.pi-circle]="senha.length > 0 && !temNumero"></i>
-              1 número
-            </span>
-            <span [class.valid]="temEspecial" [class.invalid]="senha.length > 0 && !temEspecial">
-              <i class="pi" [class.pi-check-circle]="temEspecial" [class.pi-circle]="senha.length > 0 && !temEspecial"></i>
-              1 caractere especial
-            </span>
-          </div>
-        </div>
+          [disabled]="loading"
+          (blur)="verificarEmail()"
+          [class.input-invalido]="emailTocado && !validarEmail(email)"
+          [invalido]="emailTocado && !validarEmail(email)"
+          [descricaoId]="emailTocado && !validarEmail(email) ? 'cadastro-email-erro' : ''">
+
+        <app-mensagem-validacao
+          tipo="erro"
+          mensagemId="cadastro-email-erro"
+          [exibirIcone]="false"
+          [visivel]="emailTocado && !validarEmail(email)"
+          [mensagem]="email.trim() ? 'Informe um endereço de e-mail válido.' : 'O e-mail é obrigatório.'">
+        </app-mensagem-validacao>
       </div>
-      <div class="field">
-        <label>Confirmar senha *</label>
-        <input
-          type="password"
+
+      <div appGrupoCampo class="campo-autenticacao" rotulo="Senha" campoId="cadastro-modal-senha" obrigatorio>
+        <app-campo-senha
+          campoId="cadastro-modal-senha"
+          rotulo="Senha"
+          aparencia="autenticacao"
+          autocomplete="new-password"
+          [(ngModel)]="senha"
+          placeholder="Crie uma senha"
+          [disabled]="loading">
+        </app-campo-senha>
+
+        <app-forca-senha
+          class="forca-autenticacao"
+          [nivel]="nivelSenha"
+          [nivelMaximo]="5"
+          [requisitos]="requisitosSenha"
+          [visivel]="senha.length > 0">
+        </app-forca-senha>
+      </div>
+
+      <div appGrupoCampo class="campo-autenticacao" rotulo="Confirmar senha" campoId="cadastro-modal-confirmarSenha" obrigatorio>
+        <app-campo-senha
+          campoId="cadastro-modal-confirmarSenha"
+          rotulo="Confirmar senha"
+          aparencia="autenticacao"
+          autocomplete="new-password"
           [(ngModel)]="confirmarSenha"
           placeholder="Confirme sua senha"
-          class="auth-input"
-          autocomplete="off"
           (keyup.enter)="fazerCadastro()"
           [disabled]="loading">
+        </app-campo-senha>
       </div>
     </div>
-<div class="custom-modal-footer">
-  <button class="btn-primary" (click)="fazerCadastro()" [disabled]="loading || !formValido()">
-    <i class="pi" [class.pi-spin]="loading" [class.pi-spinner]="loading" [class.pi-user-plus]="!loading"></i>
-    {{ loading ? 'Cadastrando...' : 'Cadastrar' }}
-  </button>
+  </app-modal-corpo>
 
-  <div class="auth-register">
-    <span>Já tem uma conta?</span>
-    <button type="button" class="auth-register-link" (click)="abrirLogin()" [disabled]="loading">
-      Entre
-    </button>
-  </div>
-</div>
-  </div>
-</div>
+  <app-modal-rodape>
+    <div class="cadastro-modal-footer">
+      <button
+        appBotao
+        variante="primario"
+        aparencia="autenticacao"
+        tamanho="grande"
+        icone="pi pi-user-plus"
+        larguraTotal
+        textoCarregando="Cadastrando..."
+        [carregando]="loading"
+        [desabilitado]="!formValido()"
+        (click)="fazerCadastro()">
+        Cadastrar
+      </button>
 
-<p-toast position="top-right" [life]="2000"></p-toast>
+      <div class="auth-register">
+        <span>Já tem uma conta?</span>
+        <button
+          appBotao
+          variante="link"
+          aparencia="autenticacao"
+          [desabilitado]="loading"
+          (click)="abrirLogin()">
+          Entre
+        </button>
+      </div>
+    </div>
+  </app-modal-rodape>
+</app-modal-base>
+
+<app-notificacao></app-notificacao>

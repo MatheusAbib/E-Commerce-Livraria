@@ -1,0 +1,66 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid currentColor;
+  background: var(--cor-superficie-azul);
+  color: var(--cor-destaque);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.feedback[data-tipo="sucesso"] {
+  background: var(--cor-sucesso-suave);
+  color: var(--cor-sucesso);
+}
+
+.feedback[data-tipo="erro"] {
+  background: var(--cor-perigo-suave);
+  color: var(--cor-perigo);
+}
+
+.feedback[data-tipo="aviso"] {
+  background: var(--cor-aviso-suave);
+  color: var(--cor-aviso);
+}
+
+.feedback > i {
+  font-size: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.feedback-conteudo {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.feedback strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.feedback p {
+  margin: 0;
+}
+
+.feedback button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.feedback button:focus-visible {
+  outline: 2px solid currentColor;
+}

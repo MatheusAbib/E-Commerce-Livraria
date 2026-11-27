@@ -1,0 +1,41 @@
+@if (visivel) {
+  <div class="forca-senha" [attr.data-forca]="classificacao">
+    <div class="forca-senha-cabecalho">
+      <span>Força da senha</span>
+      <strong>{{ texto }}</strong>
+    </div>
+
+    <div
+      class="forca-senha-trilha"
+      role="progressbar"
+      aria-label="Força da senha"
+      [attr.aria-valuenow]="percentual"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      [attr.aria-valuetext]="texto">
+      @for (requisito of requisitos.slice(0, nivelMaximo); track $index) {
+        <span
+          class="forca-senha-segmento"
+          [class.ativo]="requisito.atendido">
+        </span>
+      }
+    </div>
+
+    @if (exibirRequisitos && requisitos.length > 0) {
+      <ul class="forca-senha-requisitos">
+        @for (requisito of requisitos; track $index) {
+          <li [class.requisito-atendido]="requisito.atendido">
+            <i
+              [class]="requisito.atendido ? 'pi pi-check-circle' : 'pi pi-circle'"
+              aria-hidden="true">
+            </i>
+            <span>{{ requisito.rotulo }}</span>
+            <span class="sr-only">
+              {{ requisito.atendido ? 'Atendido' : 'Pendente' }}
+            </span>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+}

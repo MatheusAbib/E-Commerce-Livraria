@@ -1,0 +1,60 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.campo-senha-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.campo-senha-wrapper input {
+  width: 100%;
+  padding-right: 46px;
+}
+
+.campo-senha-wrapper input::-ms-reveal,
+.campo-senha-wrapper input::-ms-clear {
+  display: none;
+}
+
+.campo-senha-alternar {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  font-size: 15px;
+  cursor: pointer;
+  transition: color var(--transicao-rapida);
+}
+
+.campo-senha-alternar:hover:not(:disabled) {
+  color: var(--cor-primaria);
+}
+
+.campo-senha-alternar:focus-visible {
+  outline: 2px solid var(--cor-destaque);
+  outline-offset: -2px;
+}
+
+.campo-senha-alternar:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .campo-senha-alternar {
+    transition: none;
+  }
+}

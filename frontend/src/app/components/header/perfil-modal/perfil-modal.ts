@@ -1,56 +1,128 @@
+import { EnderecoService } from '../../../services/endereco.service';
+import { CepService } from '../../../services/cep.service';
+import { inject } from '@angular/core';
+import { ClienteService } from '../../../services/cliente.service';
+﻿import { ModalBaseComponent } from '../../../components/shared/modals/modal-base/modal-base';
+import { ModalCabecalhoComponent } from '../../../components/shared/modals/modal-cabecalho/modal-cabecalho';
+import { ModalCorpoComponent } from '../../../components/shared/modals/modal-corpo/modal-corpo';
+import { ModalRodapeComponent } from '../../../components/shared/modals/modal-rodape/modal-rodape';
+import { ModalConfirmacaoComponent } from '../../../components/shared/modals/modal-confirmacao/modal-confirmacao';
+import { NotificacaoComponent } from '../../../components/shared/feedback';
+import { EstadoVazioComponent } from '../../../components/shared/feedback';
+import { CarregamentoComponent } from '../../../components/shared/feedback';
+import { CampoSenhaComponent, MensagemValidacaoComponent } from '../../shared/forms';
+import { CampoSelecaoComponent, MascaraDirective, GrupoFormularioComponent } from '../../shared/forms';
+import { CampoDirective } from '../../shared/forms';
 import { Component, Input, Output, EventEmitter, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
+import { BotaoComponent } from '../../shared/buttons/botao/botao';
+import { BotaoIconeComponent } from '../../shared/buttons/botao-icone/botao-icone';
+import { GrupoAcoesComponent } from '../../shared/buttons/grupo-acoes/grupo-acoes';
 import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { AuthService } from '../../../services/auth';
-import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-perfil-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, DialogModule, ToastModule],
+  imports: [ModalBaseComponent, ModalCabecalhoComponent, ModalCorpoComponent, ModalRodapeComponent, ModalConfirmacaoComponent, NotificacaoComponent, EstadoVazioComponent, CarregamentoComponent, CampoSenhaComponent, MensagemValidacaoComponent, CampoSelecaoComponent, MascaraDirective, GrupoFormularioComponent, CampoDirective, CommonModule, FormsModule, BotaoComponent, BotaoIconeComponent, GrupoAcoesComponent, DialogModule, ToastModule],
   providers: [MessageService],
   templateUrl: './perfil-modal.html',
   styleUrls: ['./perfil-modal.css']
 })
 export class PerfilModalComponent implements OnInit {
+  private readonly enderecoService = inject(EnderecoService);
+
+  private readonly cepService = inject(CepService);
+
+  private readonly clienteService = inject(ClienteService);
+
+  readonly opcoesEstados = [
+    { rotulo: 'Acre', valor: 'AC' },
+    { rotulo: 'Alagoas', valor: 'AL' },
+    { rotulo: 'AmapÃ¡', valor: 'AP' },
+    { rotulo: 'Amazonas', valor: 'AM' },
+    { rotulo: 'Bahia', valor: 'BA' },
+    { rotulo: 'CearÃ¡', valor: 'CE' },
+    { rotulo: 'Distrito Federal', valor: 'DF' },
+    { rotulo: 'EspÃ­rito Santo', valor: 'ES' },
+    { rotulo: 'GoiÃ¡s', valor: 'GO' },
+    { rotulo: 'MaranhÃ£o', valor: 'MA' },
+    { rotulo: 'Mato Grosso', valor: 'MT' },
+    { rotulo: 'Mato Grosso do Sul', valor: 'MS' },
+    { rotulo: 'Minas Gerais', valor: 'MG' },
+    { rotulo: 'ParÃ¡', valor: 'PA' },
+    { rotulo: 'ParaÃ­ba', valor: 'PB' },
+    { rotulo: 'ParanÃ¡', valor: 'PR' },
+    { rotulo: 'Pernambuco', valor: 'PE' },
+    { rotulo: 'PiauÃ­', valor: 'PI' },
+    { rotulo: 'Rio de Janeiro', valor: 'RJ' },
+    { rotulo: 'Rio Grande do Norte', valor: 'RN' },
+    { rotulo: 'Rio Grande do Sul', valor: 'RS' },
+    { rotulo: 'RondÃ´nia', valor: 'RO' },
+    { rotulo: 'Roraima', valor: 'RR' },
+    { rotulo: 'Santa Catarina', valor: 'SC' },
+    { rotulo: 'SÃ£o Paulo', valor: 'SP' },
+    { rotulo: 'Sergipe', valor: 'SE' },
+    { rotulo: 'Tocantins', valor: 'TO' },
+  ];
+
+  readonly opcoesBandeiras = [
+    { rotulo: 'Visa', valor: 'Visa' },
+    { rotulo: 'Mastercard', valor: 'Mastercard' },
+    { rotulo: 'Elo', valor: 'Elo' },
+    { rotulo: 'American Express', valor: 'American Express' },
+  ];
+
+  readonly opcoesGeneros = [
+    { rotulo: 'Masculino', valor: 'MASCULINO' },
+    { rotulo: 'Feminino', valor: 'FEMININO' },
+    { rotulo: 'Prefiro nÃ£o informar', valor: 'PREFIRO_NAO_INFORMAR' },
+  ];
+
   @Input() visible: boolean = false;
   @Output() visibleChange = new EventEmitter<boolean>();
   @Input() usuario: any = null;
-
   perfilEnderecos: any[] = [];
   perfilCartoes: any[] = [];
   loading: boolean = false;
-
   displayEditarEndereco: boolean = false;
   displayEditarCartao: boolean = false;
   displayEditarPerfil: boolean = false;
   displayAlterarSenha: boolean = false;
   displayConfirmarExclusao: boolean = false;
+  cpfTocado: boolean = false;
+  cpfErro: string = '';
+  validandoCpf: boolean = false;
+  cpfVerificado: string | null = null;
+  private cpfValidacaoId = 0;
+  buscandoCep = false;
+  cepEncontrado = false;
+  cepErro = '';
+  private consultaCepId = 0;
+
+  get cepCompleto(): boolean {
+    return (this.enderecoEditando?.cep || '').replace(/\D/g, '').length === 8;
+  }
 
   enderecoEditando: any = {};
   cartaoEditando: any = {};
   itemParaExcluir: { tipo: string, id: number } | null = null;
   novaSenha: string = '';
   confirmarSenha: string = '';
-
-
   carregandoEditarPerfil: boolean = false;
   carregandoSalvarPerfil: boolean = false;
   carregandoSalvarSenha: boolean = false;
   carregandoSalvarEndereco: boolean = false;
   carregandoSalvarCartao: boolean = false;
   carregandoExcluir: boolean = false;
-
   constructor(
     private messageService: MessageService,
     private cdr: ChangeDetectorRef,
     private authService: AuthService
   ) {}
-
   ngOnInit(): void {
     this.authService.dadosClienteAtualizados$.subscribe(() => {
       if (this.visible) {
@@ -58,33 +130,27 @@ export class PerfilModalComponent implements OnInit {
       }
     });
   }
-
   ngOnChanges(): void {
     if (this.visible) {
       this.carregarDadosPerfil();
     }
   }
-
   fechar(): void {
     this.visible = false;
     this.visibleChange.emit(false);
   }
-
   async carregarDadosPerfil(): Promise<void> {
     if (!this.visible) return;
-
     const user = JSON.parse(localStorage.getItem('clienteLogado') || 'null');
     if (!user) {
       this.loading = false;
       return;
     }
-
     this.loading = true;
     this.cdr.detectChanges();
-
     try {
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/clientes/${user.id}`, {
+      const response = await this.clienteService.buscarPorId(user.id, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + token
@@ -92,17 +158,14 @@ export class PerfilModalComponent implements OnInit {
       });
       if (response.ok) {
         const text = await response.text();
-        console.log('RESPOSTA PERFIL:', text);
         const dados = JSON.parse(text);
         this.usuario = dados;
         this.perfilEnderecos = dados.enderecos || [];
         this.perfilCartoes = dados.cartoes || [];
-
         if (this.usuario) {
           localStorage.setItem('clienteLogado', JSON.stringify(this.usuario));
           this.authService.atualizarUsuario(this.usuario);
         }
-
         this.cdr.detectChanges();
       } else {
         this.messageService.add({severity:'error', summary:'Erro', detail:'Erro ao carregar perfil'});
@@ -115,26 +178,28 @@ export class PerfilModalComponent implements OnInit {
       this.cdr.detectChanges();
     }
   }
-
-  editarDados(): void {
-    this.displayEditarPerfil = true;
-  }
-
-  async salvarDados(): Promise<void> {
-    if (this.carregandoSalvarPerfil) return;
-    this.carregandoSalvarPerfil = true;
-    try {
+    editarDados(): void {
+      this.cpfValidacaoId++;
+      this.cpfTocado = false;
+      this.cpfErro = '';
+      this.validandoCpf = false;
+      this.cpfVerificado = null;
+      this.displayEditarPerfil = true;
+    }
+    async salvarDados(): Promise<void> {
+      if (this.carregandoSalvarPerfil || this.validandoCpf) return;
+      this.carregandoSalvarPerfil = true;
+      try {
+    if (!(await this.verificarCPF())) return;
       if (!this.usuario) {
         this.carregandoSalvarPerfil = false;
         return;
       }
       const token = this.authService.getToken();
       const usuarioAntigo = { ...this.usuario };
-
       const dadosParaEnviar = { ...this.usuario };
       delete dadosParaEnviar.senha;
-
-      const response = await fetch(`${environment.apiUrl}/clientes/${this.usuario.id}`, {
+      const response = await this.clienteService.atualizar(this.usuario.id, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -142,17 +207,15 @@ export class PerfilModalComponent implements OnInit {
         },
         body: JSON.stringify(dadosParaEnviar)
       });
-
       if (response.ok) {
         const camposAlterados = [];
         if (usuarioAntigo.nome !== this.usuario.nome) camposAlterados.push('Nome');
         if (usuarioAntigo.email !== this.usuario.email) camposAlterados.push('E-mail');
         if (usuarioAntigo.cpf !== this.usuario.cpf) camposAlterados.push('CPF');
         if (usuarioAntigo.nascimento !== this.usuario.nascimento) camposAlterados.push('Data de Nascimento');
-        if (usuarioAntigo.genero !== this.usuario.genero) camposAlterados.push('Gênero');
+        if (usuarioAntigo.genero !== this.usuario.genero) camposAlterados.push('GÃªnero');
         if (usuarioAntigo.telefone !== this.usuario.telefone) camposAlterados.push('Telefone');
         if (usuarioAntigo.tipotelefone !== this.usuario.tipotelefone) camposAlterados.push('Tipo de Telefone');
-
         this.messageService.add({severity:'success', summary:'Sucesso', detail:'Dados atualizados!'});
         if (camposAlterados.length > 0) {
           this.authService.adicionarNotificacao(
@@ -166,9 +229,7 @@ export class PerfilModalComponent implements OnInit {
         this.displayEditarPerfil = false;
         await this.carregarDadosPerfil();
         localStorage.setItem('clienteLogado', JSON.stringify(this.usuario));
-
         this.authService.atualizarUsuario(this.usuario);
-
         setTimeout(() => {
           const user = JSON.parse(localStorage.getItem('clienteLogado') || 'null');
           const header = document.querySelector('app-header') as any;
@@ -177,7 +238,18 @@ export class PerfilModalComponent implements OnInit {
           }
         }, 100);
       } else {
-        this.messageService.add({severity:'error', summary:'Erro', detail:'Erro ao atualizar dados'});
+        const mensagem = await response.text();
+        if (response.status === 400 && mensagem.toLowerCase().includes('cpf')) {
+          this.cpfErro = mensagem;
+          this.cpfTocado = true;
+          this.cpfVerificado = null;
+        } else {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Erro',
+            detail: 'Erro ao atualizar dados'
+          });
+        }
       }
     } catch (error) {
       this.messageService.add({severity:'error', summary:'Erro', detail:'Erro ao conectar ao servidor'});
@@ -186,13 +258,38 @@ export class PerfilModalComponent implements OnInit {
     }
   }
 
+get pendenciasPerfil(): string[] {
+  if (!this.usuario || this.loading) return [];
+
+  return this.authService.obterPendenciasPerfil({
+    ...this.usuario,
+    enderecos: this.perfilEnderecos,
+    cartoes: this.perfilCartoes
+  });
+}
+
+get perfilIncompleto(): boolean {
+  return this.pendenciasPerfil.length > 0;
+}
+
+get mensagemPendenciasPerfil(): string {
+  const pendencias = this.pendenciasPerfil;
+
+  if (pendencias.length === 0) return '';
+
+  const campos = pendencias.length === 1
+    ? pendencias[0]
+    : pendencias.slice(0, -1).join(', ') +
+      ' e ' + pendencias[pendencias.length - 1];
+
+  return `Cadastre ${campos} para realizar suas compras.`;
+}
+
   alterarSenha(): void {
     this.novaSenha = '';
     this.confirmarSenha = '';
     this.displayAlterarSenha = true;
   }
-
-
   async salvarSenha(): Promise<void> {
     if (this.carregandoSalvarSenha) return;
     this.carregandoSalvarSenha = true;
@@ -202,15 +299,13 @@ export class PerfilModalComponent implements OnInit {
         this.carregandoSalvarSenha = false;
         return;
       }
-
       if (this.novaSenha !== this.confirmarSenha) {
-        this.messageService.add({severity:'error', summary:'Erro', detail:'As senhas não conferem'});
+        this.messageService.add({severity:'error', summary:'Erro', detail:'As senhas nÃ£o conferem'});
         this.carregandoSalvarSenha = false;
         return;
       }
-
       const token = this.authService.getToken();
-      const response = await fetch(`${environment.apiUrl}/clientes/${this.usuario.id}/change-password`, {
+      const response = await this.clienteService.alterarSenha(this.usuario.id, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -218,7 +313,6 @@ export class PerfilModalComponent implements OnInit {
         },
         body: JSON.stringify({ senha: this.novaSenha, confirmacaoSenha: this.confirmarSenha })
       });
-
       if (response.ok) {
         this.messageService.add({severity:'success', summary:'Sucesso', detail:'Senha alterada!'});
         this.authService.adicionarNotificacao('Senha Alterada', 'Sua senha foi alterada com sucesso!', 'success');
@@ -235,7 +329,6 @@ export class PerfilModalComponent implements OnInit {
       this.carregandoSalvarSenha = false;
     }
   }
-
   private atualizarSenhaSalva(novaSenha: string): void {
     const REMEMBER_KEY = 'login_remember';
     const dados = localStorage.getItem(REMEMBER_KEY);
@@ -244,13 +337,11 @@ export class PerfilModalComponent implements OnInit {
         const parsed = JSON.parse(dados);
         parsed.senha = novaSenha;
         localStorage.setItem(REMEMBER_KEY, JSON.stringify(parsed));
-        console.log('Senha salva no "Lembrar-me" atualizada com sucesso!');
       } catch (e) {
         console.error('Erro ao atualizar senha salva:', e);
       }
     }
   }
-
   getTelefonePlaceholder(): string {
     if (!this.usuario) {
       return '(00) 0000-0000';
@@ -261,7 +352,6 @@ export class PerfilModalComponent implements OnInit {
     }
     return '(00) 0000-0000';
   }
-
   getTelefoneIcon(tipo: string): string {
     const icons: any = {
       'CELULAR': 'pi pi-mobile',
@@ -270,37 +360,14 @@ export class PerfilModalComponent implements OnInit {
     };
     return icons[tipo] || 'pi pi-phone';
   }
-
   onTipoTelefoneChange(): void {
     if (this.usuario?.telefone) {
       this.usuario.telefone = '';
     }
   }
 
-  formatarTelefone(event: any): void {
-    let valor = event.target.value.replace(/\D/g, '');
-    const tipo = this.usuario?.tipotelefone;
-
-    if (tipo === 'CELULAR') {
-      if (valor.length > 11) valor = valor.slice(0, 11);
-      if (valor.length === 11) {
-        valor = valor.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-      } else if (valor.length >= 2) {
-        valor = valor.replace(/(\d{2})(\d{0,5})/, '($1) $2');
-      }
-    } else {
-      if (valor.length > 10) valor = valor.slice(0, 10);
-      if (valor.length === 10) {
-        valor = valor.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-      } else if (valor.length >= 2) {
-        valor = valor.replace(/(\d{2})(\d{0,4})/, '($1) $2');
-      }
-    }
-
-    event.target.value = valor;
-  }
-
   adicionarEndereco(): void {
+    this.resetarConsultaCep();
     this.enderecoEditando = {
       nomeEndereco: '',
       rua: '',
@@ -316,23 +383,22 @@ export class PerfilModalComponent implements OnInit {
     };
     this.displayEditarEndereco = true;
   }
-
   async editarEndereco(endereco: any): Promise<void> {
+    this.resetarConsultaCep();
     this.enderecoEditando = { ...endereco };
+    this.enderecoEditando.cep = (endereco.cep || '').replace(/\D/g, '').replace(/^(\d{5})(\d)/, '$1-$2');
     this.displayEditarEndereco = true;
   }
-
   async salvarEndereco(): Promise<void> {
-    if (this.carregandoSalvarEndereco) return;
+    if (this.carregandoSalvarEndereco || this.buscandoCep || this.cepErro || !this.cepCompleto) return;
     this.carregandoSalvarEndereco = true;
     try {
       if (!this.enderecoEditando.rua || !this.enderecoEditando.numero || !this.enderecoEditando.bairro ||
           !this.enderecoEditando.cidade || !this.enderecoEditando.estado || !this.enderecoEditando.cep) {
-        this.messageService.add({severity:'error', summary:'Erro', detail:'Preencha todos os campos obrigatórios'});
+        this.messageService.add({severity:'error', summary:'Erro', detail:'Preencha todos os campos obrigatÃ³rios'});
         this.carregandoSalvarEndereco = false;
         return;
       }
-
       const token = this.authService.getToken();
       const enderecoAntigo = this.enderecoEditando.id ? { ...this.enderecoEditando } : null;
       const endereco = {
@@ -341,58 +407,48 @@ export class PerfilModalComponent implements OnInit {
         cep: this.enderecoEditando.cep.replace(/\D/g, ''),
         pais: 'Brasil'
       };
-
-      const url = this.enderecoEditando.id
-        ? `${environment.apiUrl}/enderecos/${this.enderecoEditando.id}`
-        : `${environment.apiUrl}/enderecos`;
-      const method = this.enderecoEditando.id ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method: method,
+      const response = await this.enderecoService.salvar(this.enderecoEditando.id, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + token
         },
         body: JSON.stringify(endereco)
       });
-
       if (response.ok) {
-        const mensagem = this.enderecoEditando.id ? 'Endereço atualizado!' : 'Endereço adicionado!';
+        const mensagem = this.enderecoEditando.id ? 'EndereÃ§o atualizado!' : 'EndereÃ§o adicionado!';
         this.messageService.add({severity:'success', summary:'Sucesso', detail: mensagem});
-
         if (this.enderecoEditando.id) {
           const camposEndereco = [];
           if (enderecoAntigo.rua !== this.enderecoEditando.rua) camposEndereco.push('Rua');
-          if (enderecoAntigo.numero !== this.enderecoEditando.numero) camposEndereco.push('Número');
+          if (enderecoAntigo.numero !== this.enderecoEditando.numero) camposEndereco.push('NÃºmero');
           if (enderecoAntigo.bairro !== this.enderecoEditando.bairro) camposEndereco.push('Bairro');
           if (enderecoAntigo.cidade !== this.enderecoEditando.cidade) camposEndereco.push('Cidade');
           if (enderecoAntigo.estado !== this.enderecoEditando.estado) camposEndereco.push('Estado');
           if (enderecoAntigo.cep !== this.enderecoEditando.cep) camposEndereco.push('CEP');
-
           if (camposEndereco.length > 0) {
             this.authService.adicionarNotificacao(
-              'Endereço Atualizado',
-              `Endereço "${this.enderecoEditando.nomeEndereco || 'sem nome'}" - Campos alterados: ${camposEndereco.join(', ')}`,
+              'EndereÃ§o Atualizado',
+              `EndereÃ§o "${this.enderecoEditando.nomeEndereco || 'sem nome'}" - Campos alterados: ${camposEndereco.join(', ')}`,
               'success'
             );
           } else {
             this.authService.adicionarNotificacao(
-              'Endereço Atualizado',
-              `Endereço "${this.enderecoEditando.nomeEndereco || 'sem nome'}" foi atualizado!`,
+              'EndereÃ§o Atualizado',
+              `EndereÃ§o "${this.enderecoEditando.nomeEndereco || 'sem nome'}" foi atualizado!`,
               'success'
             );
           }
         } else {
           this.authService.adicionarNotificacao(
-            'Endereço Adicionado',
-            `Novo endereço "${this.enderecoEditando.nomeEndereco || 'sem nome'}" foi adicionado!`,
+            'EndereÃ§o Adicionado',
+            `Novo endereÃ§o "${this.enderecoEditando.nomeEndereco || 'sem nome'}" foi adicionado!`,
             'success'
           );
         }
         this.displayEditarEndereco = false;
         await this.carregarDadosPerfil();
       } else {
-        this.messageService.add({severity:'error', summary:'Erro', detail:'Erro ao salvar endereço'});
+        this.messageService.add({severity:'error', summary:'Erro', detail:'Erro ao salvar endereÃ§o'});
       }
     } catch (error) {
       this.messageService.add({severity:'error', summary:'Erro', detail:'Erro ao conectar ao servidor'});
@@ -400,7 +456,6 @@ export class PerfilModalComponent implements OnInit {
       this.carregandoSalvarEndereco = false;
     }
   }
-
   adicionarCartao(): void {
     this.cartaoEditando = {
       nomeCartao: '',
@@ -413,23 +468,20 @@ export class PerfilModalComponent implements OnInit {
     };
     this.displayEditarCartao = true;
   }
-
   async editarCartao(cartao: any): Promise<void> {
     this.cartaoEditando = { ...cartao };
     this.displayEditarCartao = true;
   }
-
   async salvarCartao(): Promise<void> {
     if (this.carregandoSalvarCartao) return;
     this.carregandoSalvarCartao = true;
     try {
       if (!this.cartaoEditando.numero || !this.cartaoEditando.nomeTitular || !this.cartaoEditando.bandeira ||
           !this.cartaoEditando.cvv || !this.cartaoEditando.dataValidade) {
-        this.messageService.add({severity:'error', summary:'Erro', detail:'Preencha todos os campos obrigatórios'});
+        this.messageService.add({severity:'error', summary:'Erro', detail:'Preencha todos os campos obrigatÃ³rios'});
         this.carregandoSalvarCartao = false;
         return;
       }
-
       const token = this.authService.getToken();
       const cartaoAntigo = this.cartaoEditando.id ? { ...this.cartaoEditando } : null;
       const cartao = {
@@ -440,56 +492,46 @@ export class PerfilModalComponent implements OnInit {
         dataValidade: this.cartaoEditando.dataValidade,
         preferencial: this.cartaoEditando.preferencial || false
       };
-
-      const url = this.cartaoEditando.id
-        ? `${environment.apiUrl}/clientes/${this.usuario.id}/cartoes/${this.cartaoEditando.id}`
-        : `${environment.apiUrl}/clientes/${this.usuario.id}/cartoes`;
-      const method = this.cartaoEditando.id ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method: method,
+      const response = await this.clienteService.salvarCartao(this.usuario.id, this.cartaoEditando.id, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + token
         },
         body: JSON.stringify(cartao)
       });
-
       if (response.ok) {
-        const mensagem = this.cartaoEditando.id ? 'Cartão atualizado!' : 'Cartão adicionado!';
+        const mensagem = this.cartaoEditando.id ? 'CartÃ£o atualizado!' : 'CartÃ£o adicionado!';
         this.messageService.add({severity:'success', summary:'Sucesso', detail: mensagem});
-
         if (this.cartaoEditando.id) {
           const camposCartao = [];
           if (cartaoAntigo.bandeira !== this.cartaoEditando.bandeira) camposCartao.push('Bandeira');
           if (cartaoAntigo.nomeTitular !== this.cartaoEditando.nomeTitular) camposCartao.push('Nome do Titular');
           if (cartaoAntigo.dataValidade !== this.cartaoEditando.dataValidade) camposCartao.push('Data de Validade');
           if (cartaoAntigo.preferencial !== this.cartaoEditando.preferencial) camposCartao.push('Preferencial');
-
           if (camposCartao.length > 0) {
             this.authService.adicionarNotificacao(
-              'Cartão Atualizado',
-              `Cartão ${this.cartaoEditando.bandeira} - Campos alterados: ${camposCartao.join(', ')}`,
+              'CartÃ£o Atualizado',
+              `CartÃ£o ${this.cartaoEditando.bandeira} - Campos alterados: ${camposCartao.join(', ')}`,
               'success'
             );
           } else {
             this.authService.adicionarNotificacao(
-              'Cartão Atualizado',
-              `Cartão ${this.cartaoEditando.bandeira} foi atualizado!`,
+              'CartÃ£o Atualizado',
+              `CartÃ£o ${this.cartaoEditando.bandeira} foi atualizado!`,
               'success'
             );
           }
         } else {
           this.authService.adicionarNotificacao(
-            'Cartão Adicionado',
-            `Novo cartão ${this.cartaoEditando.bandeira} foi adicionado!`,
+            'CartÃ£o Adicionado',
+            `Novo cartÃ£o ${this.cartaoEditando.bandeira} foi adicionado!`,
             'success'
           );
         }
         this.displayEditarCartao = false;
         await this.carregarDadosPerfil();
       } else {
-        this.messageService.add({severity:'error', summary:'Erro', detail:'Erro ao salvar cartão'});
+        this.messageService.add({severity:'error', summary:'Erro', detail:'Erro ao salvar cartÃ£o'});
       }
     } catch (error) {
       this.messageService.add({severity:'error', summary:'Erro', detail:'Erro ao conectar ao servidor'});
@@ -497,12 +539,10 @@ export class PerfilModalComponent implements OnInit {
       this.carregandoSalvarCartao = false;
     }
   }
-
   confirmarExclusao(tipo: string, id: number): void {
     this.itemParaExcluir = { tipo, id };
     this.displayConfirmarExclusao = true;
   }
-
   async executarExclusao(): Promise<void> {
     if (this.carregandoExcluir) return;
     this.carregandoExcluir = true;
@@ -512,32 +552,36 @@ export class PerfilModalComponent implements OnInit {
         this.carregandoExcluir = false;
         return;
       }
-
       const token = this.authService.getToken();
-      let url = '';
       let nomeItem = '';
       if (item.tipo === 'endereco') {
         const endereco = this.perfilEnderecos.find(e => e.id === item.id);
-        nomeItem = endereco?.nomeEndereco || 'Endereço';
-        url = `${environment.apiUrl}/enderecos/${item.id}`;
+        nomeItem = endereco?.nomeEndereco || 'EndereÃ§o';
       } else if (item.tipo === 'cartao') {
         const cartao = this.perfilCartoes.find(c => c.id === item.id);
-        nomeItem = cartao?.bandeira || 'Cartão';
-        url = `${environment.apiUrl}/clientes/${this.usuario.id}/cartoes/${item.id}`;
+        nomeItem = cartao?.bandeira || 'CartÃ£o';
       }
-
-      const response = await fetch(url, {
+      const opcoes: RequestInit = {
         method: 'DELETE',
         headers: {
-          'Authorization': 'Bearer ' + token
+          Authorization: 'Bearer ' + token
         }
-      });
+      };
 
+      if (item.tipo !== 'endereco' && item.tipo !== 'cartao') {
+        throw new Error('Tipo de item inválido');
+      }
+
+      const response = await (
+        item.tipo === 'endereco'
+          ? this.enderecoService.excluir(item.id, opcoes)
+          : this.clienteService.excluirCartao(this.usuario.id, item.id, opcoes)
+      );
       if (response.ok) {
-        const tipoNome = item.tipo === 'endereco' ? 'Endereço' : 'Cartão';
-        this.messageService.add({severity:'success', summary:'Sucesso', detail: `${tipoNome} excluído!`});
+        const tipoNome = item.tipo === 'endereco' ? 'EndereÃ§o' : 'CartÃ£o';
+        this.messageService.add({severity:'success', summary:'Sucesso', detail: `${tipoNome} excluÃ­do!`});
         this.authService.adicionarNotificacao(
-          `${tipoNome} Excluído`,
+          `${tipoNome} ExcluÃ­do`,
           `${tipoNome} "${nomeItem}" foi removido do seu perfil.`,
           'warning'
         );
@@ -545,7 +589,7 @@ export class PerfilModalComponent implements OnInit {
         this.itemParaExcluir = null;
         await this.carregarDadosPerfil();
       } else {
-        this.messageService.add({severity:'error', summary:'Erro', detail: `Erro ao excluir ${item.tipo === 'endereco' ? 'endereço' : 'cartão'}`});
+        this.messageService.add({severity:'error', summary:'Erro', detail: `Erro ao excluir ${item.tipo === 'endereco' ? 'endereÃ§o' : 'cartÃ£o'}`});
       }
     } catch (error) {
       this.messageService.add({severity:'error', summary:'Erro', detail:'Erro ao conectar ao servidor'});
@@ -553,59 +597,160 @@ export class PerfilModalComponent implements OnInit {
       this.carregandoExcluir = false;
     }
   }
-
-  formatarCPF(event: any): void {
-    let valor = event.target.value.replace(/\D/g, '');
-    if (valor.length > 11) valor = valor.slice(0, 11);
-    valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
-    valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
-    valor = valor.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-    event.target.value = valor;
-  }
-
-  formatarCEP(event: any): void {
-    let valor = event.target.value.replace(/\D/g, '');
-    if (valor.length > 8) valor = valor.slice(0, 8);
-    if (valor.length === 8) {
-      valor = valor.replace(/(\d{5})(\d{3})/, '$1-$2');
+    atualizarCpfFormatado(valor: string): void {
+      this.usuario.cpf = valor;
+      this.cpfValidacaoId++;
+      this.cpfVerificado = null;
+      this.validandoCpf = false;
+      this.cpfErro = '';
+      if (this.cpfTocado && !this.validarCPF(valor)) {
+        this.cpfErro = 'Informe um CPF vÃ¡lido.';
+      }
     }
-    event.target.value = valor;
+    validarCPF(cpf: string): boolean {
+        if (!cpf || !cpf.trim()) return true;
+        cpf = cpf.replace(/\D/g, '');
+        if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) {
+          return false;
+        }
+        for (let i = 9; i < 11; i++) {
+          let soma = 0;
+          for (let j = 0; j < i; j++) {
+            soma += Number(cpf[j]) * (i + 1 - j);
+          }
+          let digito = (soma * 10) % 11;
+          if (digito === 10) digito = 0;
+          if (digito !== Number(cpf[i])) {
+            return false;
+          }
+        }
+        return true;
+      }
+      async verificarCPF(): Promise<boolean> {
+  const validacaoId = ++this.cpfValidacaoId;
+  this.cpfTocado = true;
+  this.cpfErro = '';
+  this.cpfVerificado = null;
+  this.validandoCpf = false;
+  const cpf = this.usuario?.cpf?.trim() || '';
+  if (!cpf) {
+    this.cpfVerificado = '';
+    return true;
+  }
+  if (!this.validarCPF(cpf)) {
+    this.cpfErro = 'Informe um CPF vÃ¡lido.';
+    return false;
+  }
+  this.validandoCpf = true;
+  try {
+    const token = this.authService.getToken();
+    const response = await this.clienteService.validarCpf(this.usuario.id, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ cpf })
+      });
+    const dados = await response.json().catch(() => ({}));
+    if (validacaoId !== this.cpfValidacaoId) {
+      return false;
+    }
+    if (!response.ok || !dados.valido) {
+      this.cpfErro = dados.message || 'NÃ£o foi possÃ­vel verificar o CPF.';
+      return false;
+    }
+    this.cpfVerificado = cpf.replace(/\D/g, '');
+    return true;
+  } catch {
+    if (validacaoId === this.cpfValidacaoId) {
+      this.cpfErro = 'NÃ£o foi possÃ­vel verificar o CPF.';
+    }
+    return false;
+  } finally {
+    if (validacaoId === this.cpfValidacaoId) {
+      this.validandoCpf = false;
+      this.cdr.detectChanges();
+    }
+  }
+}
+  atualizarCepFormatado(valor: string): void {
+    const cep = valor.replace(/\D/g, '');
+    const anterior = (this.enderecoEditando.cep || '').replace(/\D/g, '');
+this.enderecoEditando.cep = valor;
+    if (cep === anterior) return;
+    this.resetarConsultaCep();
+    this.enderecoEditando.rua = '';
+    this.enderecoEditando.bairro = '';
+    this.enderecoEditando.cidade = '';
+    this.enderecoEditando.estado = '';
+    if (cep.length === 8) void this.buscarCEP(cep);
   }
 
-  formatarNumeroCartao(event: any): void {
-    let valor = event.target.value.replace(/\D/g, '');
-    if (valor.length > 16) valor = valor.slice(0, 16);
-    valor = valor.replace(/(\d{4})/g, '$1 ').trim();
-    event.target.value = valor;
-  }
-
-  formatarCVV(event: any): void {
-    event.target.value = event.target.value.replace(/\D/g, '').slice(0, 4);
-  }
-
-  formatarValidadeCartao(event: any): void {
-    let valor = event.target.value.replace(/\D/g, '');
-    if (valor.length > 6) valor = valor.slice(0, 6);
-    if (valor.length >= 2) {
-      const mes = valor.slice(0, 2);
-      const ano = valor.slice(2);
-      if (parseInt(mes) > 12) {
-        event.target.value = '12/' + ano;
-      } else {
-        event.target.value = valor.replace(/(\d{2})(\d{0,4})/, '$1/$2');
+  async buscarCEP(cep: string): Promise<void> {
+    const consultaId = ++this.consultaCepId;
+    this.buscandoCep = true;
+    this.cepErro = '';
+    this.cepEncontrado = false;
+    try {
+      const response = await this.cepService.consultar(cep, {
+        signal: AbortSignal.timeout(10000)
+      });
+      if (!response.ok) throw new Error('Erro ao consultar CEP');
+      const dados = await response.json();
+      if (consultaId !== this.consultaCepId || !this.displayEditarEndereco) return;
+      if (dados.erro) {
+        this.cepErro = 'CEP nÃ£o encontrado.';
+        return;
+      }
+      this.enderecoEditando.rua = dados.logradouro || '';
+      this.enderecoEditando.bairro = dados.bairro || '';
+      this.enderecoEditando.cidade = dados.localidade || '';
+      this.enderecoEditando.estado = dados.uf || '';
+      this.enderecoEditando.pais = 'Brasil';
+      this.cepEncontrado = true;
+    } catch {
+      if (consultaId === this.consultaCepId && this.displayEditarEndereco) {
+        this.cepErro = 'NÃ£o foi possÃ­vel consultar o CEP. Tente novamente.';
+      }
+    } finally {
+      if (consultaId === this.consultaCepId) {
+        this.buscandoCep = false;
+        this.cdr.detectChanges();
       }
     }
   }
+
+  verificarCepAoSair(): void {
+    const cep = (this.enderecoEditando?.cep || '').replace(/\D/g, '');
+    if (!cep) this.cepErro = 'Informe o CEP.';
+    else if (cep.length !== 8) this.cepErro = 'Informe um CEP vÃ¡lido.';
+  }
+
+  private resetarConsultaCep(): void {
+    this.consultaCepId++;
+    this.buscandoCep = false;
+    this.cepEncontrado = false;
+    this.cepErro = '';
+  }
+
+  fecharEndereco(): void {
+    if (this.carregandoSalvarEndereco) return;
+    this.resetarConsultaCep();
+    this.displayEditarEndereco = false;
+  }
+
+
+
 
   getGeneroLabel(genero: string): string {
     const labels: any = {
       'MASCULINO': 'Masculino',
       'FEMININO': 'Feminino',
-      'PREFIRO_NAO_INFORMAR': 'Prefiro não informar'
+      'PREFIRO_NAO_INFORMAR': 'Prefiro nÃ£o informar'
     };
     return labels[genero] || genero;
   }
-
   getTipoTelefoneLabel(tipo: string): string {
     const labels: any = {
       'RESIDENCIAL': 'Residencial',
@@ -614,17 +759,15 @@ export class PerfilModalComponent implements OnInit {
     };
     return labels[tipo] || tipo;
   }
-
   cancelarExclusao(): void {
     this.displayConfirmarExclusao = false;
     this.itemParaExcluir = null;
   }
-
   getEnderecoIcon(tipo: string): string {
     return tipo === 'COBRANCA' ? 'pi pi-credit-card' : 'pi pi-truck';
   }
-
   getEnderecoLabel(tipo: string): string {
-    return tipo === 'COBRANCA' ? 'Cobrança' : 'Entrega';
+    return tipo === 'COBRANCA' ? 'CobranÃ§a' : 'Entrega';
   }
 }
+
